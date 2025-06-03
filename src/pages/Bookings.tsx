@@ -1,4 +1,3 @@
-
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,7 +58,7 @@ const getStatusColor = (status: string) => {
 
 const Bookings = () => {
   return (
-    <Layout currentPath="/bookings">
+    <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>

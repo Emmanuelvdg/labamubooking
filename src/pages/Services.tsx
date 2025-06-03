@@ -1,4 +1,3 @@
-
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +60,7 @@ const Services = () => {
   const categories = [...new Set(mockServices.map(service => service.category))];
 
   return (
-    <Layout currentPath="/services">
+    <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>

@@ -1,4 +1,3 @@
-
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,7 @@ const mockStaff = [
 
 const Staff = () => {
   return (
-    <Layout currentPath="/staff">
+    <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
