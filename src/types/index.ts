@@ -23,6 +23,7 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
+  avatar?: string;
 }
 
 export interface Service {

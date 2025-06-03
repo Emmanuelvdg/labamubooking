@@ -63,7 +63,7 @@ const Dashboard = () => {
           />
           <StatsCard
             title="Total Customers"
-            value={1,247}
+            value="1,247"
             icon={Users}
             trend={{ value: 12, isPositive: true }}
           />
