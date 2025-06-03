@@ -1,125 +1,121 @@
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Calendar, Users, BarChart3, Clock, Zap } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Calendar, Users, Settings, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
-  const features = [
-    {
-      icon: Calendar,
-      title: 'Smart Scheduling',
-      description: 'Intelligent booking system that prevents double-bookings and optimizes staff time.'
-    },
-    {
-      icon: Users,
-      title: 'Customer Management',
-      description: 'Comprehensive customer profiles with booking history and preferences.'
-    },
-    {
-      icon: BarChart3,
-      title: 'Business Analytics',
-      description: 'Real-time insights into revenue, popular services, and staff performance.'
-    },
-    {
-      icon: Clock,
-      title: 'Staff Scheduling',
-      description: 'Efficient staff assignment and availability management for optimal service delivery.'
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <div className="flex items-center justify-center mb-6">
-            <Building2 className="h-16 w-16 text-blue-600" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center">
+              <Building2 className="h-8 w-8 text-blue-600" />
+              <h1 className="ml-2 text-2xl font-bold text-gray-900">BookingPro</h1>
+            </div>
+            <div className="flex space-x-4">
+              <Button variant="outline" asChild>
+                <Link to="/auth">Sign In</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/tenant/create">Get Started</Link>
+              </Button>
+            </div>
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            BookingPro
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center">
+          <Badge variant="secondary" className="mb-4">
+            Multi-Tenant Booking Platform
+          </Badge>
+          <h1 className="text-4xl font-bold text-gray-900 sm:text-6xl mb-6">
+            Streamline Your Service Business
           </h1>
-          <p className="text-2xl text-gray-600 mb-4">
-            The Complete Booking & Reservation Management Platform
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Manage appointments, staff schedules, and customer relationships all in one powerful platform. 
+            Perfect for salons, spas, clinics, and service-based businesses.
           </p>
-          <p className="text-xl text-gray-500 mb-8 max-w-3xl mx-auto">
-            Streamline your service business with intelligent scheduling, staff management, 
-            and customer relationship tools. Built for salons, spas, clinics, and service professionals.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4"
-              onClick={() => window.location.href = '/tenant/create'}
-            >
-              <Zap className="mr-2 h-5 w-5" />
-              Start Free Trial
+          <div className="flex justify-center space-x-4">
+            <Button size="lg" asChild>
+              <Link to="/tenant/create">Start Free Trial</Link>
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="text-lg px-8 py-4"
-              onClick={() => window.location.href = '/dashboard'}
-            >
-              View Demo
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/auth">View Demo</Link>
             </Button>
           </div>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {features.map((feature, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
-              <CardHeader className="text-center">
-                <feature.icon className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <CardTitle className="text-xl">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 text-center">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <Card>
+            <CardHeader>
+              <Calendar className="h-8 w-8 text-blue-600 mb-2" />
+              <CardTitle>Smart Scheduling</CardTitle>
+              <CardDescription>
+                Intelligent appointment booking with conflict detection and automated reminders
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Users className="h-8 w-8 text-green-600 mb-2" />
+              <CardTitle>Staff Management</CardTitle>
+              <CardDescription>
+                Manage staff schedules, availability, and service assignments effortlessly
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <BarChart3 className="h-8 w-8 text-purple-600 mb-2" />
+              <CardTitle>Analytics & Reports</CardTitle>
+              <CardDescription>
+                Track performance, revenue, and customer insights with detailed reporting
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Settings className="h-8 w-8 text-orange-600 mb-2" />
+              <CardTitle>Multi-Tenant</CardTitle>
+              <CardDescription>
+                Secure, isolated environments for each business with custom branding
+              </CardDescription>
+            </CardHeader>
+          </Card>
         </div>
 
-        {/* Benefits Section */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-16">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
-            Why Service Businesses Choose BookingPro
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">98%</div>
-              <div className="text-gray-600">Customer Satisfaction</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-green-600 mb-2">35%</div>
-              <div className="text-gray-600">Increase in Bookings</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-600 mb-2">50%</div>
-              <div className="text-gray-600">Time Saved on Admin</div>
-            </div>
-          </div>
+        {/* Demo Section */}
+        <div className="mt-20">
+          <Card className="bg-white">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Ready to Get Started?</CardTitle>
+              <CardDescription>
+                Join thousands of service businesses already using BookingPro
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <div className="flex justify-center space-x-4">
+                <Button size="lg" asChild>
+                  <Link to="/tenant/create">Create Your Business</Link>
+                </Button>
+                <Button variant="outline" size="lg" asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-12 text-white">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Transform Your Business?
-          </h2>
-          <p className="text-xl mb-6 opacity-90">
-            Join thousands of service businesses already using BookingPro
-          </p>
-          <Button 
-            size="lg" 
-            variant="secondary"
-            className="text-lg px-8 py-4"
-            onClick={() => window.location.href = '/tenant/create'}
-          >
-            Get Started Today - It's Free!
-          </Button>
-        </div>
-      </div>
+      </main>
     </div>
   );
 };
