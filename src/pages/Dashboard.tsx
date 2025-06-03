@@ -1,4 +1,3 @@
-
 import { Layout } from '@/components/layout/Layout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { BookingCard } from '@/components/bookings/BookingCard';
@@ -39,7 +38,7 @@ const mockBookings: Booking[] = [
 
 const Dashboard = () => {
   return (
-    <Layout tenantName="Bella Vista Spa" currentPath="/dashboard">
+    <Layout tenantName="Bella Vista Spa">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

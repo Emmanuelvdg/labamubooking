@@ -1,4 +1,3 @@
-
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ import { Save, Bell, Users, Calendar, CreditCard } from 'lucide-react';
 
 const Settings = () => {
   return (
-    <Layout currentPath="/settings">
+    <Layout>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>

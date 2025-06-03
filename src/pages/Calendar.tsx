@@ -32,7 +32,7 @@ const Calendar = () => {
   }
 
   return (
-    <Layout currentPath="/calendar">
+    <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
