@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Link, useLocation } from 'react-router-dom';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
@@ -21,11 +22,9 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-interface SidebarProps {
-  currentPath?: string;
-}
+export const Sidebar = () => {
+  const location = useLocation();
 
-export const Sidebar = ({ currentPath = '/dashboard' }: SidebarProps) => {
   return (
     <div className="bg-slate-900 text-white w-64 min-h-screen p-4">
       <div className="mb-8">
@@ -35,21 +34,22 @@ export const Sidebar = ({ currentPath = '/dashboard' }: SidebarProps) => {
       
       <nav className="space-y-2">
         {navigation.map((item) => {
-          const isActive = currentPath === item.href;
+          const isActive = location.pathname === item.href;
           return (
-            <Button
-              key={item.name}
-              variant={isActive ? "secondary" : "ghost"}
-              className={cn(
-                "w-full justify-start text-left",
-                isActive 
-                  ? "bg-slate-800 text-white" 
-                  : "text-slate-300 hover:text-white hover:bg-slate-800"
-              )}
-            >
-              <item.icon className="mr-3 h-4 w-4" />
-              {item.name}
-            </Button>
+            <Link key={item.name} to={item.href}>
+              <Button
+                variant={isActive ? "secondary" : "ghost"}
+                className={cn(
+                  "w-full justify-start text-left",
+                  isActive 
+                    ? "bg-slate-800 text-white" 
+                    : "text-slate-300 hover:text-white hover:bg-slate-800"
+                )}
+              >
+                <item.icon className="mr-3 h-4 w-4" />
+                {item.name}
+              </Button>
+            </Link>
           );
         })}
       </nav>
