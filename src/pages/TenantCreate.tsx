@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,8 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Building2, ArrowRight } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const TenantCreate = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState({
     businessName: '',
     businessType: '',
@@ -32,10 +38,48 @@ const TenantCreate = () => {
     'Other'
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating tenant:', formData);
-    // Here you would typically send the data to your backend
+    
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    
+    // Validate required fields
+    if (!formData.businessName || !formData.businessType || !formData.ownerName || !formData.email) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields marked with *",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Creating tenant:', formData);
+      
+      // Simulate API call - replace with actual API call when backend is ready
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Business Created Successfully!",
+        description: "Welcome to BookingPro. Let's set up your dashboard.",
+      });
+      
+      // Navigate to dashboard after successful creation
+      navigate('/dashboard');
+      
+    } catch (error) {
+      console.error('Error creating tenant:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create business. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -68,11 +112,16 @@ const TenantCreate = () => {
                     onChange={(e) => handleInputChange('businessName', e.target.value)}
                     placeholder="Bella Vista Spa"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
                   <Label htmlFor="businessType">Business Type *</Label>
-                  <Select onValueChange={(value) => handleInputChange('businessType', value)}>
+                  <Select 
+                    onValueChange={(value) => handleInputChange('businessType', value)}
+                    disabled={isSubmitting}
+                    value={formData.businessType}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select business type" />
                     </SelectTrigger>
@@ -95,6 +144,7 @@ const TenantCreate = () => {
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Describe your services and what makes your business special..."
                   rows={3}
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -107,6 +157,7 @@ const TenantCreate = () => {
                     onChange={(e) => handleInputChange('ownerName', e.target.value)}
                     placeholder="John Smith"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -118,6 +169,7 @@ const TenantCreate = () => {
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="john@bellavistaspa.com"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -129,12 +181,23 @@ const TenantCreate = () => {
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="+1 (555) 123-4567"
+                  disabled={isSubmitting}
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-3">
-                Create Business & Continue
-                <ArrowRight className="ml-2 h-5 w-5" />
+              <Button 
+                type="submit" 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-3"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  "Creating Business..."
+                ) : (
+                  <>
+                    Create Business & Continue
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
