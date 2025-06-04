@@ -15,7 +15,16 @@ export const useServices = (tenantId: string) => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Service[];
+      
+      // Transform snake_case to camelCase
+      return data.map(service => ({
+        id: service.id,
+        tenantId: service.tenant_id,
+        name: service.name,
+        description: service.description,
+        duration: service.duration,
+        price: service.price,
+      })) as Service[];
     },
     enabled: !!tenantId,
   });
@@ -26,14 +35,32 @@ export const useCreateService = () => {
   
   return useMutation({
     mutationFn: async (service: Omit<Service, 'id'>) => {
+      // Transform camelCase to snake_case for database
+      const dbService = {
+        tenant_id: service.tenantId,
+        name: service.name,
+        description: service.description,
+        duration: service.duration,
+        price: service.price,
+      };
+
       const { data, error } = await supabase
         .from('services')
-        .insert([service])
+        .insert([dbService])
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Transform response back to camelCase
+      return {
+        id: data.id,
+        tenantId: data.tenant_id,
+        name: data.name,
+        description: data.description,
+        duration: data.duration,
+        price: data.price,
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });

@@ -15,7 +15,18 @@ export const useStaff = (tenantId: string) => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Staff[];
+      
+      // Transform snake_case to camelCase
+      return data.map(staff => ({
+        id: staff.id,
+        tenantId: staff.tenant_id,
+        name: staff.name,
+        email: staff.email,
+        role: staff.role,
+        skills: staff.skills || [],
+        avatar: staff.avatar,
+        isActive: staff.is_active,
+      })) as Staff[];
     },
     enabled: !!tenantId,
   });
@@ -26,14 +37,36 @@ export const useCreateStaff = () => {
   
   return useMutation({
     mutationFn: async (staff: Omit<Staff, 'id'>) => {
+      // Transform camelCase to snake_case for database
+      const dbStaff = {
+        tenant_id: staff.tenantId,
+        name: staff.name,
+        email: staff.email,
+        role: staff.role,
+        skills: staff.skills,
+        avatar: staff.avatar,
+        is_active: staff.isActive,
+      };
+
       const { data, error } = await supabase
         .from('staff')
-        .insert([staff])
+        .insert([dbStaff])
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Transform response back to camelCase
+      return {
+        id: data.id,
+        tenantId: data.tenant_id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        skills: data.skills || [],
+        avatar: data.avatar,
+        isActive: data.is_active,
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff'] });
