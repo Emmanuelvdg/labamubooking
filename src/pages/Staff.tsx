@@ -8,11 +8,33 @@ import { Input } from '@/components/ui/input';
 import { NewStaffDialog } from '@/components/staff/NewStaffDialog';
 import { SyncStaffButton } from '@/components/staff/SyncStaffButton';
 import { useStaff } from '@/hooks/useStaff';
+import { useTenant } from '@/contexts/TenantContext';
 
 const Staff = () => {
-  // Using the same UUID format as in other pages
-  const tenantId = '00000000-0000-0000-0000-000000000001';
-  const { data: staff, isLoading } = useStaff(tenantId);
+  const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
+  const { data: staff, isLoading } = useStaff(tenantId || '');
+
+  if (tenantLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading staff...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (tenantError || !tenantId) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-red-600">
+            {tenantError || 'No tenant access found. Please contact support.'}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

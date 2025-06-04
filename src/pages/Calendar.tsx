@@ -4,9 +4,10 @@ import { CalendarHeader } from '@/components/calendar/CalendarHeader';
 import { CalendarFilters } from '@/components/calendar/CalendarFilters';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
 import { useCalendar } from '@/hooks/useCalendar';
+import { useTenant } from '@/contexts/TenantContext';
 
 const Calendar = () => {
-  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
   
   const {
     currentDate,
@@ -22,7 +23,29 @@ const Calendar = () => {
     clearFilters,
     setSelectedStaffId,
     setSelectedServiceId,
-  } = useCalendar(tenantId);
+  } = useCalendar(tenantId || '');
+
+  if (tenantLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading calendar...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (tenantError || !tenantId) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-red-600">
+            {tenantError || 'No tenant access found. Please contact support.'}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

@@ -4,9 +4,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NewCommissionSchemeDialog } from '@/components/commissions/NewCommissionSchemeDialog';
 import { CommissionSchemesTable } from '@/components/commissions/CommissionSchemesTable';
 import { CommissionRecordsTable } from '@/components/commissions/CommissionRecordsTable';
+import { useTenant } from '@/contexts/TenantContext';
 
 const Commissions = () => {
-  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
+
+  if (tenantLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading commissions...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (tenantError || !tenantId) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-red-600">
+            {tenantError || 'No tenant access found. Please contact support.'}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tenant } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { useConnectUserToTenant } from './useTenantConnection';
 
 interface CreateTenantData {
   businessName: string;
@@ -16,6 +17,7 @@ interface CreateTenantData {
 
 export const useCreateTenant = () => {
   const queryClient = useQueryClient();
+  const connectUserToTenant = useConnectUserToTenant();
   
   return useMutation({
     mutationFn: async (tenantData: CreateTenantData) => {
@@ -68,12 +70,24 @@ export const useCreateTenant = () => {
       
       if (error) {
         console.error('Error creating tenant:', error);
-        // If tenant creation fails, we should clean up the user account
-        // But for now, we'll just throw the error
         throw error;
       }
       
       console.log('Tenant created successfully:', data);
+      
+      // Connect the user to the tenant as owner
+      try {
+        await connectUserToTenant.mutateAsync({
+          userId: authData.user.id,
+          tenantId: data.id,
+          role: 'owner'
+        });
+        console.log('User connected to tenant as owner');
+      } catch (connectionError) {
+        console.error('Failed to connect user to tenant:', connectionError);
+        // This is critical - we should probably clean up the tenant
+        throw new Error('Failed to associate user with tenant');
+      }
       
       // Transform response back to camelCase for frontend
       return {
@@ -115,6 +129,8 @@ export const useCreateTenant = () => {
         errorMessage = 'Please enter a valid email address with a real domain (e.g., gmail.com, outlook.com)';
       } else if (error.message?.includes('invalid')) {
         errorMessage = 'Please check your information and try again. Make sure to use a real email address.';
+      } else if (error.message?.includes('associate user with tenant')) {
+        errorMessage = 'Business was created but failed to link to your account. Please contact support.';
       }
       
       toast({

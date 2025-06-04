@@ -8,11 +8,33 @@ import { Input } from '@/components/ui/input';
 import { NewBookingDialog } from '@/components/bookings/NewBookingDialog';
 import { useBookings } from '@/hooks/useBookings';
 import { BookingCard } from '@/components/bookings/BookingCard';
+import { useTenant } from '@/contexts/TenantContext';
 
 const Bookings = () => {
-  // Using the same UUID format as in the customers page
-  const tenantId = '00000000-0000-0000-0000-000000000001';
-  const { data: bookings, isLoading } = useBookings(tenantId);
+  const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
+  const { data: bookings, isLoading } = useBookings(tenantId || '');
+
+  if (tenantLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading bookings...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (tenantError || !tenantId) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-red-600">
+            {tenantError || 'No tenant access found. Please contact support.'}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

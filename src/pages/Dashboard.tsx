@@ -9,15 +9,37 @@ import { Calendar, Users, BookOpen, DollarSign, Plus } from 'lucide-react';
 import { useBookings } from '@/hooks/useBookings';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useServices } from '@/hooks/useServices';
+import { useTenant } from '@/contexts/TenantContext';
 import { formatCurrency } from '@/lib/utils';
 
 const Dashboard = () => {
-  // Using the same UUID format as in other components
-  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
   
-  const { data: bookings = [] } = useBookings(tenantId);
-  const { data: customers = [] } = useCustomers(tenantId);
-  const { data: services = [] } = useServices(tenantId);
+  const { data: bookings = [] } = useBookings(tenantId || '');
+  const { data: customers = [] } = useCustomers(tenantId || '');
+  const { data: services = [] } = useServices(tenantId || '');
+
+  if (tenantLoading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading dashboard...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (tenantError || !tenantId) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-red-600">
+            {tenantError || 'No tenant access found. Please contact support.'}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   // Calculate stats from real data
   const today = new Date();
