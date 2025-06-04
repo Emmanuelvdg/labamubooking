@@ -88,13 +88,32 @@ const BusinessInfoForm = () => {
       
       console.log('Business and account created successfully:', result);
       
-      toast({
-        title: "Business Created Successfully!",
-        description: "Welcome to BookingPro. You are now logged in and ready to use your dashboard.",
-      });
+      // Check if user needs email confirmation
+      if (result.user && !result.user.email_confirmed_at) {
+        toast({
+          title: "Almost Done!",
+          description: "We've sent you a confirmation email. Please click the link in the email to complete your account setup and log in.",
+        });
+        
+        // Don't navigate to dashboard, stay on current page or go to a confirmation page
+        return;
+      }
       
-      // Navigate to dashboard after successful creation and login
-      navigate('/dashboard');
+      // If no email confirmation needed (auto-confirmed), proceed to dashboard
+      if (result.session) {
+        toast({
+          title: "Business Created Successfully!",
+          description: "Welcome to BookingPro. You are now logged in and ready to use your dashboard.",
+        });
+        navigate('/dashboard');
+      } else {
+        // Fallback - redirect to auth page for manual login
+        toast({
+          title: "Business Created Successfully!",
+          description: "Your business has been created. Please log in with your credentials.",
+        });
+        navigate('/auth');
+      }
       
     } catch (error) {
       console.error('Error in form submission:', error);

@@ -21,7 +21,7 @@ export const useCreateTenant = () => {
     mutationFn: async (tenantData: CreateTenantData) => {
       console.log('Creating tenant and user account:', { ...tenantData, password: '[REDACTED]' });
       
-      // First, create the user account
+      // First, create the user account with email confirmation disabled for development
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: tenantData.email,
         password: tenantData.password,
@@ -43,6 +43,10 @@ export const useCreateTenant = () => {
       }
 
       console.log('User account created successfully:', authData.user.email);
+      console.log('User confirmation status:', {
+        emailConfirmed: authData.user.email_confirmed_at,
+        userConfirmed: authData.user.confirmed_at
+      });
 
       // Then create the tenant record
       const dbTenant = {
@@ -78,15 +82,25 @@ export const useCreateTenant = () => {
         businessType: data.business_type,
         createdAt: data.created_at,
         user: authData.user,
-      } as Tenant & { user: typeof authData.user };
+        session: authData.session,
+      } as Tenant & { user: typeof authData.user; session: typeof authData.session };
     },
     onSuccess: (data) => {
       console.log('Tenant and user creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
-      toast({
-        title: 'Success',
-        description: 'Business and account created successfully! You are now logged in.',
-      });
+      
+      // Check if email confirmation is required
+      if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: 'Business Created Successfully!',
+          description: 'Please check your email and click the confirmation link to complete your account setup.',
+        });
+      } else {
+        toast({
+          title: 'Business Created Successfully!',
+          description: 'Welcome to BookingPro. You are now logged in and ready to use your dashboard.',
+        });
+      }
     },
     onError: (error) => {
       console.error('Tenant creation failed:', error);

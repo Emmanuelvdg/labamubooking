@@ -55,6 +55,8 @@ const Auth = () => {
         let errorMessage = error.message;
         if (error.message === 'Invalid login credentials') {
           errorMessage = 'Invalid email or password. Please check your credentials or sign up if you don\'t have an account.';
+        } else if (error.message === 'Email not confirmed') {
+          errorMessage = 'Please check your email and click the confirmation link to verify your account before logging in.';
         }
         
         toast({
@@ -235,6 +237,10 @@ const Auth = () => {
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
+                
+                <div className="mt-4 text-center text-sm text-gray-600">
+                  <p>Need to verify your email? Check your inbox for a confirmation link.</p>
+                </div>
               </TabsContent>
               
               <TabsContent value="signup">
