@@ -1,10 +1,10 @@
-
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, Mail, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { NewCustomerDialog } from '@/components/customers/NewCustomerDialog';
+import { SyncCustomersButton } from '@/components/customers/SyncCustomersButton';
 import { useCustomers } from '@/hooks/useCustomers';
 
 const Customers = () => {
@@ -40,7 +40,10 @@ const Customers = () => {
             <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
             <p className="text-gray-600">Manage your customer database</p>
           </div>
-          <NewCustomerDialog />
+          <div className="flex gap-2">
+            <SyncCustomersButton tenantId={tenantId} />
+            <NewCustomerDialog />
+          </div>
         </div>
 
         <div className="flex gap-4 items-center">
