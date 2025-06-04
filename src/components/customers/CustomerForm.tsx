@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreateCustomer } from '@/hooks/useCustomers';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface CustomerFormProps {
   onSuccess?: (customerId?: string) => void;
@@ -17,6 +18,7 @@ export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
   });
 
   const createCustomer = useCreateCustomer();
+  const { tenantId } = useTenant();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +27,10 @@ export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
       return;
     }
 
-    // Using a proper UUID format for demo purposes
-    const tenantId = '00000000-0000-0000-0000-000000000001';
+    if (!tenantId) {
+      console.error('No tenant ID available');
+      return;
+    }
 
     try {
       const newCustomer = await createCustomer.mutateAsync({
@@ -78,7 +82,7 @@ export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={createCustomer.isPending}>
+        <Button type="submit" disabled={createCustomer.isPending || !tenantId}>
           {createCustomer.isPending ? 'Creating...' : 'Create Customer'}
         </Button>
       </div>

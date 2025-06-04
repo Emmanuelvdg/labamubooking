@@ -21,7 +21,7 @@ export const useCreateTenant = () => {
   
   return useMutation({
     mutationFn: async (tenantData: CreateTenantData) => {
-      console.log('Creating tenant and user account:', { ...tenantData, password: '[REDACTED]' });
+      console.log('Creating new tenant with clean data state:', { ...tenantData, password: '[REDACTED]' });
       
       // First, create the user account with email confirmation disabled for development
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -45,12 +45,8 @@ export const useCreateTenant = () => {
       }
 
       console.log('User account created successfully:', authData.user.email);
-      console.log('User confirmation status:', {
-        emailConfirmed: authData.user.email_confirmed_at,
-        userConfirmed: authData.user.confirmed_at
-      });
 
-      // Then create the tenant record
+      // Create the tenant record with only the provided data - no synthetic data
       const dbTenant = {
         name: tenantData.businessName,
         business_type: tenantData.businessType,
@@ -60,7 +56,7 @@ export const useCreateTenant = () => {
         phone: tenantData.phone || null,
       };
 
-      console.log('Creating tenant record:', dbTenant);
+      console.log('Creating tenant record with clean data:', dbTenant);
 
       const { data, error } = await supabase
         .from('tenants')
@@ -73,7 +69,7 @@ export const useCreateTenant = () => {
         throw error;
       }
       
-      console.log('Tenant created successfully:', data);
+      console.log('Tenant created successfully with empty data tables:', data);
       
       // Connect the user to the tenant as owner
       try {
@@ -82,14 +78,14 @@ export const useCreateTenant = () => {
           tenantId: data.id,
           role: 'owner'
         });
-        console.log('User connected to tenant as owner');
+        console.log('User connected to tenant as owner - tenant starts with clean slate');
       } catch (connectionError) {
         console.error('Failed to connect user to tenant:', connectionError);
-        // This is critical - we should probably clean up the tenant
         throw new Error('Failed to associate user with tenant');
       }
       
       // Transform response back to camelCase for frontend
+      // Note: New tenant will have empty customers, bookings, services, and staff tables
       return {
         id: data.id,
         name: data.name,
@@ -100,19 +96,19 @@ export const useCreateTenant = () => {
       } as Tenant & { user: typeof authData.user; session: typeof authData.session };
     },
     onSuccess: (data) => {
-      console.log('Tenant and user creation successful, invalidating queries');
+      console.log('Tenant created successfully with clean data state, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       
       // Check if email confirmation is required
       if (data.user && !data.user.email_confirmed_at) {
         toast({
           title: 'Business Created Successfully!',
-          description: 'Please check your email and click the confirmation link to complete your account setup.',
+          description: 'Please check your email and click the confirmation link to complete your account setup. Your business starts with a clean slate - add your data as needed.',
         });
       } else {
         toast({
           title: 'Business Created Successfully!',
-          description: 'Welcome to BookingPro. You are now logged in and ready to use your dashboard.',
+          description: 'Welcome to BookingPro. Your business account is ready and starts with empty data tables. You can now add your customers, services, and staff.',
         });
       }
     },

@@ -60,7 +60,7 @@ const Dashboard = () => {
     );
   }
 
-  // Calculate stats from real data
+  // Calculate stats from real data only
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
@@ -70,7 +70,7 @@ const Dashboard = () => {
     return bookingDate >= todayStart && bookingDate < todayEnd;
   });
 
-  // Calculate this month's revenue from completed bookings
+  // Calculate this month's revenue from completed bookings only
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
   const monthStart = new Date(currentYear, currentMonth, 1);
@@ -116,31 +116,27 @@ const Dashboard = () => {
           <NewBookingDialog />
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - all data comes from database */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Today's Bookings"
             value={todaysBookings.length}
             icon={BookOpen}
-            trend={{ value: 8, isPositive: true }}
           />
           <StatsCard
             title="Total Customers"
             value={customers.length.toLocaleString()}
             icon={Users}
-            trend={{ value: 12, isPositive: true }}
           />
           <StatsCard
             title="This Month Revenue"
             value={formatCurrency(monthlyRevenue)}
             icon={DollarSign}
-            trend={{ value: 15, isPositive: true }}
           />
           <StatsCard
             title="Upcoming This Week"
             value={upcomingThisWeek.length}
             icon={Calendar}
-            trend={{ value: 3, isPositive: false }}
           />
         </div>
 
