@@ -24,14 +24,23 @@ interface FormData {
 }
 
 export const CommissionSchemeForm = ({ tenantId, onSuccess }: CommissionSchemeFormProps) => {
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>();
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({
+    defaultValues: {
+      commissionType: 'percentage'
+    }
+  });
   const { data: staff } = useStaff(tenantId);
   const { data: services } = useServices(tenantId);
   const createScheme = useCreateCommissionScheme();
   
   const commissionType = watch('commissionType', 'percentage');
 
+  // Register the commissionType field
+  register('commissionType', { required: 'Commission type is required' });
+
   const onSubmit = (data: FormData) => {
+    console.log('Submitting form data:', data);
+    
     const schemeData: Omit<CommissionScheme, 'id' | 'createdAt' | 'updatedAt' | 'staff' | 'service'> = {
       tenantId,
       staffId: data.staffId,
@@ -40,6 +49,8 @@ export const CommissionSchemeForm = ({ tenantId, onSuccess }: CommissionSchemeFo
       commissionValue: data.commissionValue,
       isActive: true,
     };
+
+    console.log('Creating scheme with data:', schemeData);
 
     createScheme.mutate(schemeData, {
       onSuccess: () => {
@@ -53,7 +64,7 @@ export const CommissionSchemeForm = ({ tenantId, onSuccess }: CommissionSchemeFo
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <Label htmlFor="staffId">Staff Member</Label>
-        <Select onValueChange={(value) => setValue('staffId', value)}>
+        <Select onValueChange={(value) => setValue('staffId', value)} required>
           <SelectTrigger>
             <SelectValue placeholder="Select staff member" />
           </SelectTrigger>
@@ -70,7 +81,7 @@ export const CommissionSchemeForm = ({ tenantId, onSuccess }: CommissionSchemeFo
 
       <div>
         <Label htmlFor="serviceId">Service</Label>
-        <Select onValueChange={(value) => setValue('serviceId', value)}>
+        <Select onValueChange={(value) => setValue('serviceId', value)} required>
           <SelectTrigger>
             <SelectValue placeholder="Select service (or all services)" />
           </SelectTrigger>
@@ -102,6 +113,7 @@ export const CommissionSchemeForm = ({ tenantId, onSuccess }: CommissionSchemeFo
             <Label htmlFor="nominal">Fixed Amount</Label>
           </div>
         </RadioGroup>
+        {errors.commissionType && <p className="text-sm text-red-600">{errors.commissionType.message}</p>}
       </div>
 
       <div>
@@ -117,7 +129,8 @@ export const CommissionSchemeForm = ({ tenantId, onSuccess }: CommissionSchemeFo
           {...register('commissionValue', { 
             required: 'Commission value is required',
             min: { value: 0, message: 'Commission value must be positive' },
-            max: commissionType === 'percentage' ? { value: 100, message: 'Percentage cannot exceed 100%' } : undefined
+            max: commissionType === 'percentage' ? { value: 100, message: 'Percentage cannot exceed 100%' } : undefined,
+            valueAsNumber: true
           })}
         />
         {errors.commissionValue && <p className="text-sm text-red-600">{errors.commissionValue.message}</p>}
