@@ -6,7 +6,8 @@ import {
   BarChart3, 
   Settings,
   Clock,
-  UserCheck
+  UserCheck,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ const navigation = [
   { name: 'Customers', href: '/customers', icon: Users },
   { name: 'Staff', href: '/staff', icon: UserCheck },
   { name: 'Services', href: '/services', icon: Clock },
+  { name: 'Commissions', href: '/commissions', icon: DollarSign },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
