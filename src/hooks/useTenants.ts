@@ -11,7 +11,7 @@ interface CreateTenantData {
   ownerName: string;
   email: string;
   phone?: string;
-  password: string; // Add password field
+  password: string;
 }
 
 export const useCreateTenant = () => {
@@ -97,8 +97,10 @@ export const useCreateTenant = () => {
         errorMessage = 'An account with this email already exists. Please use a different email or sign in instead.';
       } else if (error.message?.includes('Password')) {
         errorMessage = 'Password must be at least 6 characters long';
-      } else if (error.message?.includes('email')) {
-        errorMessage = 'Please enter a valid email address';
+      } else if (error.message?.includes('email') || error.message?.includes('Email')) {
+        errorMessage = 'Please enter a valid email address with a real domain (e.g., gmail.com, outlook.com)';
+      } else if (error.message?.includes('invalid')) {
+        errorMessage = 'Please check your information and try again. Make sure to use a real email address.';
       }
       
       toast({

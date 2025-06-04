@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useCreateTenant } from '@/hooks/useTenants';
+import { isValidEmail, getEmailValidationError } from '@/utils/emailValidation';
 import BusinessDetailsFields from './BusinessDetailsFields';
 import ContactInfoFields from './ContactInfoFields';
 
@@ -36,6 +37,17 @@ const BusinessInfoForm = () => {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields marked with *",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailError = getEmailValidationError(formData.email);
+    if (emailError) {
+      toast({
+        title: "Invalid Email",
+        description: emailError,
         variant: "destructive",
       });
       return;
