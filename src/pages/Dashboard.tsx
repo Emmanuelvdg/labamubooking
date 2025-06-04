@@ -11,6 +11,8 @@ import { useCustomers } from '@/hooks/useCustomers';
 import { useServices } from '@/hooks/useServices';
 import { useTenant } from '@/contexts/TenantContext';
 import { formatCurrency } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
@@ -18,6 +20,23 @@ const Dashboard = () => {
   const { data: bookings = [] } = useBookings(tenantId || '');
   const { data: customers = [] } = useCustomers(tenantId || '');
   const { data: services = [] } = useServices(tenantId || '');
+
+  // Fetch tenant information
+  const { data: tenant } = useQuery({
+    queryKey: ['tenant', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return null;
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('*')
+        .eq('id', tenantId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!tenantId,
+  });
 
   if (tenantLoading) {
     return (
@@ -86,7 +105,7 @@ const Dashboard = () => {
     .slice(0, 5);
 
   return (
-    <Layout tenantName="Bella Vista Spa">
+    <Layout tenantName={tenant?.name}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
