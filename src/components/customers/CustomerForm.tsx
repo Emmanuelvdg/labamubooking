@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useCreateCustomer } from '@/hooks/useCustomers';
 
 interface CustomerFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (customerId?: string) => void;
 }
 
 export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
@@ -28,15 +28,19 @@ export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
     // Using a proper UUID format for demo purposes
     const tenantId = '00000000-0000-0000-0000-000000000001';
 
-    await createCustomer.mutateAsync({
-      tenantId,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone || '',
-    });
+    try {
+      const newCustomer = await createCustomer.mutateAsync({
+        tenantId,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || '',
+      });
 
-    onSuccess?.();
-    setFormData({ name: '', email: '', phone: '' });
+      onSuccess?.(newCustomer.id);
+      setFormData({ name: '', email: '', phone: '' });
+    } catch (error) {
+      console.error('Error creating customer:', error);
+    }
   };
 
   return (
