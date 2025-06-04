@@ -14,7 +14,7 @@ interface HeaderProps {
   tenantName?: string;
 }
 
-export const Header = ({ tenantName = "BookingPro" }: HeaderProps) => {
+export const Header = ({ tenantName = "LabamuBooking" }: HeaderProps) => {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">

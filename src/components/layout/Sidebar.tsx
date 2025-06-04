@@ -28,7 +28,7 @@ export const Sidebar = () => {
   return (
     <div className="bg-slate-900 text-white w-64 min-h-screen p-4">
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-white">BookingPro</h2>
+        <h2 className="text-xl font-bold text-white">LabamuBooking</h2>
         <p className="text-slate-400 text-sm">Service Management</p>
       </div>
       

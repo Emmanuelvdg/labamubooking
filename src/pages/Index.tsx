@@ -14,7 +14,7 @@ const Index = () => {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Building2 className="h-8 w-8 text-blue-600" />
-              <h1 className="ml-2 text-2xl font-bold text-gray-900">BookingPro</h1>
+              <h1 className="ml-2 text-2xl font-bold text-gray-900">LabamuBooking</h1>
             </div>
             <div className="flex space-x-4">
               <Button variant="outline" asChild>
@@ -100,7 +100,7 @@ const Index = () => {
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Ready to Get Started?</CardTitle>
               <CardDescription>
-                Join thousands of service businesses already using BookingPro
+                Join thousands of service businesses already using LabamuBooking
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
