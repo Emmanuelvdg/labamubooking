@@ -18,7 +18,7 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
     description: '',
     duration: '',
     price: '',
-    categoryId: ''
+    categoryId: 'none'
   });
 
   const tenantId = '00000000-0000-0000-0000-000000000001';
@@ -38,11 +38,11 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
       description: formData.description,
       duration: parseInt(formData.duration),
       price: parseFloat(formData.price),
-      categoryId: formData.categoryId || undefined,
+      categoryId: formData.categoryId === 'none' ? undefined : formData.categoryId,
     });
 
     onSuccess?.();
-    setFormData({ name: '', description: '', duration: '', price: '', categoryId: '' });
+    setFormData({ name: '', description: '', duration: '', price: '', categoryId: 'none' });
   };
 
   return (
@@ -79,19 +79,22 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
           </SelectTrigger>
           <SelectContent>
             {categoriesLoading ? (
-              <SelectItem value="" disabled>Loading categories...</SelectItem>
+              <SelectItem value="loading" disabled>Loading categories...</SelectItem>
             ) : (
-              categories?.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <span>{category.name}</span>
-                  </div>
-                </SelectItem>
-              ))
+              <>
+                <SelectItem value="none">No category</SelectItem>
+                {categories?.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    <div className="flex items-center space-x-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span>{category.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </>
             )}
           </SelectContent>
         </Select>

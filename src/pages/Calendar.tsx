@@ -11,8 +11,8 @@ import { useState } from 'react';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
-  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+  const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('all');
   const tenantId = '00000000-0000-0000-0000-000000000001';
   
   const { data: bookings = [] } = useBookings(tenantId);
@@ -46,10 +46,10 @@ const Calendar = () => {
     if (!isInCurrentMonth) return false;
     
     // Apply staff filter
-    if (selectedStaffId && booking.staffId !== selectedStaffId) return false;
+    if (selectedStaffId !== 'all' && booking.staffId !== selectedStaffId) return false;
     
     // Apply service filter
-    if (selectedServiceId && booking.serviceId !== selectedServiceId) return false;
+    if (selectedServiceId !== 'all' && booking.serviceId !== selectedServiceId) return false;
     
     return true;
   });
@@ -85,11 +85,11 @@ const Calendar = () => {
   };
 
   const clearFilters = () => {
-    setSelectedStaffId('');
-    setSelectedServiceId('');
+    setSelectedStaffId('all');
+    setSelectedServiceId('all');
   };
 
-  const hasActiveFilters = selectedStaffId || selectedServiceId;
+  const hasActiveFilters = selectedStaffId !== 'all' || selectedServiceId !== 'all';
 
   return (
     <Layout>
@@ -124,7 +124,7 @@ const Calendar = () => {
                     <SelectValue placeholder="All staff members" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All staff members</SelectItem>
+                    <SelectItem value="all">All staff members</SelectItem>
                     {staff.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
                         {member.name}
@@ -143,7 +143,7 @@ const Calendar = () => {
                     <SelectValue placeholder="All services" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All services</SelectItem>
+                    <SelectItem value="all">All services</SelectItem>
                     {services.map((service) => (
                       <SelectItem key={service.id} value={service.id}>
                         {service.name}
