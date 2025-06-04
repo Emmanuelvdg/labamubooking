@@ -20,7 +20,9 @@ const BusinessInfoForm = () => {
     description: '',
     ownerName: '',
     email: '',
-    phone: ''
+    phone: '',
+    password: '',
+    confirmPassword: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +32,7 @@ const BusinessInfoForm = () => {
     if (createTenant.isPending) return;
     
     // Validate required fields
-    if (!formData.businessName || !formData.businessType || !formData.ownerName || !formData.email) {
+    if (!formData.businessName || !formData.businessType || !formData.ownerName || !formData.email || !formData.password) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields marked with *",
@@ -39,26 +41,47 @@ const BusinessInfoForm = () => {
       return;
     }
 
+    // Validate password match
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      console.log('Submitting tenant creation form:', formData);
+      console.log('Submitting tenant creation form with account setup');
       
-      const tenant = await createTenant.mutateAsync({
+      const result = await createTenant.mutateAsync({
         businessName: formData.businessName,
         businessType: formData.businessType,
         description: formData.description,
         ownerName: formData.ownerName,
         email: formData.email,
         phone: formData.phone,
+        password: formData.password,
       });
       
-      console.log('Tenant created, navigating to dashboard:', tenant);
+      console.log('Business and account created successfully:', result);
       
       toast({
         title: "Business Created Successfully!",
-        description: "Welcome to BookingPro. Let's set up your dashboard.",
+        description: "Welcome to BookingPro. You are now logged in and ready to use your dashboard.",
       });
       
-      // Navigate to dashboard after successful creation
+      // Navigate to dashboard after successful creation and login
       navigate('/dashboard');
       
     } catch (error) {
@@ -74,7 +97,8 @@ const BusinessInfoForm = () => {
   return (
     <Card className="shadow-xl">
       <CardHeader>
-        <CardTitle className="text-2xl text-center">Create Your Business</CardTitle>
+        <CardTitle className="text-2xl text-center">Create Your Business Account</CardTitle>
+        <p className="text-center text-gray-600">Set up your business and create your account</p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -96,10 +120,10 @@ const BusinessInfoForm = () => {
             disabled={createTenant.isPending}
           >
             {createTenant.isPending ? (
-              "Creating Business..."
+              "Creating Business & Account..."
             ) : (
               <>
-                Create Business & Continue
+                Create Business & Account
                 <ArrowRight className="ml-2 h-5 w-5" />
               </>
             )}

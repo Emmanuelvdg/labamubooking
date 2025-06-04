@@ -10,7 +10,7 @@ const TenantCreate = () => {
         <BusinessInfoForm />
         
         <div className="text-center mt-6 text-gray-600">
-          <p>Already have a business? <a href="/login" className="text-blue-600 hover:underline">Sign in here</a></p>
+          <p>Already have an account? <a href="/auth" className="text-blue-600 hover:underline">Sign in here</a></p>
         </div>
       </div>
     </div>

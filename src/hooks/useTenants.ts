@@ -11,6 +11,7 @@ interface CreateTenantData {
   ownerName: string;
   email: string;
   phone?: string;
+  password: string; // Add password field
 }
 
 export const useCreateTenant = () => {
@@ -18,9 +19,32 @@ export const useCreateTenant = () => {
   
   return useMutation({
     mutationFn: async (tenantData: CreateTenantData) => {
-      console.log('Creating tenant:', tenantData);
+      console.log('Creating tenant and user account:', { ...tenantData, password: '[REDACTED]' });
       
-      // Transform form data to database schema
+      // First, create the user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: tenantData.email,
+        password: tenantData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            full_name: tenantData.ownerName,
+          }
+        }
+      });
+
+      if (authError) {
+        console.error('Error creating user account:', authError);
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error('Failed to create user account');
+      }
+
+      console.log('User account created successfully:', authData.user.email);
+
+      // Then create the tenant record
       const dbTenant = {
         name: tenantData.businessName,
         business_type: tenantData.businessType,
@@ -30,7 +54,7 @@ export const useCreateTenant = () => {
         phone: tenantData.phone || null,
       };
 
-      console.log('Database tenant object:', dbTenant);
+      console.log('Creating tenant record:', dbTenant);
 
       const { data, error } = await supabase
         .from('tenants')
@@ -40,6 +64,8 @@ export const useCreateTenant = () => {
       
       if (error) {
         console.error('Error creating tenant:', error);
+        // If tenant creation fails, we should clean up the user account
+        // But for now, we'll just throw the error
         throw error;
       }
       
@@ -51,21 +77,33 @@ export const useCreateTenant = () => {
         name: data.name,
         businessType: data.business_type,
         createdAt: data.created_at,
-      } as Tenant;
+        user: authData.user,
+      } as Tenant & { user: typeof authData.user };
     },
     onSuccess: (data) => {
-      console.log('Tenant creation successful, invalidating queries');
+      console.log('Tenant and user creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       toast({
         title: 'Success',
-        description: 'Business created successfully',
+        description: 'Business and account created successfully! You are now logged in.',
       });
     },
     onError: (error) => {
       console.error('Tenant creation failed:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to create business and account';
+      if (error.message?.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Please use a different email or sign in instead.';
+      } else if (error.message?.includes('Password')) {
+        errorMessage = 'Password must be at least 6 characters long';
+      } else if (error.message?.includes('email')) {
+        errorMessage = 'Please enter a valid email address';
+      }
+      
       toast({
         title: 'Error',
-        description: 'Failed to create business',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
