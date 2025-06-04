@@ -80,6 +80,151 @@ export type Database = {
           },
         ]
       }
+      commission_records: {
+        Row: {
+          booking_id: string
+          commission_amount: number
+          commission_scheme_id: string
+          commission_type: Database["public"]["Enums"]["commission_type"]
+          commission_value: number
+          created_at: string
+          id: string
+          is_paid: boolean
+          paid_at: string | null
+          service_id: string
+          service_price: number
+          staff_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          commission_amount: number
+          commission_scheme_id: string
+          commission_type: Database["public"]["Enums"]["commission_type"]
+          commission_value: number
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          service_id: string
+          service_price: number
+          staff_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          commission_amount?: number
+          commission_scheme_id?: string
+          commission_type?: Database["public"]["Enums"]["commission_type"]
+          commission_value?: number
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          service_id?: string
+          service_price?: number
+          staff_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_records_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_commission_scheme_id_fkey"
+            columns: ["commission_scheme_id"]
+            isOneToOne: false
+            referencedRelation: "commission_schemes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_schemes: {
+        Row: {
+          commission_type: Database["public"]["Enums"]["commission_type"]
+          commission_value: number
+          created_at: string
+          id: string
+          is_active: boolean
+          service_id: string | null
+          staff_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          commission_type?: Database["public"]["Enums"]["commission_type"]
+          commission_value: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          service_id?: string | null
+          staff_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          commission_type?: Database["public"]["Enums"]["commission_type"]
+          commission_value?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          service_id?: string | null
+          staff_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_schemes_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_schemes_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_schemes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           avatar: string | null
@@ -293,7 +438,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      commission_type: "percentage" | "nominal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -408,6 +553,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      commission_type: ["percentage", "nominal"],
+    },
   },
 } as const
