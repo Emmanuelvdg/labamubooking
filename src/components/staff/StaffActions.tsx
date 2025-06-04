@@ -16,6 +16,16 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const handleEditClick = () => {
+    console.log('Edit clicked for staff:', staff.name);
+    setEditOpen(true);
+  };
+
+  const handleDeleteClick = () => {
+    console.log('Delete clicked for staff:', staff.name);
+    setDeleteOpen(true);
+  };
+
   return (
     <>
       <ContextMenu>
@@ -23,12 +33,12 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={() => setEditOpen(true)}>
+          <ContextMenuItem onClick={handleEditClick}>
             <Edit className="h-4 w-4 mr-2" />
             Edit
           </ContextMenuItem>
           <ContextMenuItem 
-            onClick={() => setDeleteOpen(true)}
+            onClick={handleDeleteClick}
             className="text-red-600 focus:text-red-600"
           >
             <Trash2 className="h-4 w-4 mr-2" />

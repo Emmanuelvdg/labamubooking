@@ -21,9 +21,17 @@ interface DeleteStaffDialogProps {
 export const DeleteStaffDialog = ({ staff, open, onOpenChange }: DeleteStaffDialogProps) => {
   const deleteStaff = useDeleteStaff();
 
+  console.log('DeleteStaffDialog rendered with staff:', staff.name, 'open:', open);
+
   const handleDelete = async () => {
-    await deleteStaff.mutateAsync(staff.id);
-    onOpenChange(false);
+    console.log('Delete button clicked, attempting to delete staff:', staff.id);
+    try {
+      await deleteStaff.mutateAsync(staff.id);
+      console.log('Staff deletion successful');
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error deleting staff:', error);
+    }
   };
 
   return (
