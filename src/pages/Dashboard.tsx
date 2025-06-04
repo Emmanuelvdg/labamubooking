@@ -1,3 +1,4 @@
+
 import { Layout } from '@/components/layout/Layout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { BookingCard } from '@/components/bookings/BookingCard';
@@ -5,39 +6,63 @@ import { NewBookingDialog } from '@/components/bookings/NewBookingDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, BookOpen, DollarSign, Plus } from 'lucide-react';
-import { Booking } from '@/types';
-
-// Mock data
-const mockBookings: Booking[] = [
-  {
-    id: '1',
-    tenantId: 'tenant1',
-    customerId: 'customer1',
-    staffId: 'staff1',
-    serviceId: 'service1',
-    startTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-    status: 'confirmed',
-    customer: { id: 'customer1', tenantId: 'tenant1', name: 'Sarah Johnson', email: 'sarah@email.com', phone: '+1234567890' },
-    staff: { id: 'staff1', tenantId: 'tenant1', name: 'Mike Chen', email: 'mike@email.com', role: 'Stylist', skills: ['Hair Cut', 'Color'], isActive: true },
-    service: { id: 'service1', tenantId: 'tenant1', name: 'Hair Cut & Style', description: 'Professional haircut with styling', duration: 60, price: 65 }
-  },
-  {
-    id: '2',
-    tenantId: 'tenant1',
-    customerId: 'customer2',
-    staffId: 'staff2',
-    serviceId: 'service2',
-    startTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
-    status: 'pending',
-    customer: { id: 'customer2', tenantId: 'tenant1', name: 'David Wilson', email: 'david@email.com', phone: '+1234567891' },
-    staff: { id: 'staff2', tenantId: 'tenant1', name: 'Lisa Park', email: 'lisa@email.com', role: 'Massage Therapist', skills: ['Deep Tissue', 'Relaxation'], isActive: true },
-    service: { id: 'service2', tenantId: 'tenant1', name: 'Deep Tissue Massage', description: 'Therapeutic deep tissue massage', duration: 90, price: 120 }
-  }
-];
+import { useBookings } from '@/hooks/useBookings';
+import { useCustomers } from '@/hooks/useCustomers';
+import { useServices } from '@/hooks/useServices';
+import { formatCurrency } from '@/lib/utils';
 
 const Dashboard = () => {
+  // Using the same UUID format as in other components
+  const tenantId = '00000000-0000-0000-0000-000000000001';
+  
+  const { data: bookings = [] } = useBookings(tenantId);
+  const { data: customers = [] } = useCustomers(tenantId);
+  const { data: services = [] } = useServices(tenantId);
+
+  // Calculate stats from real data
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+  
+  const todaysBookings = bookings.filter(booking => {
+    const bookingDate = new Date(booking.startTime);
+    return bookingDate >= todayStart && bookingDate < todayEnd;
+  });
+
+  // Calculate this month's revenue from completed bookings
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const monthStart = new Date(currentYear, currentMonth, 1);
+  const monthEnd = new Date(currentYear, currentMonth + 1, 0);
+  
+  const thisMonthCompletedBookings = bookings.filter(booking => {
+    const bookingDate = new Date(booking.startTime);
+    return booking.status === 'completed' && 
+           bookingDate >= monthStart && 
+           bookingDate <= monthEnd;
+  });
+  
+  const monthlyRevenue = thisMonthCompletedBookings.reduce((total, booking) => 
+    total + booking.service.price, 0
+  );
+
+  // Calculate upcoming bookings this week
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 7);
+  
+  const upcomingThisWeek = bookings.filter(booking => {
+    const bookingDate = new Date(booking.startTime);
+    return bookingDate >= today && bookingDate <= weekEnd;
+  });
+
+  // Get upcoming bookings for the card
+  const upcomingBookings = bookings
+    .filter(booking => new Date(booking.startTime) > today)
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+    .slice(0, 5);
+
   return (
     <Layout tenantName="Bella Vista Spa">
       <div className="space-y-6">
@@ -54,25 +79,25 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Today's Bookings"
-            value={12}
+            value={todaysBookings.length}
             icon={BookOpen}
             trend={{ value: 8, isPositive: true }}
           />
           <StatsCard
             title="Total Customers"
-            value="1,247"
+            value={customers.length.toLocaleString()}
             icon={Users}
             trend={{ value: 12, isPositive: true }}
           />
           <StatsCard
             title="This Month Revenue"
-            value="$24,580"
+            value={formatCurrency(monthlyRevenue)}
             icon={DollarSign}
             trend={{ value: 15, isPositive: true }}
           />
           <StatsCard
             title="Upcoming This Week"
-            value={48}
+            value={upcomingThisWeek.length}
             icon={Calendar}
             trend={{ value: 3, isPositive: false }}
           />
@@ -88,9 +113,13 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {mockBookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))}
+              {upcomingBookings.length > 0 ? (
+                upcomingBookings.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">No upcoming bookings</p>
+              )}
             </CardContent>
           </Card>
 

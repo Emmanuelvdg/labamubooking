@@ -3,17 +3,16 @@ import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useBookings } from '@/hooks/useBookings';
+import { useState } from 'react';
 
 const Calendar = () => {
-  const currentDate = new Date();
-  const currentMonth = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const tenantId = '00000000-0000-0000-0000-000000000001';
+  
+  const { data: bookings = [] } = useBookings(tenantId);
 
-  // Mock calendar data
-  const calendarEvents = [
-    { id: 1, title: 'John Doe - Haircut', time: '10:00 AM', date: 5 },
-    { id: 2, title: 'Jane Smith - Color', time: '2:00 PM', date: 5 },
-    { id: 3, title: 'Bob Brown - Trim', time: '9:30 AM', date: 6 },
-  ];
+  const currentMonth = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -30,6 +29,43 @@ const Calendar = () => {
   for (let day = 1; day <= daysInMonth; day++) {
     calendarDays.push(day);
   }
+
+  // Filter bookings for the current month
+  const monthBookings = bookings.filter(booking => {
+    const bookingDate = new Date(booking.startTime);
+    return bookingDate.getMonth() === currentDate.getMonth() && 
+           bookingDate.getFullYear() === currentDate.getFullYear();
+  });
+
+  // Group bookings by day
+  const bookingsByDay = monthBookings.reduce((acc, booking) => {
+    const day = new Date(booking.startTime).getDate();
+    if (!acc[day]) {
+      acc[day] = [];
+    }
+    acc[day].push(booking);
+    return acc;
+  }, {} as Record<number, typeof bookings>);
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const formatBookingTime = (booking: typeof bookings[0]) => {
+    return new Date(booking.startTime).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
 
   return (
     <Layout>
@@ -50,10 +86,10 @@ const Calendar = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl">{currentMonth}</CardTitle>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => navigateMonth('prev')}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => navigateMonth('next')}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -78,16 +114,21 @@ const Calendar = () => {
                   {day && (
                     <>
                       <div className="font-medium text-sm mb-1">{day}</div>
-                      {calendarEvents
-                        .filter(event => event.date === day)
-                        .map(event => (
-                          <div
-                            key={event.id}
-                            className="text-xs bg-blue-100 text-blue-800 p-1 rounded mb-1 truncate"
-                          >
-                            {event.time} - {event.title}
-                          </div>
-                        ))}
+                      {bookingsByDay[day]?.map(booking => (
+                        <div
+                          key={booking.id}
+                          className={`text-xs p-1 rounded mb-1 truncate ${
+                            booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          <div className="font-medium">{formatBookingTime(booking)}</div>
+                          <div className="truncate">{booking.customer.name}</div>
+                          <div className="truncate text-xs opacity-75">{booking.service.name}</div>
+                        </div>
+                      ))}
                     </>
                   )}
                 </div>
