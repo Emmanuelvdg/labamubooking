@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Mail, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { NewStaffDialog } from '@/components/staff/NewStaffDialog';
+import { SyncStaffButton } from '@/components/staff/SyncStaffButton';
 import { useStaff } from '@/hooks/useStaff';
 
 const Staff = () => {
@@ -21,7 +22,10 @@ const Staff = () => {
             <h1 className="text-3xl font-bold text-gray-900">Staff</h1>
             <p className="text-gray-600">Manage your team members and their skills</p>
           </div>
-          <NewStaffDialog />
+          <div className="flex gap-2">
+            <SyncStaffButton tenantId={tenantId} />
+            <NewStaffDialog />
+          </div>
         </div>
 
         <div className="flex gap-4 items-center">
