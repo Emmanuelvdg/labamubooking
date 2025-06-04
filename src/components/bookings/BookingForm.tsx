@@ -25,9 +25,8 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   });
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
 
-  // For demo purposes, using a hardcoded tenant ID
-  // In a real app, this would come from user context/authentication
-  const tenantId = '1';
+  // Using the same UUID format as in the customers page
+  const tenantId = '00000000-0000-0000-0000-000000000001';
   
   const { data: customers } = useCustomers(tenantId);
   const { data: staff } = useStaff(tenantId);
