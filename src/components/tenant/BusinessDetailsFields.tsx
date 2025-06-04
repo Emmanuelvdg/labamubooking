@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useBusinessTypes } from '@/hooks/useBusinessTypes';
 
 interface BusinessDetailsFieldsProps {
   formData: {
@@ -15,19 +16,11 @@ interface BusinessDetailsFieldsProps {
 }
 
 const BusinessDetailsFields = ({ formData, onInputChange, disabled }: BusinessDetailsFieldsProps) => {
-  const businessTypes = [
-    'Hair Salon',
-    'Spa & Wellness',
-    'Massage Therapy',
-    'Nail Salon',
-    'Beauty Clinic',
-    'Barbershop',
-    'Fitness Studio',
-    'Dental Practice',
-    'Medical Clinic',
-    'Consultation Services',
-    'Other'
-  ];
+  const { data: businessTypes, isLoading, error } = useBusinessTypes();
+
+  console.log('BusinessDetailsFields - businessTypes:', businessTypes);
+  console.log('BusinessDetailsFields - loading:', isLoading);
+  console.log('BusinessDetailsFields - error:', error);
 
   return (
     <>
@@ -47,20 +40,25 @@ const BusinessDetailsFields = ({ formData, onInputChange, disabled }: BusinessDe
           <Label htmlFor="businessType">Business Type *</Label>
           <Select 
             onValueChange={(value) => onInputChange('businessType', value)}
-            disabled={disabled}
+            disabled={disabled || isLoading}
             value={formData.businessType}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select business type" />
+              <SelectValue placeholder={isLoading ? "Loading..." : "Select business type"} />
             </SelectTrigger>
             <SelectContent className="bg-white">
-              {businessTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
+              {businessTypes?.map((type) => (
+                <SelectItem key={type.id} value={type.name}>
+                  {type.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {error && (
+            <p className="text-sm text-red-600 mt-1">
+              Failed to load business types. Please try again.
+            </p>
+          )}
         </div>
       </div>
 
