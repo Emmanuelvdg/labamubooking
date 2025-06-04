@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateBooking } from '@/hooks/useBookings';
-import { useCustomers } from '@/hooks/useCustomers';
+import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers';
 import { useStaff } from '@/hooks/useStaff';
 import { useServices } from '@/hooks/useServices';
 import { CustomerFormModal } from './CustomerFormModal';
@@ -32,6 +31,7 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   const { data: staff } = useStaff(tenantId);
   const { data: services } = useServices(tenantId);
   const createBooking = useCreateBooking();
+  const createCustomer = useCreateCustomer();
 
   const handleCustomerSelect = (value: string) => {
     if (value === 'create-new') {
@@ -53,9 +53,29 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
       return;
     }
 
-    // Handle walk-in customers by requiring a customer selection
-    if (!formData.customerId || formData.customerId === 'walk-in') {
-      console.error('Please select a customer or create a new one for walk-in bookings');
+    let customerId = formData.customerId;
+
+    // Handle walk-in customers by creating an anonymous customer record
+    if (formData.customerId === 'walk-in') {
+      console.log('Creating anonymous customer for walk-in booking');
+      try {
+        const anonymousCustomer = await createCustomer.mutateAsync({
+          tenantId,
+          name: 'Walk-in Customer',
+          email: `walkin-${Date.now()}@anonymous.local`,
+          phone: null,
+          avatar: null,
+        });
+        customerId = anonymousCustomer.id;
+        console.log('Created anonymous customer:', anonymousCustomer.id);
+      } catch (error) {
+        console.error('Failed to create anonymous customer:', error);
+        return;
+      }
+    }
+
+    if (!customerId) {
+      console.error('Please select a customer or create a new one');
       return;
     }
 
@@ -67,7 +87,7 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
 
     await createBooking.mutateAsync({
       tenantId,
-      customerId: formData.customerId,
+      customerId,
       staffId: formData.staffId,
       serviceId: formData.serviceId,
       startTime: startTime.toISOString(),
@@ -91,6 +111,7 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
                 <SelectValue placeholder="Select customer" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="walk-in">Walk In (Anonymous)</SelectItem>
                 <SelectItem value="create-new">Create New Client</SelectItem>
                 {customers?.map((customer) => (
                   <SelectItem key={customer.id} value={customer.id}>
