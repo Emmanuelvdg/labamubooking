@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Clock, DollarSign, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { NewServiceDialog } from '@/components/services/NewServiceDialog';
+import { ManageCategoriesDialog } from '@/components/services/ManageCategoriesDialog';
 import { useServices } from '@/hooks/useServices';
 import { useServiceCategories } from '@/hooks/useServiceCategories';
 
@@ -57,7 +58,10 @@ const Services = () => {
             <h1 className="text-3xl font-bold text-gray-900">Services</h1>
             <p className="text-gray-600">Manage your service offerings and pricing</p>
           </div>
-          <NewServiceDialog />
+          <div className="flex space-x-3">
+            <ManageCategoriesDialog />
+            <NewServiceDialog />
+          </div>
         </div>
 
         <div className="flex gap-4 items-center">
