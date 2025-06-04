@@ -1,16 +1,19 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCreateStaff } from '@/hooks/useStaff';
+import { useCreateStaff, useUpdateStaff } from '@/hooks/useStaff';
+import { useTenant } from '@/contexts/TenantContext';
+import { Staff } from '@/types';
 
 interface StaffFormProps {
   onSuccess?: () => void;
+  initialData?: Staff;
 }
 
-export const StaffForm = ({ onSuccess }: StaffFormProps) => {
+export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,6 +22,20 @@ export const StaffForm = ({ onSuccess }: StaffFormProps) => {
   });
 
   const createStaff = useCreateStaff();
+  const updateStaff = useUpdateStaff();
+  const { tenantId } = useTenant();
+  const isEditing = !!initialData;
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name,
+        email: initialData.email,
+        role: initialData.role,
+        skills: initialData.skills.join(', ')
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,23 +44,43 @@ export const StaffForm = ({ onSuccess }: StaffFormProps) => {
       return;
     }
 
-    // Using the same UUID format as in other pages
-    const tenantId = '00000000-0000-0000-0000-000000000001';
+    if (!tenantId) {
+      console.error('No tenant ID available');
+      return;
+    }
 
     const skillsArray = formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill);
 
-    await createStaff.mutateAsync({
-      tenantId,
-      name: formData.name,
-      email: formData.email,
-      role: formData.role,
-      skills: skillsArray,
-      isActive: true,
-    });
+    try {
+      if (isEditing && initialData) {
+        await updateStaff.mutateAsync({
+          ...initialData,
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          skills: skillsArray,
+        });
+      } else {
+        await createStaff.mutateAsync({
+          tenantId,
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          skills: skillsArray,
+          isActive: true,
+        });
+      }
 
-    onSuccess?.();
-    setFormData({ name: '', email: '', role: '', skills: '' });
+      onSuccess?.();
+      if (!isEditing) {
+        setFormData({ name: '', email: '', role: '', skills: '' });
+      }
+    } catch (error) {
+      console.error('Error saving staff:', error);
+    }
   };
+
+  const isPending = createStaff.isPending || updateStaff.isPending;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -97,8 +134,8 @@ export const StaffForm = ({ onSuccess }: StaffFormProps) => {
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={createStaff.isPending}>
-          {createStaff.isPending ? 'Creating...' : 'Create Staff Member'}
+        <Button type="submit" disabled={isPending || !tenantId}>
+          {isPending ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Staff Member' : 'Create Staff Member')}
         </Button>
       </div>
     </form>

@@ -6,6 +6,7 @@ import { Search, Mail, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { NewCustomerDialog } from '@/components/customers/NewCustomerDialog';
 import { SyncCustomersButton } from '@/components/customers/SyncCustomersButton';
+import { CustomerActions } from '@/components/customers/CustomerActions';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useTenant } from '@/contexts/TenantContext';
 
@@ -84,33 +85,35 @@ const Customers = () => {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {customers.map((customer) => (
-              <Card key={customer.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={customer.avatar} />
-                      <AvatarFallback>
-                        {customer.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg truncate">{customer.name}</h3>
-                      <div className="space-y-1 text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <Mail className="h-3 w-3 mr-2" />
-                          <span className="truncate">{customer.email}</span>
-                        </div>
-                        {customer.phone && (
+              <CustomerActions key={customer.id} customer={customer}>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={customer.avatar} />
+                        <AvatarFallback>
+                          {customer.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-lg truncate">{customer.name}</h3>
+                        <div className="space-y-1 text-sm text-gray-600">
                           <div className="flex items-center">
-                            <Phone className="h-3 w-3 mr-2" />
-                            <span>{customer.phone}</span>
+                            <Mail className="h-3 w-3 mr-2" />
+                            <span className="truncate">{customer.email}</span>
                           </div>
-                        )}
+                          {customer.phone && (
+                            <div className="flex items-center">
+                              <Phone className="h-3 w-3 mr-2" />
+                              <span>{customer.phone}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </CustomerActions>
             ))}
           </div>
         )}

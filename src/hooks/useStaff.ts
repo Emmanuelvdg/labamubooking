@@ -85,3 +85,88 @@ export const useCreateStaff = () => {
     },
   });
 };
+
+export const useUpdateStaff = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, ...staff }: Staff) => {
+      // Transform camelCase to snake_case for database
+      const dbStaff = {
+        tenant_id: staff.tenantId,
+        name: staff.name,
+        email: staff.email,
+        role: staff.role,
+        skills: staff.skills,
+        avatar: staff.avatar,
+        is_active: staff.isActive,
+      };
+
+      const { data, error } = await supabase
+        .from('staff')
+        .update(dbStaff)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Transform response back to camelCase
+      return {
+        id: data.id,
+        tenantId: data.tenant_id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        skills: data.skills || [],
+        avatar: data.avatar,
+        isActive: data.is_active,
+      };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      toast({
+        title: 'Success',
+        description: 'Staff member updated successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update staff member',
+        variant: 'destructive',
+      });
+      console.error('Error updating staff:', error);
+    },
+  });
+};
+
+export const useDeleteStaff = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('staff')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      toast({
+        title: 'Success',
+        description: 'Staff member deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete staff member',
+        variant: 'destructive',
+      });
+      console.error('Error deleting staff:', error);
+    },
+  });
+};

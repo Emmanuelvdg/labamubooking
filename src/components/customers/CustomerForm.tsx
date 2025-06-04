@@ -1,16 +1,18 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCreateCustomer } from '@/hooks/useCustomers';
+import { useCreateCustomer, useUpdateCustomer } from '@/hooks/useCustomers';
 import { useTenant } from '@/contexts/TenantContext';
+import { Customer } from '@/types';
 
 interface CustomerFormProps {
   onSuccess?: (customerId?: string) => void;
+  initialData?: Customer;
 }
 
-export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
+export const CustomerForm = ({ onSuccess, initialData }: CustomerFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,7 +20,19 @@ export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
   });
 
   const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
   const { tenantId } = useTenant();
+  const isEditing = !!initialData;
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name,
+        email: initialData.email,
+        phone: initialData.phone || ''
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,19 +47,30 @@ export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
     }
 
     try {
-      const newCustomer = await createCustomer.mutateAsync({
-        tenantId,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone || '',
-      });
-
-      onSuccess?.(newCustomer.id);
-      setFormData({ name: '', email: '', phone: '' });
+      if (isEditing && initialData) {
+        const updatedCustomer = await updateCustomer.mutateAsync({
+          ...initialData,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || '',
+        });
+        onSuccess?.(updatedCustomer.id);
+      } else {
+        const newCustomer = await createCustomer.mutateAsync({
+          tenantId,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || '',
+        });
+        onSuccess?.(newCustomer.id);
+        setFormData({ name: '', email: '', phone: '' });
+      }
     } catch (error) {
-      console.error('Error creating customer:', error);
+      console.error('Error saving customer:', error);
     }
   };
+
+  const isPending = createCustomer.isPending || updateCustomer.isPending;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,8 +107,8 @@ export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={createCustomer.isPending || !tenantId}>
-          {createCustomer.isPending ? 'Creating...' : 'Create Customer'}
+        <Button type="submit" disabled={isPending || !tenantId}>
+          {isPending ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Customer' : 'Create Customer')}
         </Button>
       </div>
     </form>

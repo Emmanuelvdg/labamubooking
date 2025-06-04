@@ -7,6 +7,7 @@ import { Search, Mail, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { NewStaffDialog } from '@/components/staff/NewStaffDialog';
 import { SyncStaffButton } from '@/components/staff/SyncStaffButton';
+import { StaffActions } from '@/components/staff/StaffActions';
 import { useStaff } from '@/hooks/useStaff';
 import { useTenant } from '@/contexts/TenantContext';
 
@@ -66,46 +67,48 @@ const Staff = () => {
         ) : staff && staff.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {staff.map((member) => (
-              <Card key={member.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={member.avatar} />
-                      <AvatarFallback>
-                        {member.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-lg truncate">{member.name}</h3>
-                        <Badge variant={member.isActive ? "default" : "secondary"}>
-                          {member.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                      <p className="text-gray-600 font-medium">{member.role}</p>
-                      <div className="flex items-center mt-1 text-sm text-gray-600">
-                        <Mail className="h-3 w-3 mr-2" />
-                        <span className="truncate">{member.email}</span>
-                      </div>
-                      
-                      <div className="mt-3">
-                        <p className="text-sm font-medium text-gray-700 mb-2">Skills:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {member.skills && member.skills.length > 0 ? (
-                            member.skills.map((skill, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {skill}
-                              </Badge>
-                            ))
-                          ) : (
-                            <span className="text-xs text-gray-500">No skills listed</span>
-                          )}
+              <StaffActions key={member.id} staff={member}>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={member.avatar} />
+                        <AvatarFallback>
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-lg truncate">{member.name}</h3>
+                          <Badge variant={member.isActive ? "default" : "secondary"}>
+                            {member.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
+                        <p className="text-gray-600 font-medium">{member.role}</p>
+                        <div className="flex items-center mt-1 text-sm text-gray-600">
+                          <Mail className="h-3 w-3 mr-2" />
+                          <span className="truncate">{member.email}</span>
+                        </div>
+                        
+                        <div className="mt-3">
+                          <p className="text-sm font-medium text-gray-700 mb-2">Skills:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {member.skills && member.skills.length > 0 ? (
+                              member.skills.map((skill, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {skill}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-gray-500">No skills listed</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </StaffActions>
             ))}
           </div>
         ) : (
