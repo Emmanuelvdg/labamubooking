@@ -15,14 +15,17 @@ export const useSyncCustomers = () => {
   
   return useMutation({
     mutationFn: async (tenantId: string) => {
+      console.log('Starting customer sync for tenant:', tenantId);
       // Fetch customers from external API
       const response = await fetch('https://www.labamu.co.id/v1/customer');
       
       if (!response.ok) {
+        console.error('External API request failed:', response.status, response.statusText);
         throw new Error('Failed to fetch customers from external API');
       }
       
       const externalCustomers: ExternalCustomer[] = await response.json();
+      console.log('Fetched external customers:', externalCustomers);
       
       // Transform and insert customers into our database
       const customersToInsert = externalCustomers.map(customer => ({
@@ -32,6 +35,8 @@ export const useSyncCustomers = () => {
         phone: customer.phone || '',
       }));
 
+      console.log('Customers to insert:', customersToInsert);
+
       const { data, error } = await supabase
         .from('customers')
         .upsert(customersToInsert, { 
@@ -40,11 +45,16 @@ export const useSyncCustomers = () => {
         })
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Database upsert error:', error);
+        throw error;
+      }
       
+      console.log('Sync completed successfully:', data);
       return data;
     },
     onSuccess: (data) => {
+      console.log('Sync successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       toast({
         title: 'Success',
@@ -52,12 +62,12 @@ export const useSyncCustomers = () => {
       });
     },
     onError: (error) => {
+      console.error('Sync failed:', error);
       toast({
         title: 'Error',
         description: 'Failed to sync customers from external API',
         variant: 'destructive',
       });
-      console.error('Error syncing customers:', error);
     },
   });
 };
