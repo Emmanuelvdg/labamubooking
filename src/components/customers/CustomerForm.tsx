@@ -25,8 +25,8 @@ export const CustomerForm = ({ onSuccess }: CustomerFormProps) => {
       return;
     }
 
-    // For demo purposes, using a hardcoded tenant ID
-    const tenantId = '1';
+    // Using a proper UUID format for demo purposes
+    const tenantId = '00000000-0000-0000-0000-000000000001';
 
     await createCustomer.mutateAsync({
       tenantId,

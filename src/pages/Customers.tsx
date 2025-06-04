@@ -8,8 +8,8 @@ import { NewCustomerDialog } from '@/components/customers/NewCustomerDialog';
 import { useCustomers } from '@/hooks/useCustomers';
 
 const Customers = () => {
-  // For demo purposes, using a hardcoded tenant ID
-  const tenantId = '1';
+  // Using a proper UUID format for demo purposes
+  const tenantId = '00000000-0000-0000-0000-000000000001';
   const { data: customers = [], isLoading, error } = useCustomers(tenantId);
 
   if (isLoading) {
