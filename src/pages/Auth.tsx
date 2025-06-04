@@ -178,7 +178,7 @@ const Auth = () => {
           <div className="flex items-center justify-center mb-4">
             <Building2 className="h-12 w-12 text-blue-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">BookingPro</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">LabamuBooking</h1>
           <p className="text-gray-600">Manage your service business</p>
         </div>
 
@@ -327,7 +327,7 @@ const Auth = () => {
         </Card>
 
         <div className="text-center mt-6 text-gray-600">
-          <p>New to BookingPro? <Link to="/tenant/create" className="text-blue-600 hover:underline">Create your business</Link></p>
+          <p>New to LabamuBooking? <Link to="/tenant/create" className="text-blue-600 hover:underline">Create your business</Link></p>
         </div>
       </div>
     </div>
