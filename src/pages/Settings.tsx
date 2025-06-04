@@ -1,3 +1,4 @@
+
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +8,47 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Bell, Users, Calendar, CreditCard } from 'lucide-react';
+import { useTenantDetails } from '@/hooks/useTenantDetails';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Settings = () => {
+  const { data: tenant, isLoading, error } = useTenantDetails();
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+            <p className="text-gray-600">Manage your business settings and preferences</p>
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+            <p className="text-gray-600">Manage your business settings and preferences</p>
+          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-red-600">Failed to load business information. Please try again.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -38,25 +78,29 @@ const Settings = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="business-name">Business Name</Label>
-                    <Input id="business-name" defaultValue="BookingPro Salon" />
+                    <Input id="business-name" defaultValue={tenant?.name || ''} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="business-type">Business Type</Label>
-                    <Input id="business-type" defaultValue="Hair Salon" />
+                    <Input id="business-type" defaultValue={tenant?.business_type || ''} />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" defaultValue="123 Main Street, City, State 12345" />
+                  <Label htmlFor="description">Business Description</Label>
+                  <Input id="description" defaultValue={tenant?.description || ''} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="owner-name">Owner Name</Label>
+                  <Input id="owner-name" defaultValue={tenant?.owner_name || ''} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" defaultValue="+1 (555) 123-4567" />
+                    <Input id="phone" defaultValue={tenant?.phone || ''} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" defaultValue="contact@bookingpro.com" />
+                    <Input id="email" defaultValue={tenant?.email || ''} />
                   </div>
                 </div>
                 <Button>
