@@ -1,63 +1,48 @@
+
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Clock, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { Search, Clock, DollarSign, Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-
-const mockServices = [
-  {
-    id: '1',
-    name: 'Haircut & Style',
-    description: 'Professional haircut with styling',
-    duration: 60,
-    price: 45,
-    category: 'Hair Services'
-  },
-  {
-    id: '2',
-    name: 'Color Treatment',
-    description: 'Full hair coloring service',
-    duration: 120,
-    price: 120,
-    category: 'Color Services'
-  },
-  {
-    id: '3',
-    name: 'Beard Trim',
-    description: 'Professional beard trimming and shaping',
-    duration: 30,
-    price: 25,
-    category: 'Grooming'
-  },
-  {
-    id: '4',
-    name: 'Highlights',
-    description: 'Partial hair highlighting',
-    duration: 90,
-    price: 85,
-    category: 'Color Services'
-  },
-  {
-    id: '5',
-    name: 'Blowout',
-    description: 'Professional hair washing and styling',
-    duration: 45,
-    price: 35,
-    category: 'Hair Services'
-  },
-  {
-    id: '6',
-    name: 'Deep Conditioning',
-    description: 'Intensive hair treatment and conditioning',
-    duration: 30,
-    price: 40,
-    category: 'Hair Treatment'
-  }
-];
+import { NewServiceDialog } from '@/components/services/NewServiceDialog';
+import { useServices } from '@/hooks/useServices';
 
 const Services = () => {
-  const categories = [...new Set(mockServices.map(service => service.category))];
+  // Using the same UUID format as in other pages
+  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const { data: services, isLoading } = useServices(tenantId);
+
+  // Group services by a simple categorization based on service name
+  const categorizeServices = (services: any[]) => {
+    const categories: { [key: string]: any[] } = {};
+    
+    services.forEach(service => {
+      let category = 'General Services';
+      
+      // Simple categorization logic based on service name
+      const name = service.name.toLowerCase();
+      if (name.includes('hair') || name.includes('cut') || name.includes('style')) {
+        category = 'Hair Services';
+      } else if (name.includes('color') || name.includes('highlight')) {
+        category = 'Color Services';
+      } else if (name.includes('beard') || name.includes('trim')) {
+        category = 'Grooming';
+      } else if (name.includes('treatment') || name.includes('condition')) {
+        category = 'Hair Treatment';
+      }
+      
+      if (!categories[category]) {
+        categories[category] = [];
+      }
+      categories[category].push(service);
+    });
+    
+    return categories;
+  };
+
+  const categorizedServices = services ? categorizeServices(services) : {};
+  const categories = Object.keys(categorizedServices);
 
   return (
     <Layout>
@@ -67,10 +52,7 @@ const Services = () => {
             <h1 className="text-3xl font-bold text-gray-900">Services</h1>
             <p className="text-gray-600">Manage your service offerings and pricing</p>
           </div>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Service
-          </Button>
+          <NewServiceDialog />
         </div>
 
         <div className="flex gap-4 items-center">
@@ -80,15 +62,20 @@ const Services = () => {
           </div>
         </div>
 
-        {categories.map(category => (
-          <div key={category} className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">
-              {category}
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {mockServices
-                .filter(service => service.category === category)
-                .map((service) => (
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-center text-gray-500">Loading services...</p>
+            </CardContent>
+          </Card>
+        ) : services && services.length > 0 ? (
+          categories.map(category => (
+            <div key={category} className="space-y-4">
+              <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">
+                {category}
+              </h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {categorizedServices[category].map((service) => (
                   <Card key={service.id} className="hover:shadow-md transition-shadow">
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
@@ -119,15 +106,25 @@ const Services = () => {
                         </div>
                         
                         <Badge variant="outline" className="w-fit">
-                          {service.category}
+                          {category}
                         </Badge>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center text-gray-500">
+                <p>No services found</p>
+                <p className="text-sm mt-2">Create your first service to get started</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   );

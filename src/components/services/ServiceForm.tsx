@@ -27,8 +27,8 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
       return;
     }
 
-    // For demo purposes, using a hardcoded tenant ID
-    const tenantId = '1';
+    // Using the same UUID format as other pages
+    const tenantId = '00000000-0000-0000-0000-000000000001';
 
     await createService.mutateAsync({
       tenantId,

@@ -8,6 +8,7 @@ export const useServices = (tenantId: string) => {
   return useQuery({
     queryKey: ['services', tenantId],
     queryFn: async () => {
+      console.log('Fetching services for tenant:', tenantId);
       const { data, error } = await supabase
         .from('services')
         .select('*')
@@ -15,6 +16,8 @@ export const useServices = (tenantId: string) => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
+      
+      console.log('Fetched services:', data);
       
       // Transform snake_case to camelCase
       return data.map(service => ({
@@ -35,6 +38,8 @@ export const useCreateService = () => {
   
   return useMutation({
     mutationFn: async (service: Omit<Service, 'id'>) => {
+      console.log('Creating service:', service);
+      
       // Transform camelCase to snake_case for database
       const dbService = {
         tenant_id: service.tenantId,
@@ -51,6 +56,8 @@ export const useCreateService = () => {
         .single();
       
       if (error) throw error;
+      
+      console.log('Created service:', data);
       
       // Transform response back to camelCase
       return {
