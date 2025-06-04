@@ -4,7 +4,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { EditCustomerDialog } from './EditCustomerDialog';
 import { DeleteCustomerDialog } from './DeleteCustomerDialog';
 import { Customer } from '@/types';
-import { edit, trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface CustomerActionsProps {
   customer: Customer;
@@ -23,14 +23,14 @@ export const CustomerActions = ({ customer, children }: CustomerActionsProps) =>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onClick={() => setEditOpen(true)}>
-            <edit className="h-4 w-4 mr-2" />
+            <Edit className="h-4 w-4 mr-2" />
             Edit
           </ContextMenuItem>
           <ContextMenuItem 
             onClick={() => setDeleteOpen(true)}
             className="text-red-600 focus:text-red-600"
           >
-            <trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="h-4 w-4 mr-2" />
             Delete
           </ContextMenuItem>
         </ContextMenuContent>

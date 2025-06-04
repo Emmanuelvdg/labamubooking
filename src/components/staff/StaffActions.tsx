@@ -5,7 +5,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { EditStaffDialog } from './EditStaffDialog';
 import { DeleteStaffDialog } from './DeleteStaffDialog';
 import { Staff } from '@/types';
-import { edit, trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface StaffActionsProps {
   staff: Staff;
@@ -24,14 +24,14 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onClick={() => setEditOpen(true)}>
-            <edit className="h-4 w-4 mr-2" />
+            <Edit className="h-4 w-4 mr-2" />
             Edit
           </ContextMenuItem>
           <ContextMenuItem 
             onClick={() => setDeleteOpen(true)}
             className="text-red-600 focus:text-red-600"
           >
-            <trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="h-4 w-4 mr-2" />
             Delete
           </ContextMenuItem>
         </ContextMenuContent>
