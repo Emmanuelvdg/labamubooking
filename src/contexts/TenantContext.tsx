@@ -58,12 +58,23 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
 
   const refetchTenant = async () => {
     setIsLoading(true);
+    setError(null);
     await fetchUserTenant();
   };
 
   useEffect(() => {
     fetchUserTenant();
   }, [user, authLoading]);
+
+  // Auto-refetch when user changes (helpful after linking user to tenant)
+  useEffect(() => {
+    if (user && !tenantId && !isLoading && !error) {
+      console.log('User exists but no tenant found, retrying...');
+      setTimeout(() => {
+        refetchTenant();
+      }, 1000);
+    }
+  }, [user, tenantId, isLoading, error]);
 
   return (
     <TenantContext.Provider value={{ tenantId, isLoading, error, refetchTenant }}>
