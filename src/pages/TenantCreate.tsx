@@ -9,11 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Building2, ArrowRight } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useCreateTenant } from '@/hooks/useTenants';
 
 const TenantCreate = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createTenant = useCreateTenant();
   
   const [formData, setFormData] = useState({
     businessName: '',
@@ -42,7 +43,7 @@ const TenantCreate = () => {
     e.preventDefault();
     
     // Prevent multiple submissions
-    if (isSubmitting) return;
+    if (createTenant.isPending) return;
     
     // Validate required fields
     if (!formData.businessName || !formData.businessType || !formData.ownerName || !formData.email) {
@@ -54,13 +55,19 @@ const TenantCreate = () => {
       return;
     }
 
-    setIsSubmitting(true);
-    
     try {
-      console.log('Creating tenant:', formData);
+      console.log('Submitting tenant creation form:', formData);
       
-      // Simulate API call - replace with actual API call when backend is ready
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const tenant = await createTenant.mutateAsync({
+        businessName: formData.businessName,
+        businessType: formData.businessType,
+        description: formData.description,
+        ownerName: formData.ownerName,
+        email: formData.email,
+        phone: formData.phone,
+      });
+      
+      console.log('Tenant created, navigating to dashboard:', tenant);
       
       toast({
         title: "Business Created Successfully!",
@@ -71,14 +78,8 @@ const TenantCreate = () => {
       navigate('/dashboard');
       
     } catch (error) {
-      console.error('Error creating tenant:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create business. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error in form submission:', error);
+      // Error handling is done in the mutation's onError callback
     }
   };
 
@@ -112,14 +113,14 @@ const TenantCreate = () => {
                     onChange={(e) => handleInputChange('businessName', e.target.value)}
                     placeholder="Bella Vista Spa"
                     required
-                    disabled={isSubmitting}
+                    disabled={createTenant.isPending}
                   />
                 </div>
                 <div>
                   <Label htmlFor="businessType">Business Type *</Label>
                   <Select 
                     onValueChange={(value) => handleInputChange('businessType', value)}
-                    disabled={isSubmitting}
+                    disabled={createTenant.isPending}
                     value={formData.businessType}
                   >
                     <SelectTrigger>
@@ -144,7 +145,7 @@ const TenantCreate = () => {
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Describe your services and what makes your business special..."
                   rows={3}
-                  disabled={isSubmitting}
+                  disabled={createTenant.isPending}
                 />
               </div>
 
@@ -157,7 +158,7 @@ const TenantCreate = () => {
                     onChange={(e) => handleInputChange('ownerName', e.target.value)}
                     placeholder="John Smith"
                     required
-                    disabled={isSubmitting}
+                    disabled={createTenant.isPending}
                   />
                 </div>
                 <div>
@@ -169,7 +170,7 @@ const TenantCreate = () => {
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="john@bellavistaspa.com"
                     required
-                    disabled={isSubmitting}
+                    disabled={createTenant.isPending}
                   />
                 </div>
               </div>
@@ -181,16 +182,16 @@ const TenantCreate = () => {
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="+1 (555) 123-4567"
-                  disabled={isSubmitting}
+                  disabled={createTenant.isPending}
                 />
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-3"
-                disabled={isSubmitting}
+                disabled={createTenant.isPending}
               >
-                {isSubmitting ? (
+                {createTenant.isPending ? (
                   "Creating Business..."
                 ) : (
                   <>
