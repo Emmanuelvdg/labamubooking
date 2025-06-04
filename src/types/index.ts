@@ -26,6 +26,14 @@ export interface Customer {
   avatar?: string;
 }
 
+export interface ServiceCategory {
+  id: string;
+  tenantId: string;
+  name: string;
+  description: string | null;
+  color: string;
+}
+
 export interface Service {
   id: string;
   tenantId: string;
@@ -33,6 +41,8 @@ export interface Service {
   description: string;
   duration: number; // in minutes
   price: number;
+  categoryId?: string;
+  category?: ServiceCategory;
 }
 
 export interface Booking {

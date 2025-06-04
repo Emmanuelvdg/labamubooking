@@ -11,7 +11,15 @@ export const useServices = (tenantId: string) => {
       console.log('Fetching services for tenant:', tenantId);
       const { data, error } = await supabase
         .from('services')
-        .select('*')
+        .select(`
+          *,
+          service_categories(
+            id,
+            name,
+            description,
+            color
+          )
+        `)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
       
@@ -27,6 +35,14 @@ export const useServices = (tenantId: string) => {
         description: service.description,
         duration: service.duration,
         price: service.price,
+        categoryId: service.category_id,
+        category: service.service_categories ? {
+          id: service.service_categories.id,
+          tenantId: service.tenant_id,
+          name: service.service_categories.name,
+          description: service.service_categories.description,
+          color: service.service_categories.color,
+        } : undefined,
       })) as Service[];
     },
     enabled: !!tenantId,
@@ -47,12 +63,21 @@ export const useCreateService = () => {
         description: service.description,
         duration: service.duration,
         price: service.price,
+        category_id: service.categoryId,
       };
 
       const { data, error } = await supabase
         .from('services')
         .insert([dbService])
-        .select()
+        .select(`
+          *,
+          service_categories(
+            id,
+            name,
+            description,
+            color
+          )
+        `)
         .single();
       
       if (error) throw error;
@@ -67,6 +92,14 @@ export const useCreateService = () => {
         description: data.description,
         duration: data.duration,
         price: data.price,
+        categoryId: data.category_id,
+        category: data.service_categories ? {
+          id: data.service_categories.id,
+          tenantId: data.tenant_id,
+          name: data.service_categories.name,
+          description: data.service_categories.description,
+          color: data.service_categories.color,
+        } : undefined,
       };
     },
     onSuccess: () => {
