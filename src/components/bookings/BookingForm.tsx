@@ -49,7 +49,13 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.customerId || !formData.staffId || !formData.serviceId || !formData.startTime) {
+    if (!formData.staffId || !formData.serviceId || !formData.startTime) {
+      return;
+    }
+
+    // Handle walk-in customers by requiring a customer selection
+    if (!formData.customerId || formData.customerId === 'walk-in') {
+      console.error('Please select a customer or create a new one for walk-in bookings');
       return;
     }
 
@@ -85,7 +91,6 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
                 <SelectValue placeholder="Select customer" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="walk-in">Walk In (Anonymous)</SelectItem>
                 <SelectItem value="create-new">Create New Client</SelectItem>
                 {customers?.map((customer) => (
                   <SelectItem key={customer.id} value={customer.id}>
