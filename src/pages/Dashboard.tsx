@@ -1,6 +1,7 @@
 import { Layout } from '@/components/layout/Layout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { BookingCard } from '@/components/bookings/BookingCard';
+import { NewBookingDialog } from '@/components/bookings/NewBookingDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Users, BookOpen, DollarSign, Plus } from 'lucide-react';
@@ -46,10 +47,7 @@ const Dashboard = () => {
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-600">Welcome back! Here's your business overview.</p>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            New Booking
-          </Button>
+          <NewBookingDialog />
         </div>
 
         {/* Stats Cards */}
