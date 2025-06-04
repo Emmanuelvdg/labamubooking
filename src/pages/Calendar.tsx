@@ -2,15 +2,22 @@
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronLeft, ChevronRight, Plus, Filter, X } from 'lucide-react';
 import { useBookings } from '@/hooks/useBookings';
+import { useStaff } from '@/hooks/useStaff';
+import { useServices } from '@/hooks/useServices';
 import { useState } from 'react';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const tenantId = '00000000-0000-0000-0000-000000000001';
   
   const { data: bookings = [] } = useBookings(tenantId);
+  const { data: staff = [] } = useStaff(tenantId);
+  const { data: services = [] } = useServices(tenantId);
 
   const currentMonth = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
@@ -30,11 +37,21 @@ const Calendar = () => {
     calendarDays.push(day);
   }
 
-  // Filter bookings for the current month
+  // Filter bookings for the current month and apply additional filters
   const monthBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.startTime);
-    return bookingDate.getMonth() === currentDate.getMonth() && 
+    const isInCurrentMonth = bookingDate.getMonth() === currentDate.getMonth() && 
            bookingDate.getFullYear() === currentDate.getFullYear();
+    
+    if (!isInCurrentMonth) return false;
+    
+    // Apply staff filter
+    if (selectedStaffId && booking.staffId !== selectedStaffId) return false;
+    
+    // Apply service filter
+    if (selectedServiceId && booking.serviceId !== selectedServiceId) return false;
+    
+    return true;
   });
 
   // Group bookings by day
@@ -67,6 +84,13 @@ const Calendar = () => {
     });
   };
 
+  const clearFilters = () => {
+    setSelectedStaffId('');
+    setSelectedServiceId('');
+  };
+
+  const hasActiveFilters = selectedStaffId || selectedServiceId;
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -80,6 +104,70 @@ const Calendar = () => {
             Add Appointment
           </Button>
         </div>
+
+        {/* Filter Controls */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4 items-end">
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Staff Member
+                </label>
+                <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All staff members" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All staff members</SelectItem>
+                    {staff.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Service
+                </label>
+                <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All services" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All services</SelectItem>
+                    {services.map((service) => (
+                      <SelectItem key={service.id} value={service.id}>
+                        {service.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters} className="mb-0">
+                  <X className="h-4 w-4 mr-2" />
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+
+            {hasActiveFilters && (
+              <div className="mt-4 text-sm text-gray-600">
+                Showing {monthBookings.length} filtered booking{monthBookings.length !== 1 ? 's' : ''} for {currentMonth}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
