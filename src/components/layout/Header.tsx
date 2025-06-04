@@ -24,8 +24,10 @@ export const Header = ({ tenantName = "LabamuBooking" }: HeaderProps) => {
 
   const handleLogout = async () => {
     try {
+      console.log('Logging out user...');
       const { error } = await supabase.auth.signOut();
       if (error) {
+        console.error('Logout error:', error);
         toast({
           title: "Error",
           description: "Failed to log out. Please try again.",
@@ -34,6 +36,7 @@ export const Header = ({ tenantName = "LabamuBooking" }: HeaderProps) => {
         return;
       }
       
+      console.log('Logout successful');
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
@@ -41,7 +44,7 @@ export const Header = ({ tenantName = "LabamuBooking" }: HeaderProps) => {
       
       navigate('/auth');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Unexpected logout error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred during logout.",

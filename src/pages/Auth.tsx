@@ -40,22 +40,32 @@ const Auth = () => {
     }
 
     setIsLoading(true);
+    console.log('Attempting login for:', loginData.email);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginData.email,
+        email: loginData.email.trim(),
         password: loginData.password,
       });
 
       if (error) {
+        console.error('Login error:', error);
+        
+        // Provide more helpful error messages
+        let errorMessage = error.message;
+        if (error.message === 'Invalid login credentials') {
+          errorMessage = 'Invalid email or password. Please check your credentials or sign up if you don\'t have an account.';
+        }
+        
         toast({
           title: "Login Failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
         return;
       }
 
+      console.log('Login successful:', data.user?.email);
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
@@ -64,7 +74,7 @@ const Auth = () => {
       navigate('/dashboard');
       
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Unexpected login error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -106,12 +116,13 @@ const Auth = () => {
     }
 
     setIsLoading(true);
+    console.log('Attempting signup for:', signupData.email);
     
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { data, error } = await supabase.auth.signUp({
-        email: signupData.email,
+        email: signupData.email.trim(),
         password: signupData.password,
         options: {
           emailRedirectTo: redirectUrl,
@@ -122,6 +133,7 @@ const Auth = () => {
       });
 
       if (error) {
+        console.error('Signup error:', error);
         toast({
           title: "Signup Failed",
           description: error.message,
@@ -130,18 +142,23 @@ const Auth = () => {
         return;
       }
 
-      toast({
-        title: "Account Created!",
-        description: "Please check your email to verify your account.",
-      });
+      console.log('Signup successful:', data.user?.email);
       
-      // If email confirmation is disabled, redirect immediately
       if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: "Account Created!",
+          description: "Please check your email to verify your account before logging in.",
+        });
+      } else {
+        toast({
+          title: "Account Created!",
+          description: "You have successfully created your account.",
+        });
         navigate('/dashboard');
       }
       
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('Unexpected signup error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
