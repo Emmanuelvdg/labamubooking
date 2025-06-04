@@ -1,48 +1,18 @@
+
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Mail, Star } from 'lucide-react';
+import { Search, Mail, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-
-const mockStaff = [
-  {
-    id: '1',
-    name: 'Sarah Wilson',
-    email: 'sarah.wilson@bookingpro.com',
-    role: 'Senior Stylist',
-    skills: ['Haircuts', 'Coloring', 'Styling'],
-    avatar: '',
-    isActive: true,
-    rating: 4.8,
-    totalBookings: 156
-  },
-  {
-    id: '2',
-    name: 'Mike Johnson',
-    email: 'mike.johnson@bookingpro.com',
-    role: 'Color Specialist',
-    skills: ['Color Treatment', 'Highlights', 'Balayage'],
-    avatar: '',
-    isActive: true,
-    rating: 4.9,
-    totalBookings: 143
-  },
-  {
-    id: '3',
-    name: 'Emily Davis',
-    email: 'emily.davis@bookingpro.com',
-    role: 'Junior Stylist',
-    skills: ['Haircuts', 'Blowouts', 'Basic Styling'],
-    avatar: '',
-    isActive: false,
-    rating: 4.6,
-    totalBookings: 89
-  }
-];
+import { NewStaffDialog } from '@/components/staff/NewStaffDialog';
+import { useStaff } from '@/hooks/useStaff';
 
 const Staff = () => {
+  // Using the same UUID format as in other pages
+  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const { data: staff, isLoading } = useStaff(tenantId);
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -51,10 +21,7 @@ const Staff = () => {
             <h1 className="text-3xl font-bold text-gray-900">Staff</h1>
             <p className="text-gray-600">Manage your team members and their skills</p>
           </div>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Staff Member
-          </Button>
+          <NewStaffDialog />
         </div>
 
         <div className="flex gap-4 items-center">
@@ -64,56 +31,67 @@ const Staff = () => {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {mockStaff.map((staff) => (
-            <Card key={staff.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={staff.avatar} />
-                    <AvatarFallback>
-                      {staff.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg truncate">{staff.name}</h3>
-                      <Badge variant={staff.isActive ? "default" : "secondary"}>
-                        {staff.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                    <p className="text-gray-600 font-medium">{staff.role}</p>
-                    <div className="flex items-center mt-1 text-sm text-gray-600">
-                      <Mail className="h-3 w-3 mr-2" />
-                      <span className="truncate">{staff.email}</span>
-                    </div>
-                    
-                    <div className="mt-3">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Skills:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {staff.skills.map((skill, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {skill}
-                          </Badge>
-                        ))}
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-center text-gray-500">Loading staff...</p>
+            </CardContent>
+          </Card>
+        ) : staff && staff.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {staff.map((member) => (
+              <Card key={member.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start space-x-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={member.avatar} />
+                      <AvatarFallback>
+                        {member.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-lg truncate">{member.name}</h3>
+                        <Badge variant={member.isActive ? "default" : "secondary"}>
+                          {member.isActive ? "Active" : "Inactive"}
+                        </Badge>
                       </div>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t">
-                      <div className="flex justify-between items-center text-sm">
-                        <div className="flex items-center">
-                          <Star className="h-3 w-3 mr-1 text-yellow-500" />
-                          <span className="font-medium">{staff.rating}</span>
+                      <p className="text-gray-600 font-medium">{member.role}</p>
+                      <div className="flex items-center mt-1 text-sm text-gray-600">
+                        <Mail className="h-3 w-3 mr-2" />
+                        <span className="truncate">{member.email}</span>
+                      </div>
+                      
+                      <div className="mt-3">
+                        <p className="text-sm font-medium text-gray-700 mb-2">Skills:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {member.skills && member.skills.length > 0 ? (
+                            member.skills.map((skill, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No skills listed</span>
+                          )}
                         </div>
-                        <span className="text-gray-500">{staff.totalBookings} bookings</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center text-gray-500">
+                <p>No staff members found</p>
+                <p className="text-sm mt-2">Add your first staff member to get started</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   );
