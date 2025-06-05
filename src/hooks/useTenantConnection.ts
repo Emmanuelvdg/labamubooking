@@ -22,12 +22,34 @@ export const useConnectUserToTenant = () => {
         throw new Error('Authentication session error');
       }
       
-      if (!sessionData.session || sessionData.session.user.id !== userId) {
-        console.error('Session user mismatch or no session');
-        throw new Error('Invalid authentication context');
+      if (!sessionData.session) {
+        console.error('No active session found');
+        throw new Error('No active authentication session');
       }
       
-      console.log('Session verified, inserting user_tenant record');
+      if (sessionData.session.user.id !== userId) {
+        console.error('Session user mismatch:', {
+          sessionUserId: sessionData.session.user.id,
+          requestedUserId: userId
+        });
+        throw new Error('User ID mismatch with current session');
+      }
+      
+      console.log('Session verified, current user:', sessionData.session.user.email);
+      
+      // Double-check that we can access the current user via auth.uid()
+      const { data: currentUserCheck, error: userCheckError } = await supabase
+        .from('user_tenants')
+        .select('user_id')
+        .eq('user_id', userId)
+        .limit(1);
+      
+      if (userCheckError && !userCheckError.message.includes('no rows')) {
+        console.error('Error checking user access:', userCheckError);
+        throw new Error('Database access verification failed');
+      }
+      
+      console.log('User access verified, inserting user_tenant record');
       
       const { data, error } = await supabase
         .from('user_tenants')
@@ -42,23 +64,40 @@ export const useConnectUserToTenant = () => {
       
       if (error) {
         console.error('Error connecting user to tenant:', error);
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       
       console.log('User connected to tenant successfully:', data);
       return data;
     },
-    onSuccess: () => {
-      toast({
-        title: 'Success',
-        description: 'User connected to tenant successfully',
-      });
+    onSuccess: (data) => {
+      console.log('Connection successful:', data);
     },
     onError: (error) => {
       console.error('Failed to connect user to tenant:', error);
+      
+      // Provide more specific error messages based on the error type
+      let errorMessage = 'Failed to connect user to tenant';
+      
+      if (error.message?.includes('row-level security')) {
+        errorMessage = 'Authentication verification failed. Please try logging out and logging back in.';
+      } else if (error.message?.includes('duplicate key')) {
+        errorMessage = 'User is already associated with this tenant.';
+      } else if (error.message?.includes('session')) {
+        errorMessage = 'Authentication session expired. Please refresh the page and try again.';
+      } else if (error.message?.includes('mismatch')) {
+        errorMessage = 'Authentication error. Please log out and log back in.';
+      }
+      
       toast({
-        title: 'Error',
-        description: 'Failed to connect user to tenant',
+        title: 'Connection Error',
+        description: errorMessage,
         variant: 'destructive',
       });
     },

@@ -81,8 +81,18 @@ export const useCreateTenant = () => {
         throw new Error('Failed to authenticate user');
       }
 
-      // Wait a bit to ensure the auth session is properly established
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait longer to ensure the auth session is properly established
+      console.log('Waiting for auth session to stabilize...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Verify the session is still active and accessible
+      const { data: verifySession, error: verifyError } = await supabase.auth.getSession();
+      if (verifyError || !verifySession.session) {
+        console.error('Session verification failed:', verifyError);
+        throw new Error('Authentication session failed to establish properly');
+      }
+      
+      console.log('Auth session verified, user ID:', verifySession.session.user.id);
 
       // Create the tenant record with only the provided data - no synthetic data
       const dbTenant = {
@@ -111,7 +121,8 @@ export const useCreateTenant = () => {
       
       // Connect the user to the tenant as owner
       // Wait a bit more to ensure auth context is fully established
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Preparing to connect user to tenant...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       try {
         await connectUserToTenant.mutateAsync({
@@ -122,13 +133,17 @@ export const useCreateTenant = () => {
         console.log('User connected to tenant as owner - tenant starts with clean slate');
       } catch (connectionError) {
         console.error('Failed to connect user to tenant:', connectionError);
-        // Log the detailed error for debugging
         console.error('Connection error details:', connectionError);
-        throw new Error('Failed to associate user with tenant');
+        
+        // Provide more specific error message
+        if (connectionError.message?.includes('row-level security')) {
+          throw new Error('Account creation succeeded but user association failed due to authentication issues. Please try refreshing the page and logging in manually.');
+        } else {
+          throw new Error('Failed to associate user with tenant. The business was created but you may need to contact support to complete the setup.');
+        }
       }
       
       // Transform response back to camelCase for frontend
-      // Note: New tenant will have empty customers, bookings, services, and staff tables
       return {
         id: data.id,
         name: data.name,
@@ -173,10 +188,10 @@ export const useCreateTenant = () => {
         errorMessage = 'Please enter a valid email address with a real domain (e.g., gmail.com, outlook.com)';
       } else if (error.message?.includes('invalid')) {
         errorMessage = 'Please check your information and try again. Make sure to use a real email address.';
-      } else if (error.message?.includes('associate user with tenant')) {
-        errorMessage = 'Business was created but failed to link to your account. Please contact support.';
-      } else if (error.message?.includes('row-level security') || error.message?.includes('RLS')) {
-        errorMessage = 'Account creation encountered a security policy issue. Please try again or contact support.';
+      } else if (error.message?.includes('associate user with tenant') || error.message?.includes('association failed')) {
+        errorMessage = 'Business was created but there was an issue linking it to your account. Please try refreshing the page and logging in, or contact support if the issue persists.';
+      } else if (error.message?.includes('row-level security') || error.message?.includes('RLS') || error.message?.includes('authentication issues')) {
+        errorMessage = 'There was an authentication issue during account setup. Please try refreshing the page and attempting the process again.';
       }
       
       toast({
