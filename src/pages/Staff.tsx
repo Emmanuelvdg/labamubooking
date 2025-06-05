@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { NewStaffDialog } from '@/components/staff/NewStaffDialog';
 import { SyncStaffButton } from '@/components/staff/SyncStaffButton';
 import { StaffActions } from '@/components/staff/StaffActions';
-import { StaffAccountDialog } from '@/components/staff/StaffAccountDialog';
 import { useStaff } from '@/hooks/useStaff';
 import { useTenant } from '@/contexts/TenantContext';
 
@@ -105,10 +104,6 @@ const Staff = () => {
                               <span className="text-xs text-gray-500">No skills listed</span>
                             )}
                           </div>
-                        </div>
-
-                        <div className="mt-4">
-                          <StaffAccountDialog staff={member} />
                         </div>
                       </div>
                     </div>
