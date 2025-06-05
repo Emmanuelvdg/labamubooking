@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateService } from '@/hooks/useServices';
 import { useServiceCategories } from '@/hooks/useServiceCategories';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface ServiceFormProps {
   onSuccess?: () => void;
@@ -21,14 +22,14 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
     categoryId: 'none'
   });
 
-  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const { tenantId } = useTenant();
   const createService = useCreateService();
-  const { data: categories, isLoading: categoriesLoading } = useServiceCategories(tenantId);
+  const { data: categories, isLoading: categoriesLoading } = useServiceCategories(tenantId || '');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.duration || !formData.price) {
+    if (!formData.name || !formData.duration || !formData.price || !tenantId) {
       return;
     }
 
@@ -44,6 +45,14 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
     onSuccess?.();
     setFormData({ name: '', description: '', duration: '', price: '', categoryId: 'none' });
   };
+
+  if (!tenantId) {
+    return (
+      <div className="text-center text-gray-500">
+        <p>No tenant access found. Please contact support.</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
