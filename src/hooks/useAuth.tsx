@@ -13,25 +13,43 @@ export const useAuth = () => {
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email, 'Session ID:', session?.access_token?.substring(0, 10) + '...');
+        
+        // Always update session and user state
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // If this is a sign-in event, add extra delay to ensure database consistency
+        if (event === 'SIGNED_IN' && session) {
+          console.log('SIGNED_IN event detected, ensuring database consistency...');
+          // Give the database extra time to process any pending writes
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        
         setLoading(false);
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error getting session:', error);
-      } else {
-        console.log('Initial session check:', session?.user?.email);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting initial session:', error);
+        } else {
+          console.log('Initial session check:', session?.user?.email, 'Session ID:', session?.access_token?.substring(0, 10) + '...');
+        }
+        setSession(session);
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
+      } finally {
+        setLoading(false);
       }
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => {
       console.log('Cleaning up auth subscription');

@@ -17,9 +17,9 @@ export const useCreateTenant = () => {
   
   return useMutation({
     mutationFn: async (tenantData: CreateTenantData): Promise<CreateTenantResult> => {
-      console.log('Creating new tenant with fresh database state:', { ...tenantData, password: '[REDACTED]' });
+      console.log('Creating new tenant with enhanced synchronization:', { ...tenantData, password: '[REDACTED]' });
       
-      // Handle user authentication first
+      // Handle user authentication first with enhanced error handling
       const { authData, isExistingUser } = await handleUserAuthentication(tenantData.email, tenantData.password);
       console.log('User authentication completed. User ID:', authData.user.id, 'Existing user:', isExistingUser);
       
@@ -27,27 +27,62 @@ export const useCreateTenant = () => {
       const tenantRecord = await createTenantRecord(tenantData);
       console.log('Tenant record created successfully:', tenantRecord.id);
       
-      // Small delay to ensure database consistency
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Enhanced delay for database consistency
+      console.log('Ensuring database consistency before user-tenant connection...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Connect the user to the tenant as owner
+      // Connect the user to the tenant as owner with retry logic
       console.log('Connecting user to tenant as owner...');
-      try {
-        await connectUserToTenant.mutateAsync({
-          userId: authData.user.id,
-          tenantId: tenantRecord.id,
-          role: 'owner'
-        });
-        console.log('User successfully connected to tenant as owner');
-      } catch (connectionError) {
-        console.error('Failed to connect user to tenant:', connectionError);
-        throw new Error('Failed to associate user with tenant. Please try refreshing the page and logging in.');
+      let connectionAttempts = 0;
+      const maxConnectionAttempts = 3;
+      
+      while (connectionAttempts < maxConnectionAttempts) {
+        try {
+          await connectUserToTenant.mutateAsync({
+            userId: authData.user.id,
+            tenantId: tenantRecord.id,
+            role: 'owner'
+          });
+          console.log('User successfully connected to tenant as owner');
+          break;
+        } catch (connectionError) {
+          connectionAttempts++;
+          console.error(`Connection attempt ${connectionAttempts} failed:`, connectionError);
+          
+          if (connectionAttempts >= maxConnectionAttempts) {
+            throw new Error('Failed to associate user with tenant after multiple attempts. Please try refreshing the page and logging in.');
+          }
+          
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000 * connectionAttempts));
+        }
       }
       
-      // Ensure tenant context is refreshed with new data
+      // Enhanced tenant context refresh with verification
       console.log('Refreshing tenant context with new business...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await refetchTenant();
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Verify tenant context refresh worked
+      let refreshAttempts = 0;
+      const maxRefreshAttempts = 3;
+      
+      while (refreshAttempts < maxRefreshAttempts) {
+        try {
+          await refetchTenant();
+          console.log(`Tenant context refresh attempt ${refreshAttempts + 1} completed`);
+          
+          // Add a small delay to allow the context to update
+          await new Promise(resolve => setTimeout(resolve, 500));
+          break;
+        } catch (refreshError) {
+          refreshAttempts++;
+          console.error(`Tenant refresh attempt ${refreshAttempts} failed:`, refreshError);
+          
+          if (refreshAttempts < maxRefreshAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
       
       return {
         id: tenantRecord.id,

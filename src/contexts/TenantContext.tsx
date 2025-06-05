@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -37,13 +37,19 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
   const [error, setError] = useState<string | null>(null);
   const [availableTenants, setAvailableTenants] = useState<UserTenant[]>([]);
   const [currentTenantRole, setCurrentTenantRole] = useState<string | null>(null);
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, session } = useAuth();
 
-  const fetchUserTenants = async () => {
-    if (authLoading) return;
+  const fetchUserTenants = useCallback(async (retryCount = 0) => {
+    const maxRetries = 3;
+    const retryDelay = 1000 * (retryCount + 1); // Exponential backoff
+
+    if (authLoading) {
+      console.log('Auth still loading, skipping tenant fetch');
+      return;
+    }
     
-    if (!user) {
-      console.log('No user found, clearing tenant state');
+    if (!user || !session) {
+      console.log('No user or session found, clearing tenant state');
       setTenantId(null);
       setAvailableTenants([]);
       setCurrentTenantRole(null);
@@ -53,8 +59,9 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
     }
 
     try {
-      console.log('Fetching tenants for user:', user.id);
+      console.log(`Fetching tenants for user: ${user.id} (attempt ${retryCount + 1})`);
       
+      // Use the session to ensure we have proper auth context
       const { data: userTenants, error: tenantsError } = await supabase
         .from('user_tenants')
         .select(`
@@ -74,6 +81,16 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
 
       if (tenantsError) {
         console.error('Error fetching user tenants:', tenantsError);
+        
+        // If we get a permission error and haven't reached max retries, try again
+        if (tenantsError.code === 'PGRST116' && retryCount < maxRetries) {
+          console.log(`Permission error, retrying in ${retryDelay}ms...`);
+          setTimeout(() => {
+            fetchUserTenants(retryCount + 1);
+          }, retryDelay);
+          return;
+        }
+        
         setError('Failed to load tenant information');
         setIsLoading(false);
         return;
@@ -109,13 +126,23 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
       setError(null);
     } catch (err) {
       console.error('Unexpected error fetching tenant:', err);
+      
+      // Retry logic for unexpected errors
+      if (retryCount < maxRetries) {
+        console.log(`Unexpected error, retrying in ${retryDelay}ms...`);
+        setTimeout(() => {
+          fetchUserTenants(retryCount + 1);
+        }, retryDelay);
+        return;
+      }
+      
       setError('Failed to load tenant information');
       setTenantId(null);
       setCurrentTenantRole(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, authLoading, session]);
 
   const switchTenant = (newTenantId: string) => {
     console.log('Switching to tenant:', newTenantId);
@@ -133,9 +160,9 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
   };
 
   useEffect(() => {
-    console.log('TenantContext effect triggered - user:', !!user, 'authLoading:', authLoading);
+    console.log('TenantContext effect triggered - user:', !!user, 'authLoading:', authLoading, 'session:', !!session);
     fetchUserTenants();
-  }, [user, authLoading]);
+  }, [fetchUserTenants]);
 
   return (
     <TenantContext.Provider value={{ 

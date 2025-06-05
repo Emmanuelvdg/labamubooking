@@ -63,18 +63,44 @@ export const useAuthManagement = () => {
       throw new Error('Failed to authenticate user');
     }
 
-    // Wait for auth session to stabilize
+    // Enhanced session stability check
     console.log('Waiting for auth session to stabilize...');
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Verify the session is still active and accessible
-    const { data: verifySession, error: verifyError } = await supabase.auth.getSession();
-    if (verifyError || !verifySession.session) {
-      console.error('Session verification failed:', verifyError);
-      throw new Error('Authentication session failed to establish properly');
-    }
+    // Verify the session multiple times to ensure consistency
+    let verifyAttempts = 0;
+    const maxVerifyAttempts = 3;
     
-    console.log('Auth session verified, user ID:', verifySession.session.user.id);
+    while (verifyAttempts < maxVerifyAttempts) {
+      const { data: verifySession, error: verifyError } = await supabase.auth.getSession();
+      
+      if (verifyError) {
+        console.error(`Session verification attempt ${verifyAttempts + 1} failed:`, verifyError);
+        verifyAttempts++;
+        
+        if (verifyAttempts < maxVerifyAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        } else {
+          throw new Error('Authentication session failed to establish properly');
+        }
+      }
+      
+      if (!verifySession.session) {
+        console.warn(`Session verification attempt ${verifyAttempts + 1}: No session found`);
+        verifyAttempts++;
+        
+        if (verifyAttempts < maxVerifyAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        } else {
+          throw new Error('Authentication session failed to establish properly');
+        }
+      }
+      
+      console.log(`Auth session verified on attempt ${verifyAttempts + 1}, user ID:`, verifySession.session.user.id);
+      break;
+    }
 
     return { authData, isExistingUser };
   };
