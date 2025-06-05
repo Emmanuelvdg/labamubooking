@@ -99,6 +99,9 @@ const BusinessInfoForm = () => {
         return;
       }
       
+      // Add a small delay to ensure tenant context has been refreshed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // If no email confirmation needed (auto-confirmed) or existing user, proceed to dashboard
       if (result.session) {
         toast({

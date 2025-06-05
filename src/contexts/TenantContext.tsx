@@ -37,6 +37,7 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
   const [availableTenants, setAvailableTenants] = useState<UserTenant[]>([]);
   const [currentTenantRole, setCurrentTenantRole] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
+  const [lastFetchTimestamp, setLastFetchTimestamp] = useState(0);
 
   const fetchUserTenants = async () => {
     if (authLoading) return;
@@ -52,17 +53,9 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
 
     try {
       console.log('Fetching tenants for user:', user.id);
+      setLastFetchTimestamp(Date.now());
       
-      // Get the current tenant ID using the updated function
-      const { data: currentTenantId, error: tenantError } = await supabase.rpc('get_user_tenant_id');
-      
-      if (tenantError) {
-        console.error('Error fetching current tenant:', tenantError);
-        setError('Failed to load tenant information');
-        return;
-      }
-
-      // Get all available tenants for the user
+      // Try to get all available tenants first (this avoids issues with RPC function timing)
       const { data: userTenants, error: tenantsError } = await supabase
         .from('user_tenants')
         .select(`
@@ -88,12 +81,26 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
       console.log('Available tenants:', userTenants);
       setAvailableTenants(userTenants || []);
       
-      if (currentTenantId) {
-        setTenantId(currentTenantId);
-        // Find the current tenant's role
-        const currentTenant = userTenants?.find(ut => ut.tenant_id === currentTenantId);
-        setCurrentTenantRole(currentTenant?.role || null);
-        console.log('Current tenant ID:', currentTenantId, 'Role:', currentTenant?.role);
+      // If we have tenants, use the first one as current
+      if (userTenants && userTenants.length > 0) {
+        // Sort tenants by role priority (owner > admin > user)
+        const sortedTenants = [...userTenants].sort((a, b) => {
+          const roleOrder = { 'owner': 1, 'admin': 2, 'user': 3 };
+          const roleA = roleOrder[a.role as keyof typeof roleOrder] || 4;
+          const roleB = roleOrder[b.role as keyof typeof roleOrder] || 4;
+          
+          if (roleA !== roleB) {
+            return roleA - roleB;
+          }
+          
+          // If roles are the same, sort by created_at (newest first)
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        });
+        
+        const firstTenant = sortedTenants[0];
+        setTenantId(firstTenant.tenant_id);
+        setCurrentTenantRole(firstTenant.role);
+        console.log('Current tenant ID set to:', firstTenant.tenant_id, 'Role:', firstTenant.role);
       } else {
         console.log('No tenant found for user');
         setTenantId(null);
@@ -124,6 +131,7 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
   };
 
   const refetchTenant = async () => {
+    console.log('Manual tenant refetch triggered');
     setIsLoading(true);
     setError(null);
     await fetchUserTenants();

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tenant } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { useConnectUserToTenant } from './useTenantConnection';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface CreateTenantData {
   businessName: string;
@@ -18,6 +19,7 @@ interface CreateTenantData {
 export const useCreateTenant = () => {
   const queryClient = useQueryClient();
   const connectUserToTenant = useConnectUserToTenant();
+  const { refetchTenant } = useTenant();
   
   return useMutation({
     mutationFn: async (tenantData: CreateTenantData) => {
@@ -142,6 +144,11 @@ export const useCreateTenant = () => {
           throw new Error('Failed to associate user with tenant. The business was created but you may need to contact support to complete the setup.');
         }
       }
+      
+      // IMPORTANT: Refetch tenant context after successful creation
+      console.log('Tenant creation complete, refreshing tenant context...');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Small delay to ensure DB consistency
+      await refetchTenant();
       
       // Transform response back to camelCase for frontend
       return {
