@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: Database["public"]["Enums"]["resource_type"] | null
+          staff_id: string | null
+          tenant_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: Database["public"]["Enums"]["resource_type"] | null
+          staff_id?: string | null
+          tenant_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: Database["public"]["Enums"]["resource_type"] | null
+          staff_id?: string | null
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           created_at: string
@@ -293,6 +340,30 @@ export type Database = {
           },
         ]
       }
+      permissions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          permission: Database["public"]["Enums"]["permission_type"]
+          resource: Database["public"]["Enums"]["resource_type"]
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          permission: Database["public"]["Enums"]["permission_type"]
+          resource: Database["public"]["Enums"]["resource_type"]
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          permission?: Database["public"]["Enums"]["permission_type"]
+          resource?: Database["public"]["Enums"]["resource_type"]
+        }
+        Relationships: []
+      }
       service_categories: {
         Row: {
           color: string | null
@@ -421,6 +492,96 @@ export type Database = {
           },
         ]
       }
+      staff_accounts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          last_login: string | null
+          password_hash: string
+          staff_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
+          password_hash: string
+          staff_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
+          password_hash?: string
+          staff_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_accounts_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: true
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_permissions: {
+        Row: {
+          created_at: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          permission_id: string
+          staff_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          permission_id: string
+          staff_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          permission_id?: string
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_permissions_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           business_type: string
@@ -504,6 +665,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      log_action: {
+        Args: {
+          tenant_uuid: string
+          staff_uuid: string
+          action_name: string
+          resource_type_name?: Database["public"]["Enums"]["resource_type"]
+          resource_uuid?: string
+          action_details?: Json
+        }
+        Returns: string
+      }
+      staff_has_permission: {
+        Args: {
+          staff_uuid: string
+          resource_name: Database["public"]["Enums"]["resource_type"]
+          permission_name: Database["public"]["Enums"]["permission_type"]
+        }
+        Returns: boolean
+      }
       user_belongs_to_tenant: {
         Args: { tenant_uuid: string }
         Returns: boolean
@@ -511,6 +691,16 @@ export type Database = {
     }
     Enums: {
       commission_type: "percentage" | "nominal"
+      permission_type: "read" | "write" | "delete" | "admin"
+      resource_type:
+        | "staff"
+        | "customers"
+        | "bookings"
+        | "services"
+        | "calendar"
+        | "commissions"
+        | "settings"
+        | "dashboard"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -627,6 +817,17 @@ export const Constants = {
   public: {
     Enums: {
       commission_type: ["percentage", "nominal"],
+      permission_type: ["read", "write", "delete", "admin"],
+      resource_type: [
+        "staff",
+        "customers",
+        "bookings",
+        "services",
+        "calendar",
+        "commissions",
+        "settings",
+        "dashboard",
+      ],
     },
   },
 } as const

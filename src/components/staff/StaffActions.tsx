@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { EditStaffDialog } from './EditStaffDialog';
 import { DeleteStaffDialog } from './DeleteStaffDialog';
+import { StaffAccountDialog } from './StaffAccountDialog';
 import { Staff } from '@/types';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, UserCog } from 'lucide-react';
 
 interface StaffActionsProps {
   staff: Staff;
@@ -36,6 +37,10 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
           <ContextMenuItem onClick={handleEditClick}>
             <Edit className="h-4 w-4 mr-2" />
             Edit
+          </ContextMenuItem>
+          <ContextMenuItem>
+            <UserCog className="h-4 w-4 mr-2" />
+            Manage Account
           </ContextMenuItem>
           <ContextMenuItem 
             onClick={handleDeleteClick}
