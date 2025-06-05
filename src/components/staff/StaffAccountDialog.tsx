@@ -1,33 +1,24 @@
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { UserCog } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { StaffAccountForm } from './StaffAccountForm';
 import { Staff } from '@/types';
 
 interface StaffAccountDialogProps {
   staff: Staff;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export const StaffAccountDialog = ({ staff }: StaffAccountDialogProps) => {
-  const [open, setOpen] = useState(false);
-
+export const StaffAccountDialog = ({ staff, open, onOpenChange }: StaffAccountDialogProps) => {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <UserCog className="h-4 w-4 mr-2" />
-          Manage Account
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Staff Account Management</DialogTitle>
         </DialogHeader>
         <StaffAccountForm 
           staff={staff}
-          onSuccess={() => setOpen(false)} 
+          onSuccess={() => onOpenChange(false)} 
         />
       </DialogContent>
     </Dialog>

@@ -16,6 +16,7 @@ interface StaffActionsProps {
 export const StaffActions = ({ staff, children }: StaffActionsProps) => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const handleEditClick = () => {
     console.log('Edit clicked for staff:', staff.name);
@@ -25,6 +26,11 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
   const handleDeleteClick = () => {
     console.log('Delete clicked for staff:', staff.name);
     setDeleteOpen(true);
+  };
+
+  const handleAccountClick = () => {
+    console.log('Manage Account clicked for staff:', staff.name);
+    setAccountOpen(true);
   };
 
   return (
@@ -38,7 +44,7 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
             <Edit className="h-4 w-4 mr-2" />
             Edit
           </ContextMenuItem>
-          <ContextMenuItem>
+          <ContextMenuItem onClick={handleAccountClick}>
             <UserCog className="h-4 w-4 mr-2" />
             Manage Account
           </ContextMenuItem>
@@ -62,6 +68,12 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
         staff={staff}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
+      />
+
+      <StaffAccountDialog 
+        staff={staff}
+        open={accountOpen}
+        onOpenChange={setAccountOpen}
       />
     </>
   );
