@@ -1,4 +1,3 @@
-
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,12 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, Bell, Users, Calendar, CreditCard } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Save, Bell, Users, Calendar, CreditCard, Building2 } from 'lucide-react';
 import { useTenantDetails } from '@/hooks/useTenantDetails';
+import { useTenant } from '@/contexts/TenantContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const Settings = () => {
   const { data: tenant, isLoading, error } = useTenantDetails();
+  const { currentTenantRole, availableTenants, tenantId } = useTenant();
 
   if (isLoading) {
     return (
@@ -49,12 +51,29 @@ const Settings = () => {
     );
   }
 
+  const currentTenantInfo = availableTenants.find(t => t.tenant_id === tenantId);
+
   return (
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600">Manage your business settings and preferences</p>
+          <div className="flex items-center space-x-2 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+            {currentTenantRole && (
+              <Badge variant="secondary" className="flex items-center space-x-1">
+                <Building2 className="h-3 w-3" />
+                <span>{currentTenantRole}</span>
+              </Badge>
+            )}
+          </div>
+          <p className="text-gray-600">
+            Manage settings for <span className="font-medium">{tenant?.name}</span>
+          </p>
+          {currentTenantInfo && (
+            <p className="text-sm text-gray-500">
+              {currentTenantInfo.tenant.business_type} • Your role: {currentTenantRole}
+            </p>
+          )}
         </div>
 
         <Tabs defaultValue="general" className="space-y-4">

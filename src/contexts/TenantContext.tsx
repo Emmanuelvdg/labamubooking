@@ -3,11 +3,25 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+interface UserTenant {
+  id: string;
+  tenant_id: string;
+  role: string;
+  tenant: {
+    id: string;
+    name: string;
+    business_type: string;
+  };
+}
+
 interface TenantContextType {
   tenantId: string | null;
   isLoading: boolean;
   error: string | null;
   refetchTenant: () => Promise<void>;
+  availableTenants: UserTenant[];
+  switchTenant: (tenantId: string) => void;
+  currentTenantRole: string | null;
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -20,64 +34,115 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [availableTenants, setAvailableTenants] = useState<UserTenant[]>([]);
+  const [currentTenantRole, setCurrentTenantRole] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
 
-  const fetchUserTenant = async () => {
+  const fetchUserTenants = async () => {
     if (authLoading) return;
     
     if (!user) {
       setTenantId(null);
+      setAvailableTenants([]);
+      setCurrentTenantRole(null);
       setIsLoading(false);
       setError(null);
       return;
     }
 
     try {
-      console.log('Fetching tenant for user:', user.id);
+      console.log('Fetching tenants for user:', user.id);
       
-      // Call the database function to get user's tenant ID
-      const { data, error } = await supabase.rpc('get_user_tenant_id');
+      // Get the current tenant ID using the updated function
+      const { data: currentTenantId, error: tenantError } = await supabase.rpc('get_user_tenant_id');
       
-      if (error) {
-        console.error('Error fetching user tenant:', error);
+      if (tenantError) {
+        console.error('Error fetching current tenant:', tenantError);
         setError('Failed to load tenant information');
-        setTenantId(null);
-      } else {
-        console.log('User tenant ID:', data);
-        setTenantId(data);
-        setError(null);
+        return;
       }
+
+      // Get all available tenants for the user
+      const { data: userTenants, error: tenantsError } = await supabase
+        .from('user_tenants')
+        .select(`
+          id,
+          tenant_id,
+          role,
+          tenant:tenants (
+            id,
+            name,
+            business_type
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (tenantsError) {
+        console.error('Error fetching user tenants:', tenantsError);
+        setError('Failed to load tenant information');
+        return;
+      }
+
+      console.log('Available tenants:', userTenants);
+      setAvailableTenants(userTenants || []);
+      
+      if (currentTenantId) {
+        setTenantId(currentTenantId);
+        // Find the current tenant's role
+        const currentTenant = userTenants?.find(ut => ut.tenant_id === currentTenantId);
+        setCurrentTenantRole(currentTenant?.role || null);
+        console.log('Current tenant ID:', currentTenantId, 'Role:', currentTenant?.role);
+      } else {
+        console.log('No tenant found for user');
+        setTenantId(null);
+        setCurrentTenantRole(null);
+      }
+      
+      setError(null);
     } catch (err) {
       console.error('Unexpected error fetching tenant:', err);
       setError('Failed to load tenant information');
       setTenantId(null);
+      setCurrentTenantRole(null);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const switchTenant = (newTenantId: string) => {
+    console.log('Switching to tenant:', newTenantId);
+    setTenantId(newTenantId);
+    
+    // Update the current tenant role
+    const newTenant = availableTenants.find(ut => ut.tenant_id === newTenantId);
+    setCurrentTenantRole(newTenant?.role || null);
+    
+    // You could implement additional logic here to persist the user's preference
+    // For now, this will switch for the current session
+  };
+
   const refetchTenant = async () => {
     setIsLoading(true);
     setError(null);
-    await fetchUserTenant();
+    await fetchUserTenants();
   };
 
   useEffect(() => {
-    fetchUserTenant();
+    fetchUserTenants();
   }, [user, authLoading]);
 
-  // Auto-refetch when user changes (helpful after linking user to tenant)
-  useEffect(() => {
-    if (user && !tenantId && !isLoading && !error) {
-      console.log('User exists but no tenant found, retrying...');
-      setTimeout(() => {
-        refetchTenant();
-      }, 1000);
-    }
-  }, [user, tenantId, isLoading, error]);
-
   return (
-    <TenantContext.Provider value={{ tenantId, isLoading, error, refetchTenant }}>
+    <TenantContext.Provider value={{ 
+      tenantId, 
+      isLoading, 
+      error, 
+      refetchTenant, 
+      availableTenants,
+      switchTenant,
+      currentTenantRole
+    }}>
       {children}
     </TenantContext.Provider>
   );
