@@ -2,10 +2,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AuthHeader from '@/components/auth/AuthHeader';
 import LoginForm from '@/components/auth/LoginForm';
-import SignupForm from '@/components/auth/SignupForm';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,23 +15,11 @@ const Auth = () => {
 
         <Card className="shadow-xl">
           <CardHeader>
-            <CardTitle className="text-2xl text-center">Welcome</CardTitle>
+            <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
+            <p className="text-center text-gray-600">Sign in to your account</p>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login">
-                <LoginForm isLoading={isLoading} setIsLoading={setIsLoading} />
-              </TabsContent>
-              
-              <TabsContent value="signup">
-                <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
-              </TabsContent>
-            </Tabs>
+            <LoginForm isLoading={isLoading} setIsLoading={setIsLoading} />
           </CardContent>
         </Card>
 
