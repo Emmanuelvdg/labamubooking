@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { useCreateTenant } from '@/hooks/useTenants';
+import { useCreateTenant } from '@/hooks/useCreateTenant';
 import { isValidEmail, getEmailValidationError } from '@/utils/emailValidation';
 import BusinessDetailsFields from './BusinessDetailsFields';
 import ContactInfoFields from './ContactInfoFields';

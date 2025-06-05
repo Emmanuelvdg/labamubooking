@@ -7,6 +7,7 @@ interface UserTenant {
   id: string;
   tenant_id: string;
   role: string;
+  created_at?: string;
   tenant: {
     id: string;
     name: string;
