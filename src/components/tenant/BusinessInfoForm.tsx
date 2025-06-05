@@ -89,7 +89,7 @@ const BusinessInfoForm = () => {
       console.log('Business and account created successfully:', result);
       
       // Check if user needs email confirmation
-      if (result.user && !result.user.email_confirmed_at) {
+      if (result.user && !result.user.email_confirmed_at && !result.isExistingUser) {
         toast({
           title: "Almost Done!",
           description: "We've sent you a confirmation email. Please click the link in the email to complete your account setup and log in.",
@@ -99,11 +99,13 @@ const BusinessInfoForm = () => {
         return;
       }
       
-      // If no email confirmation needed (auto-confirmed), proceed to dashboard
+      // If no email confirmation needed (auto-confirmed) or existing user, proceed to dashboard
       if (result.session) {
         toast({
           title: "Business Created Successfully!",
-          description: "Welcome to BookingPro. You are now logged in and ready to use your dashboard.",
+          description: result.isExistingUser 
+            ? "Welcome back! Your new business is ready. You are now logged in and can access your dashboard."
+            : "Welcome to BookingPro. You are now logged in and ready to use your dashboard.",
         });
         navigate('/dashboard');
       } else {

@@ -23,28 +23,63 @@ export const useCreateTenant = () => {
     mutationFn: async (tenantData: CreateTenantData) => {
       console.log('Creating new tenant with clean data state:', { ...tenantData, password: '[REDACTED]' });
       
-      // First, create the user account with email confirmation disabled for development
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: tenantData.email,
-        password: tenantData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            full_name: tenantData.ownerName,
+      // Check if user is already logged in
+      const { data: currentSession } = await supabase.auth.getSession();
+      let authData;
+      let isExistingUser = false;
+      
+      if (currentSession.session && currentSession.session.user.email === tenantData.email) {
+        // User is already logged in with the same email, use existing session
+        console.log('User is already logged in with this email, using existing session');
+        authData = {
+          user: currentSession.session.user,
+          session: currentSession.session
+        };
+        isExistingUser = true;
+      } else {
+        // Try to create a new user account
+        console.log('Attempting to create new user account');
+        const { data: signUpData, error: authError } = await supabase.auth.signUp({
+          email: tenantData.email,
+          password: tenantData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+            data: {
+              full_name: tenantData.ownerName,
+            }
           }
-        }
-      });
+        });
 
-      if (authError) {
-        console.error('Error creating user account:', authError);
-        throw authError;
+        if (authError) {
+          if (authError.message.includes('User already registered')) {
+            // User exists, try to sign them in
+            console.log('User already exists, attempting to sign in');
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: tenantData.email,
+              password: tenantData.password,
+            });
+
+            if (signInError) {
+              console.error('Failed to sign in existing user:', signInError);
+              throw new Error('An account with this email already exists. Please use the correct password or use a different email.');
+            }
+
+            authData = signInData;
+            isExistingUser = true;
+            console.log('Successfully signed in existing user');
+          } else {
+            console.error('Error creating user account:', authError);
+            throw authError;
+          }
+        } else {
+          authData = signUpData;
+          console.log('User account created successfully:', authData.user?.email);
+        }
       }
 
       if (!authData.user) {
-        throw new Error('Failed to create user account');
+        throw new Error('Failed to authenticate user');
       }
-
-      console.log('User account created successfully:', authData.user.email);
 
       // Wait a bit to ensure the auth session is properly established
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -101,14 +136,15 @@ export const useCreateTenant = () => {
         createdAt: data.created_at,
         user: authData.user,
         session: authData.session,
-      } as Tenant & { user: typeof authData.user; session: typeof authData.session };
+        isExistingUser
+      } as Tenant & { user: typeof authData.user; session: typeof authData.session; isExistingUser: boolean };
     },
     onSuccess: (data) => {
       console.log('Tenant created successfully with clean data state, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       
       // Check if email confirmation is required
-      if (data.user && !data.user.email_confirmed_at) {
+      if (data.user && !data.user.email_confirmed_at && !data.isExistingUser) {
         toast({
           title: 'Business Created Successfully!',
           description: 'Please check your email and click the confirmation link to complete your account setup. Your business starts with a clean slate - add your data as needed.',
@@ -116,7 +152,9 @@ export const useCreateTenant = () => {
       } else {
         toast({
           title: 'Business Created Successfully!',
-          description: 'Welcome to BookingPro. Your business account is ready and starts with empty data tables. You can now add your customers, services, and staff.',
+          description: data.isExistingUser 
+            ? 'Welcome back! Your new business account is ready and starts with empty data tables. You can now add your customers, services, and staff.'
+            : 'Welcome to BookingPro. Your business account is ready and starts with empty data tables. You can now add your customers, services, and staff.',
         });
       }
     },
@@ -127,6 +165,8 @@ export const useCreateTenant = () => {
       let errorMessage = 'Failed to create business and account';
       if (error.message?.includes('User already registered')) {
         errorMessage = 'An account with this email already exists. Please use a different email or sign in instead.';
+      } else if (error.message?.includes('correct password')) {
+        errorMessage = 'An account with this email already exists. Please enter the correct password for this account.';
       } else if (error.message?.includes('Password')) {
         errorMessage = 'Password must be at least 6 characters long';
       } else if (error.message?.includes('email') || error.message?.includes('Email')) {
