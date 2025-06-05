@@ -5,10 +5,19 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Palette } from 'lucide-react';
 import { useServiceCategories } from '@/hooks/useServiceCategories';
 import { NewCategoryDialog } from './NewCategoryDialog';
+import { useTenant } from '@/contexts/TenantContext';
 
 export const CategoryManagement = () => {
-  const tenantId = '00000000-0000-0000-0000-000000000001';
-  const { data: categories, isLoading } = useServiceCategories(tenantId);
+  const { tenantId } = useTenant();
+  const { data: categories, isLoading } = useServiceCategories(tenantId || '');
+
+  if (!tenantId) {
+    return (
+      <div className="text-center text-gray-500">
+        <p>No tenant access found. Please contact support.</p>
+      </div>
+    );
+  }
 
   return (
     <Card>

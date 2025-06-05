@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers';
 import { useStaff } from '@/hooks/useStaff';
 import { useServices } from '@/hooks/useServices';
 import { CustomerFormModal } from './CustomerFormModal';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface BookingFormProps {
   onSuccess?: () => void;
@@ -24,12 +26,11 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   });
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
 
-  // Using the same UUID format as in the customers page
-  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const { tenantId } = useTenant();
   
-  const { data: customers } = useCustomers(tenantId);
-  const { data: staff } = useStaff(tenantId);
-  const { data: services } = useServices(tenantId);
+  const { data: customers } = useCustomers(tenantId || '');
+  const { data: staff } = useStaff(tenantId || '');
+  const { data: services } = useServices(tenantId || '');
   const createBooking = useCreateBooking();
   const createCustomer = useCreateCustomer();
 
@@ -49,7 +50,7 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.staffId || !formData.serviceId || !formData.startTime) {
+    if (!formData.staffId || !formData.serviceId || !formData.startTime || !tenantId) {
       return;
     }
 
@@ -99,6 +100,14 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
     onSuccess?.();
     setFormData({ customerId: '', staffId: '', serviceId: '', startTime: '', notes: '' });
   };
+
+  if (!tenantId) {
+    return (
+      <div className="text-center text-gray-500">
+        <p>No tenant access found. Please contact support.</p>
+      </div>
+    );
+  }
 
   return (
     <>

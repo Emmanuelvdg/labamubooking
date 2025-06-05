@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateServiceCategory } from '@/hooks/useServiceCategories';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface CategoryFormProps {
   onSuccess?: () => void;
@@ -17,13 +18,13 @@ export const CategoryForm = ({ onSuccess }: CategoryFormProps) => {
     color: '#3B82F6'
   });
 
-  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const { tenantId } = useTenant();
   const createCategory = useCreateServiceCategory();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name) {
+    if (!formData.name || !tenantId) {
       return;
     }
 
@@ -37,6 +38,14 @@ export const CategoryForm = ({ onSuccess }: CategoryFormProps) => {
     onSuccess?.();
     setFormData({ name: '', description: '', color: '#3B82F6' });
   };
+
+  if (!tenantId) {
+    return (
+      <div className="text-center text-gray-500">
+        <p>No tenant access found. Please contact support.</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
