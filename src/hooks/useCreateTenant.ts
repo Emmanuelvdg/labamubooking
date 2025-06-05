@@ -17,42 +17,38 @@ export const useCreateTenant = () => {
   
   return useMutation({
     mutationFn: async (tenantData: CreateTenantData): Promise<CreateTenantResult> => {
-      console.log('Creating new tenant with clean data state:', { ...tenantData, password: '[REDACTED]' });
+      console.log('Creating new tenant with fresh database state:', { ...tenantData, password: '[REDACTED]' });
       
-      // Handle user authentication
+      // Handle user authentication first
       const { authData, isExistingUser } = await handleUserAuthentication(tenantData.email, tenantData.password);
+      console.log('User authentication completed. User ID:', authData.user.id, 'Existing user:', isExistingUser);
       
       // Create the tenant record
       const tenantRecord = await createTenantRecord(tenantData);
+      console.log('Tenant record created successfully:', tenantRecord.id);
+      
+      // Small delay to ensure database consistency
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Connect the user to the tenant as owner
-      console.log('Preparing to connect user to tenant...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      console.log('Connecting user to tenant as owner...');
       try {
         await connectUserToTenant.mutateAsync({
           userId: authData.user.id,
           tenantId: tenantRecord.id,
           role: 'owner'
         });
-        console.log('User connected to tenant as owner - tenant starts with clean slate');
+        console.log('User successfully connected to tenant as owner');
       } catch (connectionError) {
         console.error('Failed to connect user to tenant:', connectionError);
-        
-        // Provide more specific error message
-        if (connectionError.message?.includes('row-level security')) {
-          throw new Error('Account creation succeeded but user association failed due to authentication issues. Please try refreshing the page and logging in manually.');
-        } else {
-          throw new Error('Failed to associate user with tenant. The business was created but you may need to contact support to complete the setup.');
-        }
+        throw new Error('Failed to associate user with tenant. Please try refreshing the page and logging in.');
       }
       
-      // Refetch tenant context after successful creation
-      console.log('Tenant creation complete, refreshing tenant context...');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Ensure tenant context is refreshed with new data
+      console.log('Refreshing tenant context with new business...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await refetchTenant();
       
-      // Transform response back to camelCase for frontend
       return {
         id: tenantRecord.id,
         name: tenantRecord.name,
@@ -64,10 +60,10 @@ export const useCreateTenant = () => {
       } as CreateTenantResult;
     },
     onSuccess: (data) => {
-      console.log('Tenant created successfully with clean data state, invalidating queries');
+      console.log('Tenant creation completed successfully, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-details'] });
       
-      // Check if email confirmation is required
       const emailConfirmed = data.user && data.user.email_confirmed_at;
       const message = getTenantCreationSuccessMessage(data.isExistingUser, !!emailConfirmed);
       
