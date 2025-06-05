@@ -46,6 +46,9 @@ export const useCreateTenant = () => {
 
       console.log('User account created successfully:', authData.user.email);
 
+      // Wait a bit to ensure the auth session is properly established
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Create the tenant record with only the provided data - no synthetic data
       const dbTenant = {
         name: tenantData.businessName,
@@ -72,6 +75,9 @@ export const useCreateTenant = () => {
       console.log('Tenant created successfully with empty data tables:', data);
       
       // Connect the user to the tenant as owner
+      // Wait a bit more to ensure auth context is fully established
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       try {
         await connectUserToTenant.mutateAsync({
           userId: authData.user.id,
@@ -81,6 +87,8 @@ export const useCreateTenant = () => {
         console.log('User connected to tenant as owner - tenant starts with clean slate');
       } catch (connectionError) {
         console.error('Failed to connect user to tenant:', connectionError);
+        // Log the detailed error for debugging
+        console.error('Connection error details:', connectionError);
         throw new Error('Failed to associate user with tenant');
       }
       
@@ -127,6 +135,8 @@ export const useCreateTenant = () => {
         errorMessage = 'Please check your information and try again. Make sure to use a real email address.';
       } else if (error.message?.includes('associate user with tenant')) {
         errorMessage = 'Business was created but failed to link to your account. Please contact support.';
+      } else if (error.message?.includes('row-level security') || error.message?.includes('RLS')) {
+        errorMessage = 'Account creation encountered a security policy issue. Please try again or contact support.';
       }
       
       toast({
