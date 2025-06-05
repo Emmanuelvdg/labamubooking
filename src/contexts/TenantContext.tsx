@@ -7,7 +7,7 @@ interface UserTenant {
   id: string;
   tenant_id: string;
   role: string;
-  created_at?: string;
+  created_at: string;
   tenant: {
     id: string;
     name: string;
@@ -63,6 +63,7 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
           id,
           tenant_id,
           role,
+          created_at,
           tenant:tenants (
             id,
             name,
