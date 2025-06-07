@@ -15,9 +15,14 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   const [showRecoveryOptions, setShowRecoveryOptions] = useState(false);
   const [recoveryAttempting, setRecoveryAttempting] = useState(false);
 
+  // Define public pages that don't require authentication
+  const publicPages = ['/auth', '/tenant/create', '/', '/demo'];
+  const isDemoRoute = location.pathname.startsWith('/demo');
+  const isOnPublicPage = publicPages.includes(location.pathname) || isDemoRoute;
+
   useEffect(() => {
     if (!loading) {
-      if (!user && location.pathname !== '/auth' && location.pathname !== '/tenant/create' && location.pathname !== '/') {
+      if (!user && !isOnPublicPage) {
         console.log('[GUARD] User not authenticated, redirecting to auth');
         navigate('/auth');
       } else if (user && (location.pathname === '/auth' || location.pathname === '/')) {
@@ -25,13 +30,10 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
         navigate('/dashboard');
       }
     }
-  }, [user, loading, navigate, location.pathname]);
+  }, [user, loading, navigate, location.pathname, isOnPublicPage]);
 
   // Show recovery options if there's an auth error and we're not on public pages
   useEffect(() => {
-    const publicPages = ['/auth', '/tenant/create', '/'];
-    const isOnPublicPage = publicPages.includes(location.pathname);
-    
     if (error && !loading && !isOnPublicPage && !user) {
       const timer = setTimeout(() => {
         setShowRecoveryOptions(true);
@@ -41,7 +43,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     } else {
       setShowRecoveryOptions(false);
     }
-  }, [error, loading, location.pathname, user]);
+  }, [error, loading, isOnPublicPage, user]);
 
   const handleRecoveryAttempt = async () => {
     setRecoveryAttempting(true);
