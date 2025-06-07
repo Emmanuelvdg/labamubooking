@@ -56,6 +56,75 @@ export type Database = {
           },
         ]
       }
+      booking_conflicts: {
+        Row: {
+          booking_id: string
+          conflict_type: string
+          conflicting_booking_id: string
+          created_at: string
+          id: string
+          resolved: boolean
+          resolved_at: string | null
+          severity: string
+        }
+        Insert: {
+          booking_id: string
+          conflict_type: string
+          conflicting_booking_id: string
+          created_at?: string
+          id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+        }
+        Update: {
+          booking_id?: string
+          conflict_type?: string
+          conflicting_booking_id?: string
+          created_at?: string
+          id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+        }
+        Relationships: []
+      }
+      booking_edits: {
+        Row: {
+          booking_id: string
+          created_at: string
+          edit_type: string
+          edited_by: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          reason: string | null
+          tenant_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          edit_type: string
+          edited_by?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          reason?: string | null
+          tenant_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          edit_type?: string
+          edited_by?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          reason?: string | null
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string
@@ -921,6 +990,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_booking_conflicts: {
+        Args: {
+          p_booking_id: string
+          p_staff_id: string
+          p_start_time: string
+          p_end_time: string
+          p_tenant_id: string
+        }
+        Returns: {
+          conflict_id: string
+          conflicting_booking_id: string
+          conflict_type: string
+          severity: string
+        }[]
+      }
       generate_schedule_instances: {
         Args: { schedule_id: string; start_date: string; end_date: string }
         Returns: {
@@ -945,6 +1029,18 @@ export type Database = {
           resource_type_name?: Database["public"]["Enums"]["resource_type"]
           resource_uuid?: string
           action_details?: Json
+        }
+        Returns: string
+      }
+      log_booking_edit: {
+        Args: {
+          p_booking_id: string
+          p_tenant_id: string
+          p_edited_by: string
+          p_edit_type: string
+          p_old_values: Json
+          p_new_values: Json
+          p_reason?: string
         }
         Returns: string
       }
