@@ -1,5 +1,4 @@
 
-import { Layout } from '@/components/layout/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NewCommissionSchemeDialog } from '@/components/commissions/NewCommissionSchemeDialog';
 import { CommissionSchemesTable } from '@/components/commissions/CommissionSchemesTable';
@@ -11,53 +10,47 @@ const Commissions = () => {
 
   if (tenantLoading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading commissions...</div>
-        </div>
-      </Layout>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading commissions...</div>
+      </div>
     );
   }
 
   if (tenantError || !tenantId) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-red-600">
-            {tenantError || 'No tenant access found. Please contact support.'}
-          </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-red-600">
+          {tenantError || 'No tenant access found. Please contact support.'}
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Commissions</h1>
-            <p className="text-gray-600">Manage staff commission schemes and track earnings</p>
-          </div>
-          <NewCommissionSchemeDialog tenantId={tenantId} />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Commissions</h1>
+          <p className="text-gray-600">Manage staff commission schemes and track earnings</p>
         </div>
-
-        <Tabs defaultValue="schemes" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="schemes">Commission Schemes</TabsTrigger>
-            <TabsTrigger value="records">Commission Records</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="schemes">
-            <CommissionSchemesTable tenantId={tenantId} />
-          </TabsContent>
-
-          <TabsContent value="records">
-            <CommissionRecordsTable tenantId={tenantId} />
-          </TabsContent>
-        </Tabs>
+        <NewCommissionSchemeDialog tenantId={tenantId} />
       </div>
-    </Layout>
+
+      <Tabs defaultValue="schemes" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="schemes">Commission Schemes</TabsTrigger>
+          <TabsTrigger value="records">Commission Records</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="schemes">
+          <CommissionSchemesTable tenantId={tenantId} />
+        </TabsContent>
+
+        <TabsContent value="records">
+          <CommissionRecordsTable tenantId={tenantId} />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

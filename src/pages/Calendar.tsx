@@ -1,5 +1,4 @@
 
-import { Layout } from '@/components/layout/Layout';
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
 import { CalendarFilters } from '@/components/calendar/CalendarFilters';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
@@ -27,52 +26,46 @@ const Calendar = () => {
 
   if (tenantLoading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading calendar...</div>
-        </div>
-      </Layout>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading calendar...</div>
+      </div>
     );
   }
 
   if (tenantError || !tenantId) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-red-600">
-            {tenantError || 'No tenant access found. Please contact support.'}
-          </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-red-600">
+          {tenantError || 'No tenant access found. Please contact support.'}
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <CalendarHeader />
+    <div className="space-y-6">
+      <CalendarHeader />
 
-        <CalendarFilters
-          selectedStaffId={selectedStaffId}
-          selectedServiceId={selectedServiceId}
-          staff={staff}
-          services={services}
-          filteredBookingsCount={monthBookings.length}
-          currentMonth={currentMonth}
-          onStaffChange={setSelectedStaffId}
-          onServiceChange={setSelectedServiceId}
-          onClearFilters={clearFilters}
-        />
+      <CalendarFilters
+        selectedStaffId={selectedStaffId}
+        selectedServiceId={selectedServiceId}
+        staff={staff}
+        services={services}
+        filteredBookingsCount={monthBookings.length}
+        currentMonth={currentMonth}
+        onStaffChange={setSelectedStaffId}
+        onServiceChange={setSelectedServiceId}
+        onClearFilters={clearFilters}
+      />
 
-        <CalendarGrid
-          currentMonth={currentMonth}
-          currentDate={currentDate}
-          bookingsByDay={bookingsByDay}
-          formatBookingTime={formatBookingTime}
-          onNavigateMonth={navigateMonth}
-        />
-      </div>
-    </Layout>
+      <CalendarGrid
+        currentMonth={currentMonth}
+        currentDate={currentDate}
+        bookingsByDay={bookingsByDay}
+        formatBookingTime={formatBookingTime}
+        onNavigateMonth={navigateMonth}
+      />
+    </div>
   );
 };
 
