@@ -17,6 +17,13 @@ import Staff from "./pages/Staff";
 import Commissions from "./pages/Commissions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Demo from "./pages/Demo";
+import BookingsDemo from "./pages/demo/BookingsDemo";
+import CalendarDemo from "./pages/demo/CalendarDemo";
+import StaffDemo from "./pages/demo/StaffDemo";
+import ServicesDemo from "./pages/demo/ServicesDemo";
+import CommissionsDemo from "./pages/demo/CommissionsDemo";
+import AnalyticsDemo from "./pages/demo/AnalyticsDemo";
 import { Layout } from "@/components/layout/Layout";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 
@@ -34,6 +41,13 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/tenant/create" element={<TenantCreate />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/demo/bookings" element={<BookingsDemo />} />
+              <Route path="/demo/calendar" element={<CalendarDemo />} />
+              <Route path="/demo/staff" element={<StaffDemo />} />
+              <Route path="/demo/services" element={<ServicesDemo />} />
+              <Route path="/demo/commissions" element={<CommissionsDemo />} />
+              <Route path="/demo/analytics" element={<AnalyticsDemo />} />
               <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
               <Route path="/calendar" element={<Layout><Calendar /></Layout>} />
               <Route path="/bookings" element={<Layout><Bookings /></Layout>} />

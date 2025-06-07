@@ -46,7 +46,7 @@ const Index = () => {
               <Link to="/tenant/create">Start Free Trial</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link to="/auth">View Demo</Link>
+              <Link to="/demo">View Demo</Link>
             </Button>
           </div>
         </div>
