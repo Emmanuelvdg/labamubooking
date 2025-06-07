@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -39,12 +39,23 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
   const [currentTenantRole, setCurrentTenantRole] = useState<string | null>(null);
   const { user, loading: authLoading, session, error: authError } = useAuth();
 
+  // Use refs to track ongoing requests and prevent duplicates
+  const currentRequestRef = useRef<AbortController | null>(null);
+  const isRequestInProgressRef = useRef(false);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const fetchUserTenants = useCallback(async (retryCount = 0) => {
-    const maxRetries = 5; // Increased from 3
-    const baseDelay = 1000;
-    const retryDelay = baseDelay * Math.pow(2, retryCount); // Exponential backoff
+    const maxRetries = 3; // Reduced from 5 to prevent resource exhaustion
+    const baseDelay = 2000; // Increased base delay
+    const retryDelay = baseDelay * Math.pow(2, retryCount);
 
     console.log(`[TENANT] Fetch attempt ${retryCount + 1}/${maxRetries + 1}`);
+
+    // Prevent multiple concurrent requests
+    if (isRequestInProgressRef.current) {
+      console.log('[TENANT] Request already in progress, skipping');
+      return;
+    }
 
     if (authLoading) {
       console.log('[TENANT] Auth still loading, skipping tenant fetch');
@@ -72,10 +83,20 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
       return;
     }
 
+    // Cancel any existing request
+    if (currentRequestRef.current) {
+      currentRequestRef.current.abort();
+    }
+
+    // Create new AbortController for this request
+    const abortController = new AbortController();
+    currentRequestRef.current = abortController;
+    isRequestInProgressRef.current = true;
+
     try {
       console.log(`[TENANT] Fetching tenants for user: ${user.id} (attempt ${retryCount + 1})`);
       
-      // Enhanced query with better error handling
+      // Use the AbortController signal for the request
       const { data: userTenants, error: tenantsError } = await supabase
         .from('user_tenants')
         .select(`
@@ -91,29 +112,35 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
         `)
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .abortSignal(abortController.signal);
+
+      // Check if request was aborted
+      if (abortController.signal.aborted) {
+        console.log('[TENANT] Request was aborted');
+        return;
+      }
 
       if (tenantsError) {
         console.error('[TENANT] Error fetching user tenants:', tenantsError);
         
-        // Enhanced retry logic with specific error handling
-        if (retryCount < maxRetries) {
-          // Handle specific error types
-          if (tenantsError.code === 'PGRST116' || tenantsError.code === '42501') {
-            console.log(`[TENANT] Permission error, retrying in ${retryDelay}ms...`);
-          } else if (tenantsError.code === 'PGRST301' || tenantsError.message.includes('JWT')) {
-            console.log(`[TENANT] JWT/Auth error, retrying in ${retryDelay}ms...`);
-          } else {
-            console.log(`[TENANT] Network/DB error, retrying in ${retryDelay}ms...`);
+        // Only retry if we haven't exceeded max retries and it's not an auth error
+        if (retryCount < maxRetries && !tenantsError.message.includes('JWT') && !tenantsError.code?.includes('42501')) {
+          console.log(`[TENANT] Will retry in ${retryDelay}ms...`);
+          
+          // Clear the retry timeout if it exists
+          if (retryTimeoutRef.current) {
+            clearTimeout(retryTimeoutRef.current);
           }
           
-          setTimeout(() => {
+          retryTimeoutRef.current = setTimeout(() => {
+            isRequestInProgressRef.current = false;
             fetchUserTenants(retryCount + 1);
           }, retryDelay);
           return;
         }
         
-        console.error('[TENANT] Max retries exceeded, setting error state');
+        console.error('[TENANT] Max retries exceeded or auth error, setting error state');
         setError(`Failed to load tenant information: ${tenantsError.message}`);
         setIsLoading(false);
         return;
@@ -156,13 +183,25 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
       
       setError(null);
       console.log('[TENANT] Fetch completed successfully');
-    } catch (err) {
+    } catch (err: any) {
+      // Don't log errors for aborted requests
+      if (err.name === 'AbortError') {
+        console.log('[TENANT] Request was aborted');
+        return;
+      }
+      
       console.error('[TENANT] Unexpected error fetching tenant:', err);
       
-      // Enhanced retry logic for unexpected errors
+      // Only retry for non-abort errors
       if (retryCount < maxRetries) {
         console.log(`[TENANT] Unexpected error, retrying in ${retryDelay}ms...`);
-        setTimeout(() => {
+        
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+        }
+        
+        retryTimeoutRef.current = setTimeout(() => {
+          isRequestInProgressRef.current = false;
           fetchUserTenants(retryCount + 1);
         }, retryDelay);
         return;
@@ -173,6 +212,7 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
       setTenantId(null);
       setCurrentTenantRole(null);
     } finally {
+      isRequestInProgressRef.current = false;
       setIsLoading(false);
     }
   }, [user, authLoading, session, authError, tenantId]);
@@ -187,6 +227,19 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
 
   const refetchTenant = async () => {
     console.log('[TENANT] Manual tenant refetch triggered - fetching fresh data');
+    
+    // Cancel any ongoing request
+    if (currentRequestRef.current) {
+      currentRequestRef.current.abort();
+    }
+    
+    // Clear any pending retries
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+    
+    isRequestInProgressRef.current = false;
     setIsLoading(true);
     setError(null);
     await fetchUserTenants();
@@ -199,15 +252,34 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
     if (!authLoading) {
       fetchUserTenants();
     }
+
+    // Cleanup function
+    return () => {
+      if (currentRequestRef.current) {
+        currentRequestRef.current.abort();
+      }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      isRequestInProgressRef.current = false;
+    };
   }, [fetchUserTenants]);
 
-  // Enhanced error recovery when auth state recovers
+  // Enhanced error recovery when auth state recovers - but with debouncing
   useEffect(() => {
     if (!authError && !authLoading && user && session && error) {
-      console.log('[TENANT] Auth recovered, attempting to refetch tenants');
-      setError(null);
-      setIsLoading(true);
-      fetchUserTenants();
+      console.log('[TENANT] Auth recovered, attempting to refetch tenants after delay');
+      
+      // Add a delay to prevent immediate concurrent requests
+      const recoveryTimeout = setTimeout(() => {
+        if (!isRequestInProgressRef.current) {
+          setError(null);
+          setIsLoading(true);
+          fetchUserTenants();
+        }
+      }, 1000);
+
+      return () => clearTimeout(recoveryTimeout);
     }
   }, [authError, authLoading, user, session, error, fetchUserTenants]);
 
