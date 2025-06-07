@@ -1,53 +1,54 @@
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthGuard } from '@/components/auth/AuthGuard';
-import { TenantProvider } from '@/contexts/TenantContext';
-
-// Import pages
-import Index from '@/pages/Index';
-import Auth from '@/pages/Auth';
-import TenantCreate from '@/pages/TenantCreate';
-import Dashboard from '@/pages/Dashboard';
-import Customers from '@/pages/Customers';
-import Staff from '@/pages/Staff';
-import Services from '@/pages/Services';
-import Bookings from '@/pages/Bookings';
-import Calendar from '@/pages/Calendar';
-import Commissions from '@/pages/Commissions';
-import Settings from '@/pages/Settings';
-import NotFound from '@/pages/NotFound';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { TenantProvider } from "@/components/providers/TenantProvider";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import TenantCreate from "./pages/TenantCreate";
+import Calendar from "./pages/Calendar";
+import Bookings from "./pages/Bookings";
+import Customers from "./pages/Customers";
+import Services from "./pages/Services";
+import Staff from "./pages/Staff";
+import Commissions from "./pages/Commissions";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
+import { Layout } from "@/components/layout/Layout";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <TenantProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/tenant/create" element={<TenantCreate />} />
-            
-            {/* Protected routes that require authentication and tenant access */}
-            <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
-            <Route path="/customers" element={<AuthGuard><Customers /></AuthGuard>} />
-            <Route path="/staff" element={<AuthGuard><Staff /></AuthGuard>} />
-            <Route path="/services" element={<AuthGuard><Services /></AuthGuard>} />
-            <Route path="/bookings" element={<AuthGuard><Bookings /></AuthGuard>} />
-            <Route path="/calendar" element={<AuthGuard><Calendar /></AuthGuard>} />
-            <Route path="/commissions" element={<AuthGuard><Commissions /></AuthGuard>} />
-            <Route path="/settings" element={<AuthGuard><Settings /></AuthGuard>} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </TenantProvider>
-      </Router>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <TenantProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthGuard>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/tenant/create" element={<TenantCreate />} />
+              <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+              <Route path="/calendar" element={<Layout><Calendar /></Layout>} />
+              <Route path="/bookings" element={<Layout><Bookings /></Layout>} />
+              <Route path="/customers" element={<Layout><Customers /></Layout>} />
+              <Route path="/services" element={<Layout><Services /></Layout>} />
+              <Route path="/staff" element={<Layout><Staff /></Layout>} />
+              <Route path="/commissions" element={<Layout><Commissions /></Layout>} />
+              <Route path="/settings" element={<Layout><Settings /></Layout>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthGuard>
+        </BrowserRouter>
+      </TenantProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
