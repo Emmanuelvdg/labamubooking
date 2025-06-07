@@ -73,7 +73,7 @@ const Staff = () => {
           <div className="flex justify-between items-center">
             <div className="text-lg font-semibold">Team Members ({staff?.length || 0})</div>
             <div className="flex space-x-2">
-              <SyncStaffButton />
+              <SyncStaffButton tenantId={tenantId || ''} />
               <ManageRolesDialog />
               <NewStaffDialog />
             </div>

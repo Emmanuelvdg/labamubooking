@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -74,7 +73,18 @@ export const useScheduleInstances = (tenantId: string, startDate: string, endDat
           continue;
         }
         
-        allInstances.push(...(instances || []));
+        // Map the database response to our ScheduleInstance type
+        const mappedInstances = (instances || []).map(instance => ({
+          instanceDate: instance.instance_date,
+          startTime: instance.start_time,
+          endTime: instance.end_time,
+          title: instance.title,
+          description: instance.description,
+          staffId: instance.staff_id,
+          hasException: instance.has_exception
+        }));
+        
+        allInstances.push(...mappedInstances);
       }
       
       return allInstances;
