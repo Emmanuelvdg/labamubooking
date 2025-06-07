@@ -9,7 +9,7 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard = ({ children }: AuthGuardProps) => {
-  const { user, loading, error, isConnected, forceSessionRecovery, getDebugInfo } = useAuth();
+  const { user, loading, error, isConnected, forceSessionRecovery } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showRecoveryOptions, setShowRecoveryOptions] = useState(false);
@@ -18,10 +18,10 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   useEffect(() => {
     if (!loading) {
       if (!user && location.pathname !== '/auth' && location.pathname !== '/tenant/create' && location.pathname !== '/') {
-        console.log('User not authenticated, redirecting to auth');
+        console.log('[GUARD] User not authenticated, redirecting to auth');
         navigate('/auth');
       } else if (user && (location.pathname === '/auth' || location.pathname === '/')) {
-        console.log('User authenticated, redirecting to dashboard');
+        console.log('[GUARD] User authenticated, redirecting to dashboard');
         navigate('/dashboard');
       }
     }
@@ -48,26 +48,14 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     try {
       const success = await forceSessionRecovery();
       if (!success) {
-        console.log('Recovery failed, redirecting to auth');
+        console.log('[GUARD] Recovery failed, redirecting to auth');
         navigate('/auth');
       }
     } catch (err) {
-      console.error('Recovery attempt failed:', err);
+      console.error('[GUARD] Recovery attempt failed:', err);
       navigate('/auth');
     } finally {
       setRecoveryAttempting(false);
-    }
-  };
-
-  const handleDebugInfo = () => {
-    const debugInfo = getDebugInfo();
-    console.log('Auth Debug Info:', debugInfo);
-    
-    // Also copy to clipboard for easy sharing
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2)).then(() => {
-        alert('Debug info copied to clipboard');
-      });
     }
   };
 
@@ -127,15 +115,6 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
               className="w-full"
             >
               Go to Login Page
-            </Button>
-            
-            <Button
-              onClick={handleDebugInfo}
-              variant="ghost"
-              size="sm"
-              className="w-full text-xs"
-            >
-              Copy Debug Info
             </Button>
           </div>
         </div>

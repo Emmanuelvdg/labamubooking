@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export const Header = () => {
-  const { user, error: authError, isConnected, forceSessionRecovery, getDebugInfo } = useAuth();
+  const { user, error: authError, isConnected, forceSessionRecovery } = useAuth();
   const { availableTenants } = useTenant();
   const navigate = useNavigate();
   const [isRecovering, setIsRecovering] = useState(false);
@@ -30,17 +30,6 @@ export const Header = () => {
       console.error('Recovery failed:', error);
     } finally {
       setIsRecovering(false);
-    }
-  };
-
-  const handleDebugInfo = () => {
-    const debugInfo = getDebugInfo();
-    console.log('Header Debug Info:', debugInfo);
-    
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2)).then(() => {
-        alert('Debug info copied to clipboard');
-      });
     }
   };
 
@@ -107,18 +96,6 @@ export const Header = () => {
             <LogOut className="h-4 w-4" />
             <span>Logout</span>
           </Button>
-
-          {/* Debug button (only in development) */}
-          {process.env.NODE_ENV === 'development' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDebugInfo}
-              className="text-xs text-gray-400"
-            >
-              Debug
-            </Button>
-          )}
         </div>
       </div>
     </header>

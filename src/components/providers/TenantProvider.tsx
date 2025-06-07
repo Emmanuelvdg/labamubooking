@@ -1,77 +1,73 @@
 
 import { useEffect, ReactNode } from 'react';
 import { TenantContext } from '@/contexts/TenantContext';
-import { useTenantFetching } from '@/hooks/useTenantFetching';
-import { useTenantSelection } from '@/hooks/useTenantSelection';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthState } from '@/hooks/useAuthState';
+import { useTenantData } from '@/hooks/useTenantData';
+import { useTenantState } from '@/hooks/useTenantState';
 
 interface TenantProviderProps {
   children: ReactNode;
 }
 
 export const TenantProvider = ({ children }: TenantProviderProps) => {
-  const { user, loading: authLoading, session, error: authError } = useAuth();
+  const { user, loading: authLoading, session, error: authError } = useAuthState();
   
   const {
     availableTenants,
-    isLoading,
-    error,
-    fetchUserTenants,
-    cleanup
-  } = useTenantFetching();
+    isLoading: tenantLoading,
+    error: tenantError,
+    fetchTenants,
+    cleanup,
+    refetch
+  } = useTenantData();
 
   const {
     tenantId,
     currentTenantRole,
     switchTenant,
     selectDefaultTenant
-  } = useTenantSelection(availableTenants);
+  } = useTenantState();
 
-  const refetchTenant = async () => {
-    console.log('[TENANT] Manual tenant refetch triggered - fetching fresh data');
-    cleanup();
-    await fetchUserTenants();
+  // Fetch tenants when user is available
+  useEffect(() => {
+    if (!authLoading && user && session && !authError) {
+      console.log('[TENANT] User authenticated, fetching tenants');
+      fetchTenants(user.id);
+    } else if (!authLoading && (!user || authError)) {
+      console.log('[TENANT] User not authenticated, clearing tenant data');
+      cleanup();
+    }
+
+    return cleanup;
+  }, [user, authLoading, session, authError, fetchTenants, cleanup]);
+
+  // Select default tenant when tenants are loaded
+  useEffect(() => {
+    if (availableTenants.length > 0 && !tenantId) {
+      selectDefaultTenant(availableTenants);
+    }
+  }, [availableTenants, tenantId, selectDefaultTenant]);
+
+  const handleSwitchTenant = (newTenantId: string) => {
+    switchTenant(newTenantId, availableTenants);
   };
 
-  // Apply tenant selection logic when tenants are fetched
-  useEffect(() => {
-    selectDefaultTenant(availableTenants, tenantId);
-  }, [availableTenants, selectDefaultTenant, tenantId]);
-
-  useEffect(() => {
-    console.log('[TENANT] Context effect triggered - user:', !!user, 'authLoading:', authLoading, 'session:', !!session, 'authError:', !!authError);
-    
-    // Reset loading state when auth changes
-    if (!authLoading) {
-      fetchUserTenants();
+  const refetchTenant = async () => {
+    if (user) {
+      console.log('[TENANT] Manual refetch triggered');
+      refetch();
+      await fetchTenants(user.id);
     }
-
-    // Cleanup function
-    return cleanup;
-  }, [fetchUserTenants, authLoading, cleanup]);
-
-  // Enhanced error recovery when auth state recovers - but with debouncing
-  useEffect(() => {
-    if (!authError && !authLoading && user && session && error) {
-      console.log('[TENANT] Auth recovered, attempting to refetch tenants after delay');
-      
-      // Add a delay to prevent immediate concurrent requests
-      const recoveryTimeout = setTimeout(() => {
-        fetchUserTenants();
-      }, 1000);
-
-      return () => clearTimeout(recoveryTimeout);
-    }
-  }, [authError, authLoading, user, session, error, fetchUserTenants]);
+  };
 
   return (
     <TenantContext.Provider value={{ 
       tenantId, 
-      isLoading, 
-      error, 
+      isLoading: tenantLoading, 
+      error: tenantError, 
       refetchTenant, 
       availableTenants,
-      switchTenant,
+      switchTenant: handleSwitchTenant,
       currentTenantRole
     }}>
       {children}
