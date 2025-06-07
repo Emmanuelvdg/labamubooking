@@ -1,49 +1,85 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { UserTenant } from '@/types/tenantContext';
+import { useTenantContext } from '@/hooks/useTenantContext';
 
 export const useTenantState = () => {
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [currentTenantRole, setCurrentTenantRole] = useState<string | null>(null);
+  
+  const { 
+    setTenantContext, 
+    clearTenantContext, 
+    getCurrentTenantId,
+    isContextSet 
+  } = useTenantContext();
 
-  const switchTenant = useCallback((newTenantId: string, availableTenants: UserTenant[]) => {
-    console.log('[TENANT] Switching to tenant:', newTenantId);
-    setTenantId(newTenantId);
+  const switchTenant = useCallback(async (newTenantId: string, availableTenants: UserTenant[]) => {
+    console.log('[TENANT STATE] Switching to tenant:', newTenantId);
     
-    const newTenant = availableTenants.find(ut => ut.tenant_id === newTenantId);
-    setCurrentTenantRole(newTenant?.role || null);
-  }, []);
-
-  const selectDefaultTenant = useCallback((userTenants: UserTenant[]) => {
-    if (userTenants && userTenants.length > 0) {
-      // Sort tenants by role priority and creation date
-      const sortedTenants = [...userTenants].sort((a, b) => {
-        const roleOrder = { 'owner': 1, 'admin': 2, 'user': 3 };
-        const roleA = roleOrder[a.role as keyof typeof roleOrder] || 4;
-        const roleB = roleOrder[b.role as keyof typeof roleOrder] || 4;
-        
-        if (roleA !== roleB) {
-          return roleA - roleB;
-        }
-        
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      });
+    const success = await setTenantContext(newTenantId);
+    
+    if (success) {
+      setTenantId(newTenantId);
       
-      const firstTenant = sortedTenants[0];
-      setTenantId(firstTenant.tenant_id);
-      setCurrentTenantRole(firstTenant.role);
-      console.log('[TENANT] Default tenant selected:', firstTenant.tenant_id, 'Role:', firstTenant.role);
+      // Update role
+      const tenantData = availableTenants.find(t => t.tenant_id === newTenantId);
+      setCurrentTenantRole(tenantData?.role || null);
+      
+      console.log('[TENANT STATE] Switched to tenant successfully');
     } else {
-      console.log('[TENANT] No tenants found - clearing state');
+      console.error('[TENANT STATE] Failed to switch tenant');
+    }
+  }, [setTenantContext]);
+
+  const selectDefaultTenant = useCallback(async (availableTenants: UserTenant[]) => {
+    if (availableTenants.length === 0) {
+      console.log('[TENANT STATE] No tenants available');
+      return;
+    }
+
+    // Try to get current tenant from database first
+    const currentTenant = await getCurrentTenantId();
+    
+    if (currentTenant) {
+      const tenantData = availableTenants.find(t => t.tenant_id === currentTenant);
+      if (tenantData) {
+        console.log('[TENANT STATE] Using existing tenant context:', currentTenant);
+        setTenantId(currentTenant);
+        setCurrentTenantRole(tenantData.role);
+        return;
+      }
+    }
+
+    // Select default tenant (prioritize owner, then admin, then first available)
+    const defaultTenant = availableTenants.find(t => t.role === 'owner') || 
+                         availableTenants.find(t => t.role === 'admin') || 
+                         availableTenants[0];
+
+    console.log('[TENANT STATE] Selecting default tenant:', defaultTenant.tenant_id);
+    await switchTenant(defaultTenant.tenant_id, availableTenants);
+  }, [getCurrentTenantId, switchTenant]);
+
+  // Clear tenant state when context is cleared
+  useEffect(() => {
+    if (!isContextSet) {
       setTenantId(null);
       setCurrentTenantRole(null);
     }
-  }, []);
+  }, [isContextSet]);
+
+  const cleanup = useCallback(() => {
+    console.log('[TENANT STATE] Cleaning up tenant state');
+    clearTenantContext();
+    setTenantId(null);
+    setCurrentTenantRole(null);
+  }, [clearTenantContext]);
 
   return {
     tenantId,
     currentTenantRole,
     switchTenant,
-    selectDefaultTenant
+    selectDefaultTenant,
+    cleanup
   };
 };

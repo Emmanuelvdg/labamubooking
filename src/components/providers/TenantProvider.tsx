@@ -4,6 +4,7 @@ import { TenantContext } from '@/contexts/TenantContext';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useTenantData } from '@/hooks/useTenantData';
 import { useTenantState } from '@/hooks/useTenantState';
+import { useTenantContext } from '@/hooks/useTenantContext';
 
 interface TenantProviderProps {
   children: ReactNode;
@@ -25,21 +26,27 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
     tenantId,
     currentTenantRole,
     switchTenant,
-    selectDefaultTenant
+    selectDefaultTenant,
+    cleanup: cleanupTenantState
   } = useTenantState();
+
+  const { refreshTenantContext } = useTenantContext();
 
   // Fetch tenants when user is available
   useEffect(() => {
     if (!authLoading && user && session && !authError) {
-      console.log('[TENANT] User authenticated, fetching tenants');
+      console.log('[TENANT PROVIDER] User authenticated, fetching tenants');
       fetchTenants(user.id);
     } else if (!authLoading && (!user || authError)) {
-      console.log('[TENANT] User not authenticated, clearing tenant data');
+      console.log('[TENANT PROVIDER] User not authenticated, clearing tenant data');
       cleanup();
+      cleanupTenantState();
     }
 
-    return cleanup;
-  }, [user, authLoading, session, authError, fetchTenants, cleanup]);
+    return () => {
+      cleanup();
+    };
+  }, [user, authLoading, session, authError, fetchTenants, cleanup, cleanupTenantState]);
 
   // Select default tenant when tenants are loaded
   useEffect(() => {
@@ -48,13 +55,24 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
     }
   }, [availableTenants, tenantId, selectDefaultTenant]);
 
+  // Refresh tenant context periodically
+  useEffect(() => {
+    if (tenantId && user) {
+      const refreshInterval = setInterval(() => {
+        refreshTenantContext();
+      }, 5 * 60 * 1000); // Refresh every 5 minutes
+
+      return () => clearInterval(refreshInterval);
+    }
+  }, [tenantId, user, refreshTenantContext]);
+
   const handleSwitchTenant = (newTenantId: string) => {
     switchTenant(newTenantId, availableTenants);
   };
 
   const refetchTenant = async () => {
     if (user) {
-      console.log('[TENANT] Manual refetch triggered');
+      console.log('[TENANT PROVIDER] Manual refetch triggered');
       refetch();
       await fetchTenants(user.id);
     }

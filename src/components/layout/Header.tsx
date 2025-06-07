@@ -1,16 +1,18 @@
 
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Settings, AlertTriangle, RefreshCw } from 'lucide-react';
+import { LogOut, User, Settings, AlertTriangle, RefreshCw, Shield } from 'lucide-react';
 import { supabase, clearStoredSession } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTenant } from '@/contexts/TenantContext';
+import { useTenantContext } from '@/hooks/useTenantContext';
 import { TenantSelector } from '@/components/tenant/TenantSelector';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export const Header = () => {
   const { user, error: authError, isConnected, forceSessionRecovery } = useAuth();
-  const { availableTenants } = useTenant();
+  const { availableTenants, tenantId } = useTenant();
+  const { isContextSet, error: tenantContextError } = useTenantContext();
   const navigate = useNavigate();
   const [isRecovering, setIsRecovering] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -55,6 +57,10 @@ export const Header = () => {
     }
   };
 
+  // Show tenant context status
+  const showTenantWarning = tenantId && !isContextSet;
+  const currentTenant = availableTenants.find(t => t.tenant_id === tenantId);
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -64,8 +70,23 @@ export const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          {/* Auth status indicators */}
+          {/* Security and status indicators */}
           <div className="flex items-center space-x-2">
+            {/* Tenant context status */}
+            {showTenantWarning && (
+              <div className="flex items-center space-x-1 text-orange-600 bg-orange-50 px-2 py-1 rounded text-xs">
+                <Shield className="h-3 w-3" />
+                <span>Tenant Context Required</span>
+              </div>
+            )}
+            
+            {tenantContextError && (
+              <div className="flex items-center space-x-1 text-red-600 bg-red-50 px-2 py-1 rounded text-xs">
+                <AlertTriangle className="h-3 w-3" />
+                <span>Context Error</span>
+              </div>
+            )}
+
             {authError && (
               <div className="flex items-center space-x-1 text-red-600 bg-red-50 px-2 py-1 rounded text-xs">
                 <AlertTriangle className="h-3 w-3" />
@@ -90,6 +111,14 @@ export const Header = () => {
               <div className="flex items-center space-x-1 text-orange-600 bg-orange-50 px-2 py-1 rounded text-xs">
                 <AlertTriangle className="h-3 w-3" />
                 <span>Connection Issue</span>
+              </div>
+            )}
+
+            {/* Tenant security indicator */}
+            {isContextSet && currentTenant && (
+              <div className="flex items-center space-x-1 text-green-600 bg-green-50 px-2 py-1 rounded text-xs">
+                <Shield className="h-3 w-3" />
+                <span>Secure: {currentTenant.tenant.name}</span>
               </div>
             )}
           </div>

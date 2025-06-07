@@ -15,7 +15,7 @@ export const useTenantData = () => {
   const fetchTenants = useCallback(async (userId: string) => {
     // Prevent multiple concurrent requests
     if (isRequestInProgressRef.current) {
-      console.log('[TENANT] Request already in progress, skipping');
+      console.log('[TENANT DATA] Request already in progress, skipping');
       return;
     }
 
@@ -30,7 +30,7 @@ export const useTenantData = () => {
     isRequestInProgressRef.current = true;
 
     try {
-      console.log('[TENANT] Fetching tenants for user:', userId);
+      console.log('[TENANT DATA] Fetching tenants for user:', userId);
       
       const { data: userTenants, error: tenantsError } = await supabase
         .from('user_tenants')
@@ -52,26 +52,26 @@ export const useTenantData = () => {
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
-        console.log('[TENANT] Request was aborted');
+        console.log('[TENANT DATA] Request was aborted');
         return;
       }
 
       if (tenantsError) {
-        console.error('[TENANT] Error fetching tenants:', tenantsError);
+        console.error('[TENANT DATA] Error fetching tenants:', tenantsError);
         setError(`Failed to load tenant information: ${tenantsError.message}`);
         setAvailableTenants([]);
       } else {
-        console.log('[TENANT] Tenants fetched successfully:', userTenants?.length || 0);
+        console.log('[TENANT DATA] Tenants fetched successfully:', userTenants?.length || 0);
         setAvailableTenants(userTenants || []);
         setError(null);
       }
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        console.log('[TENANT] Request was aborted');
+        console.log('[TENANT DATA] Request was aborted');
         return;
       }
       
-      console.error('[TENANT] Unexpected error:', err);
+      console.error('[TENANT DATA] Unexpected error:', err);
       setError('Failed to load tenant information');
       setAvailableTenants([]);
     } finally {
@@ -85,6 +85,9 @@ export const useTenantData = () => {
       abortControllerRef.current.abort();
     }
     isRequestInProgressRef.current = false;
+    setAvailableTenants([]);
+    setError(null);
+    setIsLoading(true);
   }, []);
 
   const refetch = useCallback(() => {
