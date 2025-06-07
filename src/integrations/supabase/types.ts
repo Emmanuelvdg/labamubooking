@@ -633,6 +633,215 @@ export type Database = {
           },
         ]
       }
+      staff_schedule_exceptions: {
+        Row: {
+          created_at: string
+          exception_date: string
+          id: string
+          is_cancelled: boolean
+          new_end_time: string | null
+          new_start_time: string | null
+          reason: string | null
+          schedule_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          exception_date: string
+          id?: string
+          is_cancelled?: boolean
+          new_end_time?: string | null
+          new_start_time?: string | null
+          reason?: string | null
+          schedule_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          exception_date?: string
+          id?: string
+          is_cancelled?: boolean
+          new_end_time?: string | null
+          new_start_time?: string | null
+          reason?: string | null
+          schedule_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_schedule_exceptions_schedule"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "staff_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_schedule_exceptions_tenant"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_schedule_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_schedule_templates_creator"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_schedule_templates_tenant"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_schedules: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_time: string
+          id: string
+          is_recurring: boolean
+          repeat_count: number | null
+          repeat_end_date: string | null
+          repeat_interval: number | null
+          repeat_type: Database["public"]["Enums"]["repeat_type"]
+          staff_id: string
+          start_time: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          weekly_pattern: Database["public"]["Enums"]["day_of_week"][] | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_time: string
+          id?: string
+          is_recurring?: boolean
+          repeat_count?: number | null
+          repeat_end_date?: string | null
+          repeat_interval?: number | null
+          repeat_type?: Database["public"]["Enums"]["repeat_type"]
+          staff_id: string
+          start_time: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+          weekly_pattern?: Database["public"]["Enums"]["day_of_week"][] | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          is_recurring?: boolean
+          repeat_count?: number | null
+          repeat_end_date?: string | null
+          repeat_interval?: number | null
+          repeat_type?: Database["public"]["Enums"]["repeat_type"]
+          staff_id?: string
+          start_time?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          weekly_pattern?: Database["public"]["Enums"]["day_of_week"][] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_staff_schedules_staff"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_staff_schedules_tenant"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_schedule_items: {
+        Row: {
+          created_at: string
+          day_of_week: Database["public"]["Enums"]["day_of_week"]
+          description: string | null
+          end_time: string
+          id: string
+          start_time: string
+          template_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: Database["public"]["Enums"]["day_of_week"]
+          description?: string | null
+          end_time: string
+          id?: string
+          start_time: string
+          template_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: Database["public"]["Enums"]["day_of_week"]
+          description?: string | null
+          end_time?: string
+          id?: string
+          start_time?: string
+          template_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_template_items_template"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "staff_schedule_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           business_type: string
@@ -712,6 +921,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_schedule_instances: {
+        Args: { schedule_id: string; start_date: string; end_date: string }
+        Returns: {
+          instance_date: string
+          start_time: string
+          end_time: string
+          title: string
+          description: string
+          staff_id: string
+          has_exception: boolean
+        }[]
+      }
       get_user_tenant_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -742,7 +963,16 @@ export type Database = {
     }
     Enums: {
       commission_type: "percentage" | "nominal"
+      day_of_week:
+        | "monday"
+        | "tuesday"
+        | "wednesday"
+        | "thursday"
+        | "friday"
+        | "saturday"
+        | "sunday"
       permission_type: "read" | "write" | "delete" | "admin"
+      repeat_type: "none" | "daily" | "weekly" | "monthly"
       resource_type:
         | "staff"
         | "customers"
@@ -868,7 +1098,17 @@ export const Constants = {
   public: {
     Enums: {
       commission_type: ["percentage", "nominal"],
+      day_of_week: [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+      ],
       permission_type: ["read", "write", "delete", "admin"],
+      repeat_type: ["none", "daily", "weekly", "monthly"],
       resource_type: [
         "staff",
         "customers",
