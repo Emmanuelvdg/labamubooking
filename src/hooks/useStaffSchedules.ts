@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -61,6 +62,8 @@ export const useScheduleInstances = (tenantId: string, startDate: string, endDat
       
       // Generate instances for each schedule
       for (const schedule of schedules) {
+        console.log('Generating instances for schedule:', schedule.id, schedule.title);
+        
         const { data: instances, error: instancesError } = await supabase
           .rpc('generate_schedule_instances', {
             schedule_id: schedule.id,
@@ -73,6 +76,8 @@ export const useScheduleInstances = (tenantId: string, startDate: string, endDat
           continue;
         }
         
+        console.log('Generated instances:', instances);
+        
         // Map the database response to our ScheduleInstance type
         const mappedInstances = (instances || []).map(instance => ({
           instanceDate: instance.instance_date,
@@ -84,9 +89,11 @@ export const useScheduleInstances = (tenantId: string, startDate: string, endDat
           hasException: instance.has_exception
         }));
         
+        console.log('Mapped instances:', mappedInstances);
         allInstances.push(...mappedInstances);
       }
       
+      console.log('Total instances generated:', allInstances.length);
       return allInstances;
     },
     enabled: !!tenantId && !!startDate && !!endDate,

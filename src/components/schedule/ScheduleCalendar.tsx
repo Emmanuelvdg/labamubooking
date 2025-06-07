@@ -20,24 +20,35 @@ export const ScheduleCalendar = ({ onCreateSchedule }: ScheduleCalendarProps) =>
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  const { data: scheduleInstances, isLoading } = useScheduleInstances(
+  const { data: scheduleInstances, isLoading, error } = useScheduleInstances(
     tenantId || '',
     format(weekStart, 'yyyy-MM-dd'),
     format(weekEnd, 'yyyy-MM-dd')
   );
 
+  console.log('Calendar - Schedule instances:', scheduleInstances);
+  console.log('Calendar - Is loading:', isLoading);
+  console.log('Calendar - Error:', error);
+
   const getSchedulesForDay = (date: Date): ScheduleInstance[] => {
     if (!scheduleInstances) return [];
-    return scheduleInstances.filter(instance => 
+    const daySchedules = scheduleInstances.filter(instance => 
       isSameDay(new Date(instance.instanceDate), date)
     );
+    console.log(`Schedules for ${format(date, 'yyyy-MM-dd')}:`, daySchedules);
+    return daySchedules;
   };
 
   const previousWeek = () => setCurrentWeek(prev => subWeeks(prev, 1));
   const nextWeek = () => setCurrentWeek(prev => addWeeks(prev, 1));
 
   const formatTime = (timeString: string) => {
-    return format(new Date(timeString), 'HH:mm');
+    try {
+      return format(new Date(timeString), 'HH:mm');
+    } catch (error) {
+      console.error('Error formatting time:', timeString, error);
+      return timeString;
+    }
   };
 
   if (isLoading) {
@@ -45,6 +56,18 @@ export const ScheduleCalendar = ({ onCreateSchedule }: ScheduleCalendarProps) =>
       <Card>
         <CardContent className="p-6">
           <div className="text-center">Loading calendar...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-600">
+            Error loading calendar: {error.message}
+          </div>
         </CardContent>
       </Card>
     );
@@ -75,6 +98,9 @@ export const ScheduleCalendar = ({ onCreateSchedule }: ScheduleCalendarProps) =>
         </div>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 text-sm text-gray-600">
+          Total schedule instances this week: {scheduleInstances?.length || 0}
+        </div>
         <div className="grid grid-cols-7 gap-2">
           {weekDays.map((day) => {
             const daySchedules = getSchedulesForDay(day);
