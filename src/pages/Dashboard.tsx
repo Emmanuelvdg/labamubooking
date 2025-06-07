@@ -4,6 +4,7 @@ import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 import { useTenant } from '@/contexts/TenantContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
@@ -259,18 +260,24 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="font-medium">Create New Booking</div>
-                <div className="text-sm text-gray-600">Schedule a new appointment</div>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="font-medium">Add New Customer</div>
-                <div className="text-sm text-gray-600">Register a new client</div>
-              </button>
-              <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="font-medium">View Calendar</div>
-                <div className="text-sm text-gray-600">Check today's schedule</div>
-              </button>
+              <Link to="/bookings" className="block">
+                <div className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                  <div className="font-medium">Create New Booking</div>
+                  <div className="text-sm text-gray-600">Schedule a new appointment</div>
+                </div>
+              </Link>
+              <Link to="/customers" className="block">
+                <div className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                  <div className="font-medium">Add New Customer</div>
+                  <div className="text-sm text-gray-600">Register a new client</div>
+                </div>
+              </Link>
+              <Link to="/calendar" className="block">
+                <div className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                  <div className="font-medium">View Calendar</div>
+                  <div className="text-sm text-gray-600">Check today's schedule</div>
+                </div>
+              </Link>
             </div>
           </CardContent>
         </Card>
