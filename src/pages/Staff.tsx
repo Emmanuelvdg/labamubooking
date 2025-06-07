@@ -7,6 +7,7 @@ import { Search, Mail, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { NewStaffDialog } from '@/components/staff/NewStaffDialog';
 import { SyncStaffButton } from '@/components/staff/SyncStaffButton';
+import { ManageRolesDialog } from '@/components/staff/ManageRolesDialog';
 import { StaffActions } from '@/components/staff/StaffActions';
 import { useStaff } from '@/hooks/useStaff';
 import { useTenant } from '@/contexts/TenantContext';
@@ -41,6 +42,7 @@ const Staff = () => {
           <p className="text-gray-600">Manage your team members and their skills</p>
         </div>
         <div className="flex gap-2">
+          <ManageRolesDialog />
           <SyncStaffButton tenantId={tenantId} />
           <NewStaffDialog />
         </div>

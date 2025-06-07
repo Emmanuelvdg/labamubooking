@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateStaff, useUpdateStaff } from '@/hooks/useStaff';
+import { useStaffRoles } from '@/hooks/useStaffRoles';
 import { useTenant } from '@/contexts/TenantContext';
 import { Staff } from '@/types';
 
@@ -18,12 +19,14 @@ export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
     name: '',
     email: '',
     role: '',
+    roleId: '',
     skills: ''
   });
 
   const createStaff = useCreateStaff();
   const updateStaff = useUpdateStaff();
   const { tenantId } = useTenant();
+  const { data: roles } = useStaffRoles(tenantId || '');
   const isEditing = !!initialData;
 
   useEffect(() => {
@@ -32,6 +35,7 @@ export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
         name: initialData.name,
         email: initialData.email,
         role: initialData.role,
+        roleId: initialData.roleId || '',
         skills: initialData.skills.join(', ')
       });
     }
@@ -58,6 +62,7 @@ export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
           name: formData.name,
           email: formData.email,
           role: formData.role,
+          roleId: formData.roleId || undefined,
           skills: skillsArray,
         });
       } else {
@@ -66,6 +71,7 @@ export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
           name: formData.name,
           email: formData.email,
           role: formData.role,
+          roleId: formData.roleId || undefined,
           skills: skillsArray,
           isActive: true,
         });
@@ -73,11 +79,20 @@ export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
 
       onSuccess?.();
       if (!isEditing) {
-        setFormData({ name: '', email: '', role: '', skills: '' });
+        setFormData({ name: '', email: '', role: '', roleId: '', skills: '' });
       }
     } catch (error) {
       console.error('Error saving staff:', error);
     }
+  };
+
+  const handleRoleChange = (roleId: string) => {
+    const selectedRole = roles?.find(role => role.id === roleId);
+    setFormData(prev => ({ 
+      ...prev, 
+      roleId,
+      role: selectedRole?.name || ''
+    }));
   };
 
   const isPending = createStaff.isPending || updateStaff.isPending;
@@ -108,18 +123,24 @@ export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
 
       <div className="space-y-2">
         <Label htmlFor="role">Role</Label>
-        <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Senior Stylist">Senior Stylist</SelectItem>
-            <SelectItem value="Junior Stylist">Junior Stylist</SelectItem>
-            <SelectItem value="Color Specialist">Color Specialist</SelectItem>
-            <SelectItem value="Manager">Manager</SelectItem>
-            <SelectItem value="Receptionist">Receptionist</SelectItem>
-          </SelectContent>
-        </Select>
+        {roles && roles.length > 0 ? (
+          <Select value={formData.roleId} onValueChange={handleRoleChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select role" />
+            </SelectTrigger>
+            <SelectContent>
+              {roles.map((role) => (
+                <SelectItem key={role.id} value={role.id}>
+                  {role.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <div className="text-sm text-gray-500">
+            No roles available. Create roles first using "Manage Roles".
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -134,7 +155,7 @@ export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={isPending || !tenantId}>
+        <Button type="submit" disabled={isPending || !tenantId || (!formData.roleId && roles && roles.length > 0)}>
           {isPending ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Staff Member' : 'Create Staff Member')}
         </Button>
       </div>

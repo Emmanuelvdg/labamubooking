@@ -454,6 +454,7 @@ export type Database = {
           is_active: boolean
           name: string
           role: string
+          role_id: string | null
           skills: string[] | null
           tenant_id: string
           updated_at: string
@@ -466,6 +467,7 @@ export type Database = {
           is_active?: boolean
           name: string
           role: string
+          role_id?: string | null
           skills?: string[] | null
           tenant_id: string
           updated_at?: string
@@ -478,11 +480,19 @@ export type Database = {
           is_active?: boolean
           name?: string
           role?: string
+          role_id?: string | null
           skills?: string[] | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "staff_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "staff_roles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "staff_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -578,6 +588,47 @@ export type Database = {
             columns: ["staff_id"]
             isOneToOne: false
             referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          permissions: Json | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          permissions?: Json | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          permissions?: Json | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

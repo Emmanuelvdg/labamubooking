@@ -11,6 +11,7 @@ export interface Staff {
   name: string;
   email: string;
   role: string;
+  roleId?: string;
   skills: string[];
   avatar?: string;
   isActive: boolean;
