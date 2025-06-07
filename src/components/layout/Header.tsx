@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings, AlertTriangle, RefreshCw } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, clearStoredSession } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTenant } from '@/contexts/TenantContext';
 import { TenantSelector } from '@/components/tenant/TenantSelector';
@@ -13,9 +13,31 @@ export const Header = () => {
   const { availableTenants } = useTenant();
   const navigate = useNavigate();
   const [isRecovering, setIsRecovering] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    setIsLoggingOut(true);
+    try {
+      // First try normal logout
+      const { error } = await supabase.auth.signOut();
+      
+      // If logout fails (like with 403 session_not_found), force clear everything
+      if (error) {
+        console.warn('Normal logout failed, forcing session cleanup:', error);
+        // Clear all stored session data
+        clearStoredSession();
+        // Force reload to ensure clean state
+        window.location.href = '/auth';
+        return;
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force clear session data and reload
+      clearStoredSession();
+      window.location.href = '/auth';
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleSettings = () => {
@@ -91,10 +113,15 @@ export const Header = () => {
             variant="outline"
             size="sm"
             onClick={handleLogout}
+            disabled={isLoggingOut}
             className="flex items-center space-x-2"
           >
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
+            {isLoggingOut ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+            <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
           </Button>
         </div>
       </div>

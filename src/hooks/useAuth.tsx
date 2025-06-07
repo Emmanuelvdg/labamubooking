@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, clearStoredSession } from '@/integrations/supabase/client';
 
 interface AuthState {
   user: User | null;
@@ -20,9 +20,14 @@ export const useAuth = () => {
     isConnected: true
   });
 
-  // Simplified auth state change handler
+  // Enhanced auth state change handler with better error handling
   const handleAuthStateChange = useCallback((event: string, session: Session | null) => {
     console.log(`[AUTH] State changed: ${event}`, session?.user?.email);
+    
+    // If we get a SIGNED_OUT event but still have a stored session, clear it
+    if (event === 'SIGNED_OUT' && !session) {
+      clearStoredSession();
+    }
     
     setAuthState(prev => ({
       ...prev,
@@ -41,7 +46,7 @@ export const useAuth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
 
-    // Get initial session
+    // Get initial session with better error handling
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -49,6 +54,10 @@ export const useAuth = () => {
         if (mounted) {
           if (error) {
             console.error('[AUTH] Initial session error:', error);
+            // If session is invalid, clear stored data
+            if (error.message.includes('session_not_found') || error.message.includes('invalid')) {
+              clearStoredSession();
+            }
             setAuthState(prev => ({ 
               ...prev, 
               user: null, 
@@ -70,6 +79,8 @@ export const useAuth = () => {
       } catch (error) {
         console.error('[AUTH] Initialization error:', error);
         if (mounted) {
+          // Clear potentially corrupted session data
+          clearStoredSession();
           setAuthState(prev => ({ 
             ...prev, 
             user: null, 
@@ -89,12 +100,24 @@ export const useAuth = () => {
     };
   }, [handleAuthStateChange]);
 
-  // Simplified recovery function
+  // Enhanced recovery function with session cleanup
   const forceSessionRecovery = useCallback(async () => {
     console.log('[AUTH] Attempting session recovery');
     try {
+      // First try to refresh the session
       const { data: { session }, error } = await supabase.auth.refreshSession();
-      if (error) throw error;
+      if (error) {
+        // If refresh fails, clear everything and redirect to login
+        console.warn('[AUTH] Session refresh failed, clearing session:', error);
+        clearStoredSession();
+        setAuthState(prev => ({
+          ...prev,
+          session: null,
+          user: null,
+          error
+        }));
+        return false;
+      }
       
       setAuthState(prev => ({
         ...prev,
@@ -106,18 +129,27 @@ export const useAuth = () => {
       return true;
     } catch (error) {
       console.error('[AUTH] Recovery failed:', error);
+      // Clear session data on recovery failure
+      clearStoredSession();
+      setAuthState(prev => ({
+        ...prev,
+        session: null,
+        user: null,
+        error: error as AuthError
+      }));
       return false;
     }
   }, []);
 
-  // Simplified debug info
+  // Enhanced debug info
   const getDebugInfo = useCallback(() => {
     return {
       hasUser: !!authState.user,
       hasSession: !!authState.session,
       loading: authState.loading,
       error: authState.error?.message,
-      isConnected: authState.isConnected
+      isConnected: authState.isConnected,
+      sessionExpiry: authState.session?.expires_at ? new Date(authState.session.expires_at * 1000).toISOString() : null
     };
   }, [authState]);
 
