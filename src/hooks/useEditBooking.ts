@@ -25,6 +25,12 @@ export const useEditBooking = () => {
     mutationFn: async (editData: EditBookingData) => {
       console.log('Editing booking:', editData);
       
+      // Get the current authenticated user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('User not authenticated');
+      }
+      
       // First, get the current booking data
       const { data: currentBooking, error: fetchError } = await supabase
         .from('bookings')
@@ -117,7 +123,7 @@ export const useEditBooking = () => {
         await logBookingEdit.mutateAsync({
           bookingId: editData.id,
           tenantId: currentBooking.tenant_id,
-          editedBy: currentBooking.customer_id, // For now, using customer_id as edited_by
+          editedBy: user.id, // Use authenticated user ID instead of customer ID
           editType,
           oldValues,
           newValues,
