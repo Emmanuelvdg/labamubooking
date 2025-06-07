@@ -1,5 +1,4 @@
 
-import { Layout } from '@/components/layout/Layout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
@@ -125,23 +124,19 @@ const Dashboard = () => {
 
   if (tenantLoading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading dashboard...</div>
-        </div>
-      </Layout>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading dashboard...</div>
+      </div>
     );
   }
 
   if (tenantError || !tenantId) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg text-red-600">
-            {tenantError || 'No tenant access found. Please contact support.'}
-          </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-red-600">
+          {tenantError || 'No tenant access found. Please contact support.'}
         </div>
-      </Layout>
+      </div>
     );
   }
 
@@ -192,98 +187,96 @@ const Dashboard = () => {
   };
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
-        </div>
-
-        {statsLoading ? (
-          <div className="flex justify-center items-center h-32">
-            <div className="text-lg">Loading statistics...</div>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <StatsCard
-              title="Total Customers"
-              value={stats?.customersCount || 0}
-              icon={Users}
-              trend={{ value: 12, isPositive: true }}
-            />
-            <StatsCard
-              title="This Month's Bookings"
-              value={stats?.bookingsCount || 0}
-              icon={Calendar}
-              trend={{ value: Math.abs(stats?.growthPercentage || 0), isPositive: (stats?.growthPercentage || 0) >= 0 }}
-            />
-            <StatsCard
-              title="Revenue"
-              value={formatCurrency(stats?.totalRevenue || 0)}
-              icon={DollarSign}
-              trend={{ value: 5, isPositive: false }}
-            />
-            <StatsCard
-              title="Growth"
-              value={`${stats?.growthPercentage || 0}%`}
-              icon={TrendingUp}
-              trend={{ value: Math.abs(stats?.growthPercentage || 0), isPositive: (stats?.growthPercentage || 0) >= 0 }}
-            />
-          </div>
-        )}
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest bookings and customer activity</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {bookingsLoading ? (
-                <div className="text-center text-gray-500">Loading activity...</div>
-              ) : recentBookings && recentBookings.length > 0 ? (
-                <div className="space-y-4">
-                  {recentBookings.map((booking) => (
-                    <div key={booking.id} className="flex items-center space-x-4">
-                      <div className={`w-2 h-2 rounded-full ${getActivityColor(booking.status)}`}></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{getActivityText(booking)}</p>
-                        <p className="text-xs text-gray-600">{formatTimeAgo(booking.created_at)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-gray-500">No recent activity</div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks and shortcuts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="font-medium">Create New Booking</div>
-                  <div className="text-sm text-gray-600">Schedule a new appointment</div>
-                </button>
-                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="font-medium">Add New Customer</div>
-                  <div className="text-sm text-gray-600">Register a new client</div>
-                </button>
-                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="font-medium">View Calendar</div>
-                  <div className="text-sm text-gray-600">Check today's schedule</div>
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
       </div>
-    </Layout>
+
+      {statsLoading ? (
+        <div className="flex justify-center items-center h-32">
+          <div className="text-lg">Loading statistics...</div>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <StatsCard
+            title="Total Customers"
+            value={stats?.customersCount || 0}
+            icon={Users}
+            trend={{ value: 12, isPositive: true }}
+          />
+          <StatsCard
+            title="This Month's Bookings"
+            value={stats?.bookingsCount || 0}
+            icon={Calendar}
+            trend={{ value: Math.abs(stats?.growthPercentage || 0), isPositive: (stats?.growthPercentage || 0) >= 0 }}
+          />
+          <StatsCard
+            title="Revenue"
+            value={formatCurrency(stats?.totalRevenue || 0)}
+            icon={DollarSign}
+            trend={{ value: 5, isPositive: false }}
+          />
+          <StatsCard
+            title="Growth"
+            value={`${stats?.growthPercentage || 0}%`}
+            icon={TrendingUp}
+            trend={{ value: Math.abs(stats?.growthPercentage || 0), isPositive: (stats?.growthPercentage || 0) >= 0 }}
+          />
+        </div>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest bookings and customer activity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {bookingsLoading ? (
+              <div className="text-center text-gray-500">Loading activity...</div>
+            ) : recentBookings && recentBookings.length > 0 ? (
+              <div className="space-y-4">
+                {recentBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center space-x-4">
+                    <div className={`w-2 h-2 rounded-full ${getActivityColor(booking.status)}`}></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{getActivityText(booking)}</p>
+                      <p className="text-xs text-gray-600">{formatTimeAgo(booking.created_at)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-gray-500">No recent activity</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common tasks and shortcuts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="font-medium">Create New Booking</div>
+                <div className="text-sm text-gray-600">Schedule a new appointment</div>
+              </button>
+              <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="font-medium">Add New Customer</div>
+                <div className="text-sm text-gray-600">Register a new client</div>
+              </button>
+              <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="font-medium">View Calendar</div>
+                <div className="text-sm text-gray-600">Check today's schedule</div>
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
