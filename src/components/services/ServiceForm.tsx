@@ -1,30 +1,57 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCreateService } from '@/hooks/useServices';
+import { useCreateService, useUpdateService } from '@/hooks/useServices';
 import { useServiceCategories } from '@/hooks/useServiceCategories';
 import { useTenant } from '@/contexts/TenantContext';
+import { Service } from '@/types';
 
 interface ServiceFormProps {
+  initialData?: Service;
+  onSubmit?: (formData: Omit<Service, 'id'>) => Promise<void>;
+  onCancel?: () => void;
+  isSubmitting?: boolean;
+  submitButtonText?: string;
   onSuccess?: () => void;
 }
 
-export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
+export const ServiceForm = ({ 
+  initialData, 
+  onSubmit, 
+  onCancel, 
+  isSubmitting, 
+  submitButtonText,
+  onSuccess 
+}: ServiceFormProps) => {
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    duration: '',
-    price: '',
-    categoryId: 'none'
+    name: initialData?.name || '',
+    description: initialData?.description || '',
+    duration: initialData?.duration?.toString() || '',
+    price: initialData?.price?.toString() || '',
+    categoryId: initialData?.categoryId || 'none'
   });
 
   const { tenantId } = useTenant();
   const createService = useCreateService();
+  const updateService = useUpdateService();
   const { data: categories, isLoading: categoriesLoading } = useServiceCategories(tenantId || '');
+
+  // Update form data when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name,
+        description: initialData.description,
+        duration: initialData.duration.toString(),
+        price: initialData.price.toString(),
+        categoryId: initialData.categoryId || 'none'
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,17 +60,24 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
       return;
     }
 
-    await createService.mutateAsync({
+    const serviceData = {
       tenantId,
       name: formData.name,
       description: formData.description,
       duration: parseInt(formData.duration),
       price: parseFloat(formData.price),
       categoryId: formData.categoryId === 'none' ? undefined : formData.categoryId,
-    });
+    };
 
-    onSuccess?.();
-    setFormData({ name: '', description: '', duration: '', price: '', categoryId: 'none' });
+    if (onSubmit) {
+      // Custom submit handler (for edit dialog)
+      await onSubmit(serviceData);
+    } else {
+      // Default create behavior
+      await createService.mutateAsync(serviceData);
+      onSuccess?.();
+      setFormData({ name: '', description: '', duration: '', price: '', categoryId: 'none' });
+    }
   };
 
   if (!tenantId) {
@@ -53,6 +87,8 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
       </div>
     );
   }
+
+  const isLoading = isSubmitting || createService.isPending || updateService.isPending;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -138,8 +174,13 @@ export const ServiceForm = ({ onSuccess }: ServiceFormProps) => {
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={createService.isPending}>
-          {createService.isPending ? 'Creating...' : 'Create Service'}
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : (submitButtonText || 'Create Service')}
         </Button>
       </div>
     </form>
