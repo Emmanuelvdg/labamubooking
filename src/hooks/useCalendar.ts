@@ -43,7 +43,7 @@ export const useCalendar = (tenantId: string) => {
     return acc;
   }, {} as Record<number, Booking[]>);
 
-  // Get bookings for any specific date (used by daily view)
+  // Get bookings for any specific date (used by daily view) - UPDATED
   const getBookingsForDate = (date: Date) => {
     return bookings.filter(booking => {
       const bookingDate = new Date(booking.startTime);

@@ -8,7 +8,7 @@ import { format, addDays, subDays, isSameDay } from 'date-fns';
 interface DailyCalendarViewProps {
   selectedDate: Date;
   staff: Array<{ id: string; name: string; email: string; role: string; isActive: boolean }>;
-  bookingsByDay: Record<number, Booking[]>;
+  bookings: Booking[];
   formatBookingTime: (booking: Booking) => string;
   onDateChange: (date: Date) => void;
 }
@@ -16,7 +16,7 @@ interface DailyCalendarViewProps {
 export const DailyCalendarView = ({
   selectedDate,
   staff,
-  bookingsByDay,
+  bookings,
   formatBookingTime,
   onDateChange
 }: DailyCalendarViewProps) => {
@@ -29,8 +29,7 @@ export const DailyCalendarView = ({
   const nextDay = () => onDateChange(addDays(selectedDate, 1));
 
   const getBookingsForStaffAtTime = (staffId: string, timeSlot: string) => {
-    const dayBookings = bookingsByDay[selectedDate.getDate()] || [];
-    return dayBookings.filter(booking => {
+    return bookings.filter(booking => {
       const bookingTime = formatBookingTime(booking);
       const bookingHour = bookingTime.split(':')[0];
       const timeSlotHour = timeSlot.split(':')[0];
@@ -61,7 +60,7 @@ export const DailyCalendarView = ({
         </div>
         <div className="flex items-center justify-between text-sm text-gray-600">
           <span>{activeStaff.length} staff members</span>
-          <span>{(bookingsByDay[selectedDate.getDate()] || []).length} appointments</span>
+          <span>{bookings.length} appointments</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -90,11 +89,11 @@ export const DailyCalendarView = ({
                     {timeSlot}
                   </div>
                   {activeStaff.map((member) => {
-                    const bookings = getBookingsForStaffAtTime(member.id, timeSlot);
+                    const staffBookings = getBookingsForStaffAtTime(member.id, timeSlot);
                     
                     return (
                       <div key={`${member.id}-${timeSlot}`} className="min-h-[60px] p-1 border-r border-gray-100">
-                        {bookings.map((booking) => (
+                        {staffBookings.map((booking) => (
                           <div
                             key={booking.id}
                             className={`text-xs p-2 rounded mb-1 border-l-4 ${
@@ -109,7 +108,7 @@ export const DailyCalendarView = ({
                             <div className="text-xs opacity-60">{formatBookingTime(booking)}</div>
                           </div>
                         ))}
-                        {bookings.length === 0 && (
+                        {staffBookings.length === 0 && (
                           <div className="h-full flex items-center justify-center text-gray-300 text-xs">
                             Available
                           </div>

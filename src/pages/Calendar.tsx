@@ -27,7 +27,11 @@ const Calendar = () => {
     clearFilters,
     setSelectedStaffId,
     setSelectedServiceId,
+    getBookingsForDate,
   } = useCalendar(tenantId || '');
+
+  // Get bookings for the selected date in daily view
+  const selectedDateBookings = getBookingsForDate(selectedDate);
 
   if (tenantLoading) {
     return (
@@ -89,7 +93,7 @@ const Calendar = () => {
           <DailyCalendarView
             selectedDate={selectedDate}
             staff={staff}
-            bookingsByDay={bookingsByDay}
+            bookings={selectedDateBookings}
             formatBookingTime={formatBookingTime}
             onDateChange={setSelectedDate}
           />
