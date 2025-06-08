@@ -64,9 +64,10 @@ export const Header = () => {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
           <h1 className="text-xl font-semibold text-gray-900">LabamuBooking</h1>
-          {availableTenants.length > 1 && <TenantSelector />}
+          {/* Always show TenantSelector for users with any tenants */}
+          {availableTenants.length > 0 && <TenantSelector />}
         </div>
         
         <div className="flex items-center space-x-4">

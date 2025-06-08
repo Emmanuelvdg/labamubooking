@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { useTenant } from '@/contexts/TenantContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useAuthManagement } from './useAuthManagement';
 import { useTenantCreation } from './useTenantCreation';
 import { useConnectUserToTenant } from './useTenantConnection';
@@ -12,15 +13,30 @@ export const useCreateTenant = () => {
   const queryClient = useQueryClient();
   const connectUserToTenant = useConnectUserToTenant();
   const { refetchTenant } = useTenant();
+  const { user } = useAuth(); // Get current user
   const { handleUserAuthentication } = useAuthManagement();
   const { createTenantRecord } = useTenantCreation();
   
   return useMutation({
     mutationFn: async (tenantData: CreateTenantData): Promise<CreateTenantResult> => {
-      console.log('Creating new tenant with enhanced synchronization:', { ...tenantData, password: '[REDACTED]' });
+      console.log('Creating new tenant:', { ...tenantData, password: '[REDACTED]' });
       
-      // Handle user authentication first with enhanced error handling
-      const { authData, isExistingUser } = await handleUserAuthentication(tenantData.email, tenantData.password);
+      let authData;
+      let isExistingUser = false;
+      
+      // Check if user is already authenticated (existing user adding new business)
+      if (user) {
+        console.log('Existing authenticated user creating new business');
+        authData = { user };
+        isExistingUser = true;
+      } else {
+        console.log('New user registration with business creation');
+        // Handle user authentication for new users
+        const authResult = await handleUserAuthentication(tenantData.email, tenantData.password);
+        authData = authResult.authData;
+        isExistingUser = authResult.isExistingUser;
+      }
+      
       console.log('User authentication completed. User ID:', authData.user.id, 'Existing user:', isExistingUser);
       
       // Create the tenant record
