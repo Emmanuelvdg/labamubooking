@@ -1,17 +1,24 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Mail, Phone } from 'lucide-react';
+import { Search, Mail, Phone, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { NewCustomerDialog } from '@/components/customers/NewCustomerDialog';
 import { SyncCustomersButton } from '@/components/customers/SyncCustomersButton';
 import { CustomerActions } from '@/components/customers/CustomerActions';
+import { EditCustomerDialog } from '@/components/customers/EditCustomerDialog';
+import { DeleteCustomerDialog } from '@/components/customers/DeleteCustomerDialog';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useTenant } from '@/contexts/TenantContext';
+import { useState } from 'react';
 
 const Customers = () => {
   const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
   const { data: customers = [], isLoading, error } = useCustomers(tenantId || '');
+  const [editCustomer, setEditCustomer] = useState(null);
+  const [deleteCustomer, setDeleteCustomer] = useState(null);
 
   if (tenantLoading) {
     return (
@@ -76,7 +83,7 @@ const Customers = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {customers.map((customer) => (
             <CustomerActions key={customer.id} customer={customer}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer relative group">
                 <CardContent className="p-6">
                   <div className="flex items-start space-x-4">
                     <Avatar className="h-12 w-12">
@@ -100,12 +107,50 @@ const Customers = () => {
                         )}
                       </div>
                     </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setEditCustomer(customer)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setDeleteCustomer(customer)}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </CustomerActions>
           ))}
         </div>
+      )}
+
+      {editCustomer && (
+        <EditCustomerDialog 
+          customer={editCustomer}
+          open={!!editCustomer}
+          onOpenChange={(open) => !open && setEditCustomer(null)}
+        />
+      )}
+
+      {deleteCustomer && (
+        <DeleteCustomerDialog 
+          customer={deleteCustomer}
+          open={!!deleteCustomer}
+          onOpenChange={(open) => !open && setDeleteCustomer(null)}
+        />
       )}
     </div>
   );
