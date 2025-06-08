@@ -33,7 +33,7 @@ export const useCalendar = (tenantId: string) => {
     return true;
   });
 
-  // Group bookings by day
+  // Group bookings by day for the current month
   const bookingsByDay = monthBookings.reduce((acc, booking) => {
     const day = new Date(booking.startTime).getDate();
     if (!acc[day]) {
@@ -42,6 +42,16 @@ export const useCalendar = (tenantId: string) => {
     acc[day].push(booking);
     return acc;
   }, {} as Record<number, Booking[]>);
+
+  // Get bookings for any specific date (used by daily view)
+  const getBookingsForDate = (date: Date) => {
+    return bookings.filter(booking => {
+      const bookingDate = new Date(booking.startTime);
+      return bookingDate.toDateString() === date.toDateString() &&
+             (selectedStaffId === 'all' || booking.staffId === selectedStaffId) &&
+             (selectedServiceId === 'all' || booking.serviceId === selectedServiceId);
+    });
+  };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -82,5 +92,6 @@ export const useCalendar = (tenantId: string) => {
     clearFilters,
     setSelectedStaffId,
     setSelectedServiceId,
+    getBookingsForDate,
   };
 };
