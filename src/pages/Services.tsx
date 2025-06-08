@@ -1,11 +1,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Clock, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { Search, Clock, DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { NewServiceDialog } from '@/components/services/NewServiceDialog';
 import { ManageCategoriesDialog } from '@/components/services/ManageCategoriesDialog';
+import { EditServiceDialog } from '@/components/services/EditServiceDialog';
+import { DeleteServiceDialog } from '@/components/services/DeleteServiceDialog';
 import { useServices } from '@/hooks/useServices';
 import { useServiceCategories } from '@/hooks/useServiceCategories';
 import { useTenant } from '@/contexts/TenantContext';
@@ -117,12 +118,8 @@ const Services = () => {
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{service.name}</CardTitle>
                         <div className="flex space-x-1">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <EditServiceDialog service={service} />
+                          <DeleteServiceDialog service={service} />
                         </div>
                       </div>
                     </CardHeader>

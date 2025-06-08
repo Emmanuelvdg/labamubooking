@@ -119,3 +119,108 @@ export const useCreateService = () => {
     },
   });
 };
+
+export const useUpdateService = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (service: Service) => {
+      console.log('Updating service:', service);
+      
+      // Transform camelCase to snake_case for database
+      const dbService = {
+        name: service.name,
+        description: service.description,
+        duration: service.duration,
+        price: service.price,
+        category_id: service.categoryId,
+      };
+
+      const { data, error } = await supabase
+        .from('services')
+        .update(dbService)
+        .eq('id', service.id)
+        .select(`
+          *,
+          service_categories(
+            id,
+            name,
+            description,
+            color
+          )
+        `)
+        .single();
+      
+      if (error) throw error;
+      
+      console.log('Updated service:', data);
+      
+      // Transform response back to camelCase
+      return {
+        id: data.id,
+        tenantId: data.tenant_id,
+        name: data.name,
+        description: data.description,
+        duration: data.duration,
+        price: data.price,
+        categoryId: data.category_id,
+        category: data.service_categories ? {
+          id: data.service_categories.id,
+          tenantId: data.tenant_id,
+          name: data.service_categories.name,
+          description: data.service_categories.description,
+          color: data.service_categories.color,
+        } : undefined,
+      };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      toast({
+        title: 'Success',
+        description: 'Service updated successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update service',
+        variant: 'destructive',
+      });
+      console.error('Error updating service:', error);
+    },
+  });
+};
+
+export const useDeleteService = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (serviceId: string) => {
+      console.log('Deleting service:', serviceId);
+      
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', serviceId);
+      
+      if (error) throw error;
+      
+      console.log('Service deleted successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      toast({
+        title: 'Success',
+        description: 'Service deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete service',
+        variant: 'destructive',
+      });
+      console.error('Error deleting service:', error);
+    },
+  });
+};
