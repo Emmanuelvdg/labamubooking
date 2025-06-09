@@ -11,6 +11,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { format, addDays } from 'date-fns';
 import { RosterAssignment } from '@/types/roster';
 import { Trash2 } from 'lucide-react';
+
 interface NewRosterAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -24,17 +25,21 @@ interface NewRosterAssignmentDialogProps {
   selectedDate?: Date | null;
   selectedStaffId?: string | null;
 }
+
 interface TimeSlot {
   startTime: string;
   endTime: string;
 }
+
 interface DaySchedule {
   enabled: boolean;
   shifts: TimeSlot[];
 }
+
 interface ScheduleData {
   [key: string]: DaySchedule;
 }
+
 const DAYS_OF_WEEK = [{
   key: 'monday',
   label: 'Monday'
@@ -57,6 +62,21 @@ const DAYS_OF_WEEK = [{
   key: 'sunday',
   label: 'Sunday'
 }];
+
+// Generate time options in 15-minute increments
+const generateTimeOptions = () => {
+  const times = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      times.push(timeString);
+    }
+  }
+  return times;
+};
+
+const TIME_OPTIONS = generateTimeOptions();
+
 export const NewRosterAssignmentDialog = ({
   open,
   onOpenChange,
@@ -123,6 +143,7 @@ export const NewRosterAssignmentDialog = ({
       shifts: []
     }
   });
+
   const calculateDuration = (shifts: TimeSlot[]): string => {
     const totalMinutes = shifts.reduce((total, shift) => {
       const start = new Date(`2000-01-01T${shift.startTime}:00`);
@@ -134,6 +155,7 @@ export const NewRosterAssignmentDialog = ({
     const minutes = totalMinutes % 60;
     return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}min`;
   };
+
   const updateShift = (day: string, shiftIndex: number, field: 'startTime' | 'endTime', value: string) => {
     setScheduleData(prev => ({
       ...prev,
@@ -146,6 +168,7 @@ export const NewRosterAssignmentDialog = ({
       }
     }));
   };
+
   const addShift = (day: string) => {
     setScheduleData(prev => ({
       ...prev,
@@ -158,6 +181,7 @@ export const NewRosterAssignmentDialog = ({
       }
     }));
   };
+
   const removeShift = (day: string, shiftIndex: number) => {
     setScheduleData(prev => ({
       ...prev,
@@ -167,6 +191,7 @@ export const NewRosterAssignmentDialog = ({
       }
     }));
   };
+
   const toggleDay = (day: string, enabled: boolean) => {
     setScheduleData(prev => ({
       ...prev,
@@ -176,6 +201,7 @@ export const NewRosterAssignmentDialog = ({
       }
     }));
   };
+
   const hasOverlappingShifts = (shifts: TimeSlot[]): boolean => {
     if (shifts.length <= 1) return false;
     for (let i = 0; i < shifts.length; i++) {
@@ -191,6 +217,7 @@ export const NewRosterAssignmentDialog = ({
     }
     return false;
   };
+
   const handleSubmit = async () => {
     if (!selectedStaff || !tenantId) return;
     try {
@@ -270,7 +297,9 @@ export const NewRosterAssignmentDialog = ({
       console.error('Error creating assignments:', error);
     }
   };
+
   const activeStaff = staff.filter(member => member.isActive);
+
   return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -329,8 +358,6 @@ export const NewRosterAssignmentDialog = ({
               <Label>Notes (Optional)</Label>
               <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add any additional notes..." rows={3} />
             </div>
-
-            
           </div>
 
           {/* Right Panel - Schedule Grid */}
@@ -353,36 +380,30 @@ export const NewRosterAssignmentDialog = ({
                       {dayData.enabled && <div className="flex flex-col space-y-2">
                           {dayData.shifts.length === 0 ? <div className="text-gray-500 text-sm">No shifts</div> : dayData.shifts.map((shift, shiftIndex) => <div key={shiftIndex} className="flex items-center space-x-2">
                                 <Select value={shift.startTime} onValueChange={value => updateShift(day.key, shiftIndex, 'startTime', value)}>
-                                  <SelectTrigger className="w-20">
+                                  <SelectTrigger className="w-24">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {Array.from({
-                            length: 24
-                          }, (_, i) => {
-                            const hour = i.toString().padStart(2, '0');
-                            return <SelectItem key={`${hour}:00`} value={`${hour}:00`}>
-                                          {hour}:00
-                                        </SelectItem>;
-                          })}
+                                    {TIME_OPTIONS.map(time => (
+                                      <SelectItem key={time} value={time}>
+                                        {time}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 
                                 <span>-</span>
                                 
                                 <Select value={shift.endTime} onValueChange={value => updateShift(day.key, shiftIndex, 'endTime', value)}>
-                                  <SelectTrigger className="w-20">
+                                  <SelectTrigger className="w-24">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {Array.from({
-                            length: 24
-                          }, (_, i) => {
-                            const hour = i.toString().padStart(2, '0');
-                            return <SelectItem key={`${hour}:00`} value={`${hour}:00`}>
-                                          {hour}:00
-                                        </SelectItem>;
-                          })}
+                                    {TIME_OPTIONS.map(time => (
+                                      <SelectItem key={time} value={time}>
+                                        {time}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 
