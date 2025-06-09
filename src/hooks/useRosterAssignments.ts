@@ -25,16 +25,48 @@ export const useRosterAssignments = (tenantId: string) => {
         .order('start_time', { ascending: true });
 
       if (error) throw error;
-      return data as RosterAssignment[];
+      
+      // Transform database records to match TypeScript interface
+      return (data || []).map((record: any): RosterAssignment => ({
+        id: record.id,
+        tenantId: record.tenant_id,
+        staffId: record.staff_id,
+        startTime: record.start_time,
+        endTime: record.end_time,
+        status: record.status,
+        assignmentType: record.assignment_type,
+        notes: record.notes,
+        createdBy: record.created_by,
+        createdAt: record.created_at,
+        updatedAt: record.updated_at,
+        staff: record.staff ? {
+          id: record.staff.id,
+          name: record.staff.name,
+          email: record.staff.email,
+          role: record.staff.role
+        } : undefined
+      }));
     },
     enabled: !!tenantId,
   });
 
   const createAssignment = useMutation({
     mutationFn: async (assignment: Omit<RosterAssignment, 'id' | 'createdAt' | 'updatedAt'>) => {
+      // Transform TypeScript interface to database columns
+      const dbRecord = {
+        tenant_id: assignment.tenantId,
+        staff_id: assignment.staffId,
+        start_time: assignment.startTime,
+        end_time: assignment.endTime,
+        status: assignment.status,
+        assignment_type: assignment.assignmentType,
+        notes: assignment.notes,
+        created_by: assignment.createdBy
+      };
+
       const { data, error } = await supabase
         .from('roster_assignments')
-        .insert(assignment)
+        .insert(dbRecord)
         .select()
         .single();
 
@@ -53,9 +85,20 @@ export const useRosterAssignments = (tenantId: string) => {
 
   const updateAssignment = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<RosterAssignment> & { id: string }) => {
+      // Transform TypeScript interface to database columns for updates
+      const dbUpdates: any = {};
+      if (updates.tenantId !== undefined) dbUpdates.tenant_id = updates.tenantId;
+      if (updates.staffId !== undefined) dbUpdates.staff_id = updates.staffId;
+      if (updates.startTime !== undefined) dbUpdates.start_time = updates.startTime;
+      if (updates.endTime !== undefined) dbUpdates.end_time = updates.endTime;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.assignmentType !== undefined) dbUpdates.assignment_type = updates.assignmentType;
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if (updates.createdBy !== undefined) dbUpdates.created_by = updates.createdBy;
+
       const { data, error } = await supabase
         .from('roster_assignments')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();

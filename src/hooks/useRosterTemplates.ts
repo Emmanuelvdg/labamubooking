@@ -17,16 +17,38 @@ export const useRosterTemplates = (tenantId: string) => {
         .order('name');
 
       if (error) throw error;
-      return data as RosterTemplate[];
+      
+      // Transform database records to match TypeScript interface
+      return (data || []).map((record: any): RosterTemplate => ({
+        id: record.id,
+        tenantId: record.tenant_id,
+        name: record.name,
+        description: record.description,
+        isActive: record.is_active,
+        templateData: record.template_data,
+        createdBy: record.created_by,
+        createdAt: record.created_at,
+        updatedAt: record.updated_at
+      }));
     },
     enabled: !!tenantId,
   });
 
   const createTemplate = useMutation({
     mutationFn: async (template: Omit<RosterTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
+      // Transform TypeScript interface to database columns
+      const dbRecord = {
+        tenant_id: template.tenantId,
+        name: template.name,
+        description: template.description,
+        is_active: template.isActive,
+        template_data: template.templateData,
+        created_by: template.createdBy
+      };
+
       const { data, error } = await supabase
         .from('roster_templates')
-        .insert(template)
+        .insert(dbRecord)
         .select()
         .single();
 
@@ -45,9 +67,18 @@ export const useRosterTemplates = (tenantId: string) => {
 
   const updateTemplate = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<RosterTemplate> & { id: string }) => {
+      // Transform TypeScript interface to database columns for updates
+      const dbUpdates: any = {};
+      if (updates.tenantId !== undefined) dbUpdates.tenant_id = updates.tenantId;
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
+      if (updates.templateData !== undefined) dbUpdates.template_data = updates.templateData;
+      if (updates.createdBy !== undefined) dbUpdates.created_by = updates.createdBy;
+
       const { data, error } = await supabase
         .from('roster_templates')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
