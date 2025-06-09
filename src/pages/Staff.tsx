@@ -11,28 +11,18 @@ import { StaffActions } from '@/components/staff/StaffActions';
 import { NewStaffDialog } from '@/components/staff/NewStaffDialog';
 import { ManageRolesDialog } from '@/components/staff/ManageRolesDialog';
 import { SyncStaffButton } from '@/components/staff/SyncStaffButton';
-import { ScheduleCalendar } from '@/components/schedule/ScheduleCalendar';
-import { ScheduleList } from '@/components/schedule/ScheduleList';
-import { NewScheduleDialog } from '@/components/schedule/NewScheduleDialog';
-import { EditScheduleDialog } from '@/components/schedule/EditScheduleDialog';
+import { ScheduleManagementDialog } from '@/components/schedule/ScheduleManagementDialog';
+import { WeeklyScheduleView } from '@/components/schedule/WeeklyScheduleView';
 import { RosterCalendar } from '@/components/roster/RosterCalendar';
 import { RosterTemplateManager } from '@/components/roster/RosterTemplateManager';
 import { useRosterAssignments } from '@/hooks/useRosterAssignments';
-import { StaffSchedule } from '@/types/schedule';
 import { RosterAssignment } from '@/types/roster';
 
 const Staff = () => {
   const { tenantId } = useTenant();
   const { data: staff, isLoading, error } = useStaff(tenantId || '');
   const { assignments } = useRosterAssignments(tenantId || '');
-  const [selectedSchedule, setSelectedSchedule] = useState<StaffSchedule | null>(null);
-  const [editScheduleOpen, setEditScheduleOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<RosterAssignment | null>(null);
-
-  const handleEditSchedule = (schedule: StaffSchedule) => {
-    setSelectedSchedule(schedule);
-    setEditScheduleOpen(true);
-  };
 
   const handleAssignmentClick = (assignment: RosterAssignment) => {
     setSelectedAssignment(assignment);
@@ -158,13 +148,11 @@ const Staff = () => {
 
         <TabsContent value="schedules" className="space-y-6">
           <div className="flex justify-between items-center">
-            <div className="text-lg font-semibold">Schedule Calendar</div>
-            <NewScheduleDialog />
+            <div className="text-lg font-semibold">Staff Schedules</div>
+            <ScheduleManagementDialog />
           </div>
           
-          <ScheduleCalendar />
-          
-          <ScheduleList onEditSchedule={handleEditSchedule} />
+          <WeeklyScheduleView />
         </TabsContent>
 
         <TabsContent value="roster" className="space-y-6">
@@ -209,14 +197,6 @@ const Staff = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {selectedSchedule && (
-        <EditScheduleDialog
-          schedule={selectedSchedule}
-          open={editScheduleOpen}
-          onOpenChange={setEditScheduleOpen}
-        />
-      )}
     </div>
   );
 };
