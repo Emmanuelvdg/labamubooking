@@ -45,4 +45,6 @@ export const useStaffSchedules = (tenantId: string) => {
 
 // Re-export the hooks from the separate files for backward compatibility
 export { useScheduleInstances } from './useScheduleInstances';
-export { useCreateSchedule, useUpdateSchedule, useDeleteSchedule } from './useScheduleMutations';
+export { useCreateSchedule } from './useCreateSchedule';
+export { useUpdateSchedule } from './useUpdateSchedule';
+export { useDeleteSchedule } from './useDeleteSchedule';
