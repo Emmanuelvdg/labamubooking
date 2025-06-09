@@ -3,10 +3,12 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Plus, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, RefreshCw, Edit, Trash2 } from 'lucide-react';
 import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks } from 'date-fns';
 import { RosterAssignment } from '@/types/roster';
 import { NewRosterAssignmentDialog } from './NewRosterAssignmentDialog';
+import { EditRosterAssignmentDialog } from './EditRosterAssignmentDialog';
+import { DeleteRosterAssignmentDialog } from './DeleteRosterAssignmentDialog';
 import { useCalendarData } from '@/hooks/useCalendarData';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTenant } from '@/contexts/TenantContext';
@@ -20,6 +22,9 @@ interface RosterCalendarProps {
 export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: RosterCalendarProps) => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [newAssignmentOpen, setNewAssignmentOpen] = useState(false);
+  const [editAssignmentOpen, setEditAssignmentOpen] = useState(false);
+  const [deleteAssignmentOpen, setDeleteAssignmentOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<RosterAssignment | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -81,8 +86,23 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
     setNewAssignmentOpen(true);
   };
 
+  const handleEditAssignment = (assignment: RosterAssignment, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedAssignment(assignment);
+    setEditAssignmentOpen(true);
+  };
+
+  const handleDeleteAssignment = (assignment: RosterAssignment, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedAssignment(assignment);
+    setDeleteAssignmentOpen(true);
+  };
+
   const handleAssignmentSuccess = () => {
     setNewAssignmentOpen(false);
+    setEditAssignmentOpen(false);
+    setDeleteAssignmentOpen(false);
+    setSelectedAssignment(null);
     // Data will automatically refresh due to query invalidation
   };
 
@@ -163,7 +183,7 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
                           {dayEvents.map((event) => (
                             <div
                               key={event.id}
-                              className={`text-xs p-2 rounded mb-1 border cursor-pointer hover:opacity-80 ${getEventColor(event)}`}
+                              className={`text-xs p-2 rounded mb-1 border cursor-pointer hover:opacity-80 group relative ${getEventColor(event)}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (event.type === 'roster') {
@@ -189,6 +209,34 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
                                   </Badge>
                                 )}
                               </div>
+                              
+                              {/* Edit/Delete buttons for roster assignments */}
+                              {event.type === 'roster' && (
+                                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-5 w-5 p-0 bg-white/80 hover:bg-white"
+                                    onClick={(e) => {
+                                      const assignment = assignments.find(a => a.id === event.id);
+                                      if (assignment) handleEditAssignment(assignment, e);
+                                    }}
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-5 w-5 p-0 bg-white/80 hover:bg-white text-red-600"
+                                    onClick={(e) => {
+                                      const assignment = assignments.find(a => a.id === event.id);
+                                      if (assignment) handleDeleteAssignment(assignment, e);
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           ))}
                           {dayEvents.length === 0 && (
@@ -213,6 +261,21 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
         staff={staff}
         selectedDate={selectedDate}
         selectedStaffId={selectedStaff}
+        onSuccess={handleAssignmentSuccess}
+      />
+
+      <EditRosterAssignmentDialog
+        open={editAssignmentOpen}
+        onOpenChange={setEditAssignmentOpen}
+        assignment={selectedAssignment}
+        staff={staff}
+        onSuccess={handleAssignmentSuccess}
+      />
+
+      <DeleteRosterAssignmentDialog
+        open={deleteAssignmentOpen}
+        onOpenChange={setDeleteAssignmentOpen}
+        assignment={selectedAssignment}
         onSuccess={handleAssignmentSuccess}
       />
     </>
