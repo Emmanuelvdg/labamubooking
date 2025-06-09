@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Plus, RefreshCw, Edit, Trash2 } from 'lucide-react';
-import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks } from 'date-fns';
+import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { RosterAssignment } from '@/types/roster';
 import { NewRosterAssignmentDialog } from './NewRosterAssignmentDialog';
 import { EditRosterAssignmentDialog } from './EditRosterAssignmentDialog';
@@ -57,9 +57,29 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
 
   const getEventsForDateAndStaff = (date: Date, staffId: string) => {
     if (!calendarEvents) return [];
+    
     return calendarEvents.filter(event => {
-      const eventDate = new Date(event.startTime);
-      return isSameDay(eventDate, date) && event.staffId === staffId;
+      if (event.staffId !== staffId) return false;
+      
+      const eventStartDate = startOfDay(new Date(event.startTime));
+      const eventEndDate = startOfDay(new Date(event.endTime));
+      const checkDate = startOfDay(date);
+      
+      // For roster assignments, check if the date falls within the assignment period
+      if (event.type === 'roster') {
+        // If it's a single day assignment
+        if (isSameDay(eventStartDate, eventEndDate)) {
+          return isSameDay(eventStartDate, checkDate);
+        }
+        // If it's a multi-day assignment, check if the date is within the range
+        return isWithinInterval(checkDate, {
+          start: eventStartDate,
+          end: eventEndDate
+        });
+      } else {
+        // For schedule events, use the original logic
+        return isSameDay(new Date(event.startTime), date);
+      }
     });
   };
 
@@ -77,6 +97,26 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
       return event.hasException 
         ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
         : 'bg-purple-100 text-purple-800 border-purple-200';
+    }
+  };
+
+  const formatEventTime = (event: any, currentDate: Date) => {
+    const eventStartDate = startOfDay(new Date(event.startTime));
+    const eventEndDate = startOfDay(new Date(event.endTime));
+    const checkDate = startOfDay(currentDate);
+    
+    // For single-day events or when viewing the start date
+    if (isSameDay(eventStartDate, eventEndDate) || isSameDay(eventStartDate, checkDate)) {
+      return `${format(new Date(event.startTime), 'HH:mm')} - ${format(new Date(event.endTime), 'HH:mm')}`;
+    }
+    
+    // For multi-day events on continuation days
+    if (isSameDay(eventEndDate, checkDate)) {
+      // Last day - show end time
+      return `Until ${format(new Date(event.endTime), 'HH:mm')}`;
+    } else {
+      // Middle days - show as "All day" or continuation
+      return 'Continues';
     }
   };
 
@@ -195,8 +235,7 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
                               }}
                             >
                               <div className="font-medium">
-                                {format(new Date(event.startTime), 'HH:mm')} - 
-                                {format(new Date(event.endTime), 'HH:mm')}
+                                {formatEventTime(event, day)}
                               </div>
                               <div className="truncate">{event.title}</div>
                               <div className="flex gap-1 mt-1">
