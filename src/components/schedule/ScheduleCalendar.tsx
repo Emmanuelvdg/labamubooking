@@ -2,11 +2,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import { useScheduleInstances } from '@/hooks/useStaffSchedules';
+import { ChevronLeft, ChevronRight, Plus, RefreshCw } from 'lucide-react';
+import { useCalendarData } from '@/hooks/useCalendarData';
 import { useTenant } from '@/contexts/TenantContext';
-import { ScheduleInstance } from '@/types/schedule';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ScheduleCalendarProps {
   onCreateSchedule?: () => void;
@@ -14,29 +14,34 @@ interface ScheduleCalendarProps {
 
 export const ScheduleCalendar = ({ onCreateSchedule }: ScheduleCalendarProps) => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { tenantId } = useTenant();
+  const queryClient = useQueryClient();
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 }); // Monday
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  const { data: scheduleInstances, isLoading, error } = useScheduleInstances(
+  const { data: calendarEvents, isLoading, error } = useCalendarData(
     tenantId || '',
-    format(weekStart, 'yyyy-MM-dd'),
-    format(weekEnd, 'yyyy-MM-dd')
+    weekStart,
+    weekEnd
   );
 
-  console.log('Calendar - Schedule instances:', scheduleInstances);
-  console.log('Calendar - Is loading:', isLoading);
-  console.log('Calendar - Error:', error);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['staff-schedules', tenantId] });
+    await queryClient.invalidateQueries({ queryKey: ['schedule-instances', tenantId] });
+    await queryClient.invalidateQueries({ queryKey: ['roster-assignments', tenantId] });
+    await queryClient.invalidateQueries({ queryKey: ['calendar-data', tenantId] });
+    setIsRefreshing(false);
+  };
 
-  const getSchedulesForDay = (date: Date): ScheduleInstance[] => {
-    if (!scheduleInstances) return [];
-    const daySchedules = scheduleInstances.filter(instance => 
-      isSameDay(new Date(instance.instanceDate), date)
+  const getEventsForDay = (date: Date) => {
+    if (!calendarEvents) return [];
+    return calendarEvents.filter(event => 
+      isSameDay(new Date(event.startTime), date)
     );
-    console.log(`Schedules for ${format(date, 'yyyy-MM-dd')}:`, daySchedules);
-    return daySchedules;
   };
 
   const previousWeek = () => setCurrentWeek(prev => subWeeks(prev, 1));
@@ -88,6 +93,14 @@ export const ScheduleCalendar = ({ onCreateSchedule }: ScheduleCalendarProps) =>
             <Button onClick={nextWeek} variant="outline" size="sm">
               <ChevronRight className="h-4 w-4" />
             </Button>
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm"
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
             {onCreateSchedule && (
               <Button onClick={onCreateSchedule} size="sm">
                 <Plus className="h-4 w-4 mr-2" />
@@ -99,11 +112,11 @@ export const ScheduleCalendar = ({ onCreateSchedule }: ScheduleCalendarProps) =>
       </CardHeader>
       <CardContent>
         <div className="mb-4 text-sm text-gray-600">
-          Total schedule instances this week: {scheduleInstances?.length || 0}
+          Total events this week: {calendarEvents?.length || 0}
         </div>
         <div className="grid grid-cols-7 gap-2">
           {weekDays.map((day) => {
-            const daySchedules = getSchedulesForDay(day);
+            const dayEvents = getEventsForDay(day);
             const isToday = isSameDay(day, new Date());
             
             return (
@@ -122,20 +135,25 @@ export const ScheduleCalendar = ({ onCreateSchedule }: ScheduleCalendarProps) =>
                 </div>
                 
                 <div className="p-2 space-y-1 min-h-[150px] border-l border-r border-b border-gray-200 rounded-b-lg">
-                  {daySchedules.map((schedule, index) => (
+                  {dayEvents.map((event, index) => (
                     <div
-                      key={`${schedule.staffId}-${index}`}
+                      key={`${event.id}-${index}`}
                       className={`text-xs p-2 rounded-md border-l-4 ${
-                        schedule.hasException 
-                          ? 'bg-yellow-50 border-yellow-400 text-yellow-800'
-                          : 'bg-blue-50 border-blue-400 text-blue-800'
+                        event.type === 'schedule'
+                          ? event.hasException 
+                            ? 'bg-yellow-50 border-yellow-400 text-yellow-800'
+                            : 'bg-blue-50 border-blue-400 text-blue-800'
+                          : 'bg-green-50 border-green-400 text-green-800'
                       }`}
                     >
-                      <div className="font-medium truncate">{schedule.title}</div>
+                      <div className="font-medium truncate">{event.title}</div>
                       <div className="text-xs">
-                        {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
+                        {formatTime(event.startTime)} - {formatTime(event.endTime)}
                       </div>
-                      {schedule.hasException && (
+                      <div className="text-xs opacity-75 mt-1">
+                        {event.type === 'schedule' ? 'Schedule' : 'Roster'}
+                      </div>
+                      {event.hasException && (
                         <div className="text-xs text-yellow-600 mt-1">
                           Modified
                         </div>
@@ -143,9 +161,9 @@ export const ScheduleCalendar = ({ onCreateSchedule }: ScheduleCalendarProps) =>
                     </div>
                   ))}
                   
-                  {daySchedules.length === 0 && (
+                  {dayEvents.length === 0 && (
                     <div className="text-xs text-gray-400 text-center py-4">
-                      No schedules
+                      No events
                     </div>
                   )}
                 </div>

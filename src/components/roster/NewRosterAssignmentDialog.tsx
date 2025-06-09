@@ -11,6 +11,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { format, addDays } from 'date-fns';
 import { RosterAssignment } from '@/types/roster';
 import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface NewRosterAssignmentDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface NewRosterAssignmentDialogProps {
   }>;
   selectedDate?: Date | null;
   selectedStaffId?: string | null;
+  onSuccess?: () => void;
 }
 
 interface TimeSlot {
@@ -82,7 +84,8 @@ export const NewRosterAssignmentDialog = ({
   onOpenChange,
   staff,
   selectedDate,
-  selectedStaffId
+  selectedStaffId,
+  onSuccess
 }: NewRosterAssignmentDialogProps) => {
   const {
     tenantId
@@ -218,9 +221,29 @@ export const NewRosterAssignmentDialog = ({
     return false;
   };
 
+  const resetForm = () => {
+    setSelectedStaff('');
+    setScheduleData({
+      monday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
+      tuesday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
+      wednesday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
+      thursday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
+      friday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
+      saturday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '17:00' }] },
+      sunday: { enabled: false, shifts: [] }
+    });
+    setNotes('');
+  };
+
   const handleSubmit = async () => {
-    if (!selectedStaff || !tenantId) return;
+    if (!selectedStaff || !tenantId) {
+      toast.error('Please select a staff member');
+      return;
+    }
+
     try {
+      let assignmentsCreated = 0;
+
       // Create assignments for each enabled day with shifts
       for (const day of DAYS_OF_WEEK) {
         const dayData = scheduleData[day.key];
@@ -229,6 +252,7 @@ export const NewRosterAssignmentDialog = ({
             const assignmentDate = format(new Date(startDate), 'yyyy-MM-dd');
             const startTime = `${assignmentDate}T${shift.startTime}:00`;
             const endTime = `${assignmentDate}T${shift.endTime}:00`;
+            
             await createAssignment.mutateAsync({
               tenantId,
               staffId: selectedStaff,
@@ -238,63 +262,21 @@ export const NewRosterAssignmentDialog = ({
               status: 'scheduled',
               notes: notes || undefined
             });
+            assignmentsCreated++;
           }
         }
       }
-      onOpenChange(false);
-      // Reset form
-      setSelectedStaff('');
-      setScheduleData({
-        monday: {
-          enabled: false,
-          shifts: [{
-            startTime: '10:00',
-            endTime: '19:00'
-          }]
-        },
-        tuesday: {
-          enabled: false,
-          shifts: [{
-            startTime: '10:00',
-            endTime: '19:00'
-          }]
-        },
-        wednesday: {
-          enabled: false,
-          shifts: [{
-            startTime: '10:00',
-            endTime: '19:00'
-          }]
-        },
-        thursday: {
-          enabled: false,
-          shifts: [{
-            startTime: '10:00',
-            endTime: '19:00'
-          }]
-        },
-        friday: {
-          enabled: false,
-          shifts: [{
-            startTime: '10:00',
-            endTime: '19:00'
-          }]
-        },
-        saturday: {
-          enabled: false,
-          shifts: [{
-            startTime: '10:00',
-            endTime: '17:00'
-          }]
-        },
-        sunday: {
-          enabled: false,
-          shifts: []
-        }
-      });
-      setNotes('');
+
+      if (assignmentsCreated > 0) {
+        toast.success(`Created ${assignmentsCreated} roster assignment${assignmentsCreated > 1 ? 's' : ''}`);
+        onSuccess?.();
+        resetForm();
+      } else {
+        toast.error('Please enable at least one day with shifts');
+      }
     } catch (error) {
       console.error('Error creating assignments:', error);
+      toast.error('Failed to create roster assignments');
     }
   };
 

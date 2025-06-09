@@ -100,6 +100,17 @@ export const useScheduleInstances = (tenantId: string, startDate: string, endDat
   });
 };
 
+const useInvalidateAllCalendarData = (tenantId: string) => {
+  const queryClient = useQueryClient();
+  
+  return () => {
+    queryClient.invalidateQueries({ queryKey: ['staff-schedules', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['schedule-instances', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['roster-assignments', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['bookings', tenantId] });
+  };
+};
+
 export const useCreateSchedule = () => {
   const queryClient = useQueryClient();
   
@@ -129,9 +140,9 @@ export const useCreateSchedule = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-schedules'] });
-      queryClient.invalidateQueries({ queryKey: ['schedule-instances'] });
+    onSuccess: (data) => {
+      const invalidateAllCalendarData = useInvalidateAllCalendarData(data.tenant_id);
+      invalidateAllCalendarData();
       toast({
         title: 'Success',
         description: 'Schedule created successfully',
@@ -177,9 +188,9 @@ export const useUpdateSchedule = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-schedules'] });
-      queryClient.invalidateQueries({ queryKey: ['schedule-instances'] });
+    onSuccess: (data) => {
+      const invalidateAllCalendarData = useInvalidateAllCalendarData(data.tenant_id);
+      invalidateAllCalendarData();
       toast({
         title: 'Success',
         description: 'Schedule updated successfully',
@@ -203,16 +214,26 @@ export const useDeleteSchedule = () => {
     mutationFn: async (id: string) => {
       console.log('Deleting schedule:', id);
       
+      // Get the schedule data before deletion for cache invalidation
+      const { data: scheduleData } = await supabase
+        .from('staff_schedules')
+        .select('tenant_id')
+        .eq('id', id)
+        .single();
+      
       const { error } = await supabase
         .from('staff_schedules')
         .delete()
         .eq('id', id);
       
       if (error) throw error;
+      return scheduleData;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-schedules'] });
-      queryClient.invalidateQueries({ queryKey: ['schedule-instances'] });
+    onSuccess: (scheduleData) => {
+      if (scheduleData) {
+        const invalidateAllCalendarData = useInvalidateAllCalendarData(scheduleData.tenant_id);
+        invalidateAllCalendarData();
+      }
       toast({
         title: 'Success',
         description: 'Schedule deleted successfully',

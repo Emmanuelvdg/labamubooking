@@ -50,6 +50,14 @@ export const useRosterAssignments = (tenantId: string) => {
     enabled: !!tenantId,
   });
 
+  const invalidateAllCalendarData = () => {
+    // Invalidate all calendar-related queries
+    queryClient.invalidateQueries({ queryKey: ['roster-assignments', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['staff-schedules', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['schedule-instances', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['bookings', tenantId] });
+  };
+
   const createAssignment = useMutation({
     mutationFn: async (assignment: Omit<RosterAssignment, 'id' | 'createdAt' | 'updatedAt'>) => {
       // Transform TypeScript interface to database columns
@@ -74,7 +82,7 @@ export const useRosterAssignments = (tenantId: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-assignments', tenantId] });
+      invalidateAllCalendarData();
       toast.success('Roster assignment created successfully');
     },
     onError: (error) => {
@@ -107,7 +115,7 @@ export const useRosterAssignments = (tenantId: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-assignments', tenantId] });
+      invalidateAllCalendarData();
       toast.success('Roster assignment updated successfully');
     },
     onError: (error) => {
@@ -126,7 +134,7 @@ export const useRosterAssignments = (tenantId: string) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roster-assignments', tenantId] });
+      invalidateAllCalendarData();
       toast.success('Roster assignment deleted successfully');
     },
     onError: (error) => {
