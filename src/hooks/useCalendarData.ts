@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRosterAssignments } from './useRosterAssignments';
-import { useScheduleInstances } from './useStaffSchedules';
+import { useScheduleInstances } from './useScheduleInstances';
 import { format, isSameDay } from 'date-fns';
 
 export interface CalendarEvent {
