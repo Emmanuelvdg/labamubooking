@@ -21,7 +21,7 @@ export const SyncStaffButton = ({ tenantId }: SyncStaffButtonProps) => {
       variant="outline"
     >
       <RefreshCw className={`h-4 w-4 mr-2 ${syncStaff.isPending ? 'animate-spin' : ''}`} />
-      {syncStaff.isPending ? 'Syncing...' : 'Sync Staff'}
+      {syncStaff.isPending ? 'Syncing...' : 'Sync with LabamuStaf'}
     </Button>
   );
 };
