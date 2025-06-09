@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -147,6 +146,9 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
   };
 
   const activeStaff = staff.filter(member => member.isActive);
+  const totalEvents = calendarEvents?.length || 0;
+  const rosterEvents = calendarEvents?.filter(e => e.type === 'roster').length || 0;
+  const scheduleEvents = calendarEvents?.filter(e => e.type === 'schedule').length || 0;
 
   return (
     <>
@@ -181,7 +183,7 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
             </div>
           </div>
           <div className="text-sm text-gray-600">
-            {activeStaff.length} staff members • {calendarEvents?.length || 0} total events this week
+            {activeStaff.length} staff members • {totalEvents} total events ({rosterEvents} roster, {scheduleEvents} scheduled)
             {calendarLoading && <span className="ml-2 text-blue-600">Loading...</span>}
           </div>
         </CardHeader>
@@ -222,7 +224,7 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
                         >
                           {dayEvents.map((event) => (
                             <div
-                              key={event.id}
+                              key={`${event.type}-${event.id}`}
                               className={`text-xs p-2 rounded mb-1 border cursor-pointer hover:opacity-80 group relative ${getEventColor(event)}`}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -245,6 +247,11 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
                                 {event.hasException && (
                                   <Badge variant="outline" className="text-xs text-yellow-600">
                                     Modified
+                                  </Badge>
+                                )}
+                                {event.status && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {event.status}
                                   </Badge>
                                 )}
                               </div>

@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRosterAssignments } from './useRosterAssignments';
 import { useScheduleInstances } from './useScheduleInstances';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 export interface CalendarEvent {
   id: string;
@@ -43,14 +43,28 @@ export const useCalendarData = (
       scheduleInstances?.length
     ],
     queryFn: async (): Promise<CalendarEvent[]> => {
+      console.log('Generating calendar data for:', format(startDate, 'yyyy-MM-dd'), 'to', format(endDate, 'yyyy-MM-dd'));
       const events: CalendarEvent[] = [];
 
       // Add roster assignments as events
       if (assignments) {
+        console.log('Processing', assignments.length, 'roster assignments');
+        
         const filteredAssignments = assignments.filter(assignment => {
-          const assignmentDate = new Date(assignment.startTime);
-          return assignmentDate >= startDate && assignmentDate <= endDate;
+          const assignmentStartDate = startOfDay(new Date(assignment.startTime));
+          const assignmentEndDate = startOfDay(new Date(assignment.endTime));
+          const rangeStart = startOfDay(startDate);
+          const rangeEnd = endOfDay(endDate);
+          
+          // Check if assignment overlaps with the requested date range
+          return (
+            isWithinInterval(assignmentStartDate, { start: rangeStart, end: rangeEnd }) ||
+            isWithinInterval(assignmentEndDate, { start: rangeStart, end: rangeEnd }) ||
+            (assignmentStartDate <= rangeStart && assignmentEndDate >= rangeEnd)
+          );
         });
+
+        console.log('Filtered to', filteredAssignments.length, 'assignments in date range');
 
         events.push(...filteredAssignments.map(assignment => ({
           id: assignment.id,
@@ -67,6 +81,8 @@ export const useCalendarData = (
 
       // Add schedule instances as events
       if (scheduleInstances) {
+        console.log('Processing', scheduleInstances.length, 'schedule instances');
+        
         events.push(...scheduleInstances.map(instance => ({
           id: `schedule-${instance.staffId}-${instance.instanceDate}`,
           type: 'schedule' as const,
@@ -82,6 +98,7 @@ export const useCalendarData = (
       // Sort events by start time
       events.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
+      console.log('Generated', events.length, 'total calendar events');
       return events;
     },
     enabled: !!tenantId && !assignmentsLoading && !schedulesLoading,
@@ -95,9 +112,25 @@ export const useCalendarEventsForDate = (
   const { data: calendarData, isLoading } = useCalendarData(tenantId, date, date);
 
   return {
-    events: calendarData?.filter(event => 
-      isSameDay(new Date(event.startTime), date)
-    ) || [],
+    events: calendarData?.filter(event => {
+      const eventStartDate = startOfDay(new Date(event.startTime));
+      const eventEndDate = startOfDay(new Date(event.endTime));
+      const checkDate = startOfDay(date);
+      
+      if (event.type === 'roster') {
+        // For roster assignments, check if the date falls within the assignment period
+        if (isSameDay(eventStartDate, eventEndDate)) {
+          return isSameDay(eventStartDate, checkDate);
+        }
+        return isWithinInterval(checkDate, {
+          start: eventStartDate,
+          end: eventEndDate
+        });
+      } else {
+        // For schedule events, use exact date match
+        return isSameDay(new Date(event.startTime), date);
+      }
+    }) || [],
     isLoading
   };
 };

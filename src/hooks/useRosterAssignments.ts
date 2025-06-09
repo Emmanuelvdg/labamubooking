@@ -52,22 +52,33 @@ export const useRosterAssignments = (tenantId: string) => {
       const staffMap = new Map(staffData?.map(staff => [staff.id, staff]) || []);
 
       // Transform and combine the data
-      const transformedAssignments = assignmentsData.map((record: any): RosterAssignment => ({
-        id: record.id,
-        tenantId: record.tenant_id,
-        staffId: record.staff_id,
-        startTime: record.start_time,
-        endTime: record.end_time,
-        status: record.status,
-        assignmentType: record.assignment_type,
-        notes: record.notes,
-        createdBy: record.created_by,
-        createdAt: record.created_at,
-        updatedAt: record.updated_at,
-        staff: staffMap.get(record.staff_id)
-      }));
+      const transformedAssignments = assignmentsData.map((record: any): RosterAssignment => {
+        const assignment = {
+          id: record.id,
+          tenantId: record.tenant_id,
+          staffId: record.staff_id,
+          startTime: record.start_time,
+          endTime: record.end_time,
+          status: record.status,
+          assignmentType: record.assignment_type,
+          notes: record.notes,
+          createdBy: record.created_by,
+          createdAt: record.created_at,
+          updatedAt: record.updated_at,
+          staff: staffMap.get(record.staff_id)
+        };
+        
+        console.log('Transformed assignment:', assignment.id, {
+          start: assignment.startTime,
+          end: assignment.endTime,
+          staff: assignment.staff?.name,
+          type: assignment.assignmentType
+        });
+        
+        return assignment;
+      });
 
-      console.log('Transformed roster assignments:', transformedAssignments);
+      console.log('Transformed roster assignments count:', transformedAssignments.length);
       return transformedAssignments;
     },
     enabled: !!tenantId,
@@ -99,17 +110,24 @@ export const useRosterAssignments = (tenantId: string) => {
         created_by: assignment.createdBy
       };
 
+      console.log('Database record to insert:', dbRecord);
+
       const { data, error } = await supabase
         .from('roster_assignments')
         .insert(dbRecord)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database insert error:', error);
+        throw error;
+      }
+      
+      console.log('Created assignment result:', data);
       return data;
     },
-    onSuccess: () => {
-      console.log('Roster assignment created successfully, invalidating cache');
+    onSuccess: (data) => {
+      console.log('Roster assignment created successfully:', data.id);
       invalidateAllCalendarData();
       toast.success('Roster assignment created successfully');
     },
@@ -121,6 +139,8 @@ export const useRosterAssignments = (tenantId: string) => {
 
   const updateAssignment = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<RosterAssignment> & { id: string }) => {
+      console.log('Updating roster assignment:', id, updates);
+      
       // Transform TypeScript interface to database columns for updates
       const dbUpdates: any = {};
       if (updates.tenantId !== undefined) dbUpdates.tenant_id = updates.tenantId;
@@ -132,6 +152,8 @@ export const useRosterAssignments = (tenantId: string) => {
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
       if (updates.createdBy !== undefined) dbUpdates.created_by = updates.createdBy;
 
+      console.log('Database updates to apply:', dbUpdates);
+
       const { data, error } = await supabase
         .from('roster_assignments')
         .update(dbUpdates)
@@ -139,10 +161,16 @@ export const useRosterAssignments = (tenantId: string) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database update error:', error);
+        throw error;
+      }
+      
+      console.log('Updated assignment result:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Roster assignment updated successfully:', data.id);
       invalidateAllCalendarData();
       toast.success('Roster assignment updated successfully');
     },
@@ -154,14 +182,22 @@ export const useRosterAssignments = (tenantId: string) => {
 
   const deleteAssignment = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting roster assignment:', id);
+      
       const { error } = await supabase
         .from('roster_assignments')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database delete error:', error);
+        throw error;
+      }
+      
+      console.log('Deleted assignment successfully:', id);
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
+      console.log('Roster assignment deleted successfully:', id);
       invalidateAllCalendarData();
       toast.success('Roster assignment deleted successfully');
     },
@@ -183,6 +219,8 @@ export const useRosterAssignments = (tenantId: string) => {
       startTime: string;
       endTime: string;
     }) => {
+      console.log('Checking roster conflicts:', { assignmentId, staffId, startTime, endTime });
+      
       const { data, error } = await supabase.rpc('check_roster_conflicts', {
         p_assignment_id: assignmentId || null,
         p_staff_id: staffId,
@@ -191,9 +229,21 @@ export const useRosterAssignments = (tenantId: string) => {
         p_tenant_id: tenantId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Conflict check error:', error);
+        throw error;
+      }
+      
+      console.log('Conflict check result:', data);
       return data;
     },
+  });
+
+  console.log('useRosterAssignments hook state:', {
+    tenantId,
+    assignmentsCount: assignments.length,
+    isLoading,
+    hasError: !!error
   });
 
   return {

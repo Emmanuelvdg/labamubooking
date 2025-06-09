@@ -1,44 +1,69 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Settings, Plus } from 'lucide-react';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay } from 'date-fns';
-import { useScheduleInstances } from '@/hooks/useStaffSchedules';
 import { useStaff } from '@/hooks/useStaff';
 import { useTenant } from '@/contexts/TenantContext';
-import { ScheduleInstance } from '@/types/schedule';
+import { useCalendarData } from '@/hooks/useCalendarData';
+
 interface WeeklyScheduleViewProps {
   onAddSchedule?: () => void;
   onOptionsClick?: () => void;
 }
+
 export const WeeklyScheduleView = ({
   onAddSchedule,
   onOptionsClick
 }: WeeklyScheduleViewProps) => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const {
-    tenantId
-  } = useTenant();
-  const {
-    data: staff
-  } = useStaff(tenantId || '');
-  const weekStart = startOfWeek(currentWeek, {
-    weekStartsOn: 1
-  }); // Monday
-  const weekDays = Array.from({
-    length: 7
-  }, (_, i) => addDays(weekStart, i));
-  const {
-    data: scheduleInstances,
-    isLoading
-  } = useScheduleInstances(tenantId || '', format(weekStart, 'yyyy-MM-dd'), format(addDays(weekStart, 6), 'yyyy-MM-dd'));
+  const { tenantId } = useTenant();
+  const { data: staff } = useStaff(tenantId || '');
+
+  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 }); // Monday
+  const weekEnd = addDays(weekStart, 6);
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  // Use unified calendar data instead of just schedule instances
+  const { data: calendarEvents, isLoading } = useCalendarData(
+    tenantId || '',
+    weekStart,
+    weekEnd
+  );
+
   const previousWeek = () => setCurrentWeek(subWeeks(currentWeek, 1));
   const nextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
-  const getSchedulesForStaffAndDay = (staffId: string, date: Date): ScheduleInstance[] => {
-    if (!scheduleInstances) return [];
-    return scheduleInstances.filter(instance => instance.staffId === staffId && isSameDay(new Date(instance.instanceDate), date));
+
+  const getEventsForStaffAndDay = (staffId: string, date: Date) => {
+    if (!calendarEvents) return [];
+    
+    return calendarEvents.filter(event => {
+      if (event.staffId !== staffId) return false;
+      
+      // For schedule events, use exact date match
+      if (event.type === 'schedule') {
+        return isSameDay(new Date(event.startTime), date);
+      }
+      
+      // For roster events, check if date falls within the assignment period
+      if (event.type === 'roster') {
+        const eventStartDate = new Date(event.startTime);
+        const eventEndDate = new Date(event.endTime);
+        
+        if (isSameDay(eventStartDate, eventEndDate)) {
+          return isSameDay(eventStartDate, date);
+        }
+        
+        // Multi-day assignment
+        return date >= eventStartDate && date <= eventEndDate;
+      }
+      
+      return false;
+    });
   };
+
   const formatTime = (timeString: string) => {
     try {
       return format(new Date(timeString), 'HH:mm');
@@ -47,27 +72,48 @@ export const WeeklyScheduleView = ({
       return timeString;
     }
   };
+
   const getDayName = (date: Date) => {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return dayNames[date.getDay()];
   };
-  const getStaffColor = (staffId: string) => {
-    // Generate consistent colors for staff members
-    const colors = ['bg-blue-100 border-blue-200', 'bg-yellow-100 border-yellow-200', 'bg-green-100 border-green-200', 'bg-purple-100 border-purple-200', 'bg-pink-100 border-pink-200', 'bg-indigo-100 border-indigo-200'];
-    const index = staff?.findIndex(s => s.id === staffId) || 0;
-    return colors[index % colors.length];
+
+  const getEventColor = (event: any) => {
+    if (event.type === 'roster') {
+      switch (event.status) {
+        case 'confirmed': return 'bg-green-100 border-green-200 text-green-800';
+        case 'scheduled': return 'bg-blue-100 border-blue-200 text-blue-800';
+        case 'cancelled': return 'bg-red-100 border-red-200 text-red-800';
+        case 'completed': return 'bg-gray-100 border-gray-200 text-gray-800';
+        default: return 'bg-gray-100 border-gray-200 text-gray-800';
+      }
+    } else {
+      // Schedule events
+      return event.hasException 
+        ? 'bg-yellow-100 border-yellow-200 text-yellow-800'
+        : 'bg-purple-100 border-purple-200 text-purple-800';
+    }
   };
+
   if (isLoading) {
-    return <Card>
+    return (
+      <Card>
         <CardContent className="p-6">
           <div className="text-center">Loading schedule...</div>
         </CardContent>
-      </Card>;
+      </Card>
+    );
   }
-  return <div className="space-y-4">
+
+  const totalEvents = calendarEvents?.length || 0;
+  const rosterEvents = calendarEvents?.filter(e => e.type === 'roster').length || 0;
+  const scheduleEvents = calendarEvents?.filter(e => e.type === 'schedule').length || 0;
+
+  return (
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Scheduled shifts</h2>
+        <h2 className="text-xl font-semibold">Staff Schedules & Roster</h2>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm" onClick={onOptionsClick}>
             <Settings className="h-4 w-4 mr-2" />
@@ -94,7 +140,8 @@ export const WeeklyScheduleView = ({
           </Button>
         </div>
         <div className="text-sm text-gray-600">
-          {format(weekStart, 'd')} - {format(addDays(weekStart, 6), 'd MMM, yyyy')}
+          {format(weekStart, 'd')} - {format(addDays(weekStart, 6), 'd MMM, yyyy')} • 
+          {totalEvents} events ({scheduleEvents} scheduled, {rosterEvents} roster)
         </div>
       </div>
 
@@ -108,23 +155,25 @@ export const WeeklyScheduleView = ({
                   <th className="text-left p-4 w-48">
                     <div className="flex items-center space-x-2">
                       <span className="font-medium">Team member</span>
-                      
                     </div>
                   </th>
-                  {weekDays.map((day, index) => <th key={index} className="text-center p-4 min-w-48">
+                  {weekDays.map((day, index) => (
+                    <th key={index} className="text-center p-4 min-w-48">
                       <div className="space-y-1">
                         <div className="text-sm font-medium">
                           {getDayName(day)}, {format(day, 'd MMM')}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {index < 5 ? '18h' : index === 5 ? '14h' : '0min'}
+                          {getEventsForStaffAndDay('all', day).length} events
                         </div>
                       </div>
-                    </th>)}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {staff?.map(member => <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50">
+                {staff?.map(member => (
+                  <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="p-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
@@ -139,31 +188,49 @@ export const WeeklyScheduleView = ({
                       </div>
                     </td>
                     {weekDays.map((day, dayIndex) => {
-                  const daySchedules = getSchedulesForStaffAndDay(member.id, day);
-                  return <td key={dayIndex} className="p-4 align-top">
+                      const dayEvents = getEventsForStaffAndDay(member.id, day);
+                      return (
+                        <td key={dayIndex} className="p-4 align-top">
                           <div className="space-y-2">
-                            {daySchedules.map((schedule, scheduleIndex) => <div key={scheduleIndex} className={`p-2 rounded border text-sm ${getStaffColor(member.id)}`}>
+                            {dayEvents.map((event, eventIndex) => (
+                              <div key={eventIndex} className={`p-2 rounded border text-sm ${getEventColor(event)}`}>
                                 <div className="font-medium">
-                                  {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
+                                  {formatTime(event.startTime)} - {formatTime(event.endTime)}
                                 </div>
-                                {schedule.hasException && <Badge variant="outline" className="mt-1 text-xs">
-                                    Modified
-                                  </Badge>}
-                              </div>)}
-                            {daySchedules.length === 0 && <div className="h-8 flex items-center justify-center text-gray-400 text-xs">
+                                <div className="text-xs opacity-75 truncate">{event.title}</div>
+                                <div className="flex gap-1 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {event.type}
+                                  </Badge>
+                                  {event.hasException && (
+                                    <Badge variant="outline" className="text-xs text-yellow-600">
+                                      Modified
+                                    </Badge>
+                                  )}
+                                  {event.status && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {event.status}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            {dayEvents.length === 0 && (
+                              <div className="h-8 flex items-center justify-center text-gray-400 text-xs">
                                 -
-                              </div>}
+                              </div>
+                            )}
                           </div>
-                        </td>;
-                })}
-                  </tr>)}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </CardContent>
       </Card>
-
-      {/* Footer Note */}
-      
-    </div>;
+    </div>
+  );
 };
