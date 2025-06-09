@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calendar, Settings, Clock } from 'lucide-react';
+import { Users, Calendar, Settings, Clock, CalendarDays } from 'lucide-react';
 import { useStaff } from '@/hooks/useStaff';
 import { useTenant } from '@/contexts/TenantContext';
 import { StaffActions } from '@/components/staff/StaffActions';
@@ -15,17 +15,28 @@ import { ScheduleCalendar } from '@/components/schedule/ScheduleCalendar';
 import { ScheduleList } from '@/components/schedule/ScheduleList';
 import { NewScheduleDialog } from '@/components/schedule/NewScheduleDialog';
 import { EditScheduleDialog } from '@/components/schedule/EditScheduleDialog';
+import { RosterCalendar } from '@/components/roster/RosterCalendar';
+import { RosterTemplateManager } from '@/components/roster/RosterTemplateManager';
+import { useRosterAssignments } from '@/hooks/useRosterAssignments';
 import { StaffSchedule } from '@/types/schedule';
+import { RosterAssignment } from '@/types/roster';
 
 const Staff = () => {
   const { tenantId } = useTenant();
   const { data: staff, isLoading, error } = useStaff(tenantId || '');
+  const { assignments } = useRosterAssignments(tenantId || '');
   const [selectedSchedule, setSelectedSchedule] = useState<StaffSchedule | null>(null);
   const [editScheduleOpen, setEditScheduleOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<RosterAssignment | null>(null);
 
   const handleEditSchedule = (schedule: StaffSchedule) => {
     setSelectedSchedule(schedule);
     setEditScheduleOpen(true);
+  };
+
+  const handleAssignmentClick = (assignment: RosterAssignment) => {
+    setSelectedAssignment(assignment);
+    // TODO: Open assignment details dialog
   };
 
   if (isLoading) {
@@ -49,7 +60,7 @@ const Staff = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
-          <p className="text-gray-600">Manage your team members, roles, and schedules</p>
+          <p className="text-gray-600">Manage your team members, roles, schedules, and roster</p>
         </div>
       </div>
 
@@ -64,8 +75,12 @@ const Staff = () => {
             Schedules
           </TabsTrigger>
           <TabsTrigger value="roster">
-            <Clock className="h-4 w-4 mr-2" />
+            <CalendarDays className="h-4 w-4 mr-2" />
             Roster Management
+          </TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings className="h-4 w-4 mr-2" />
+            Advanced
           </TabsTrigger>
         </TabsList>
 
@@ -154,12 +169,41 @@ const Staff = () => {
 
         <TabsContent value="roster" className="space-y-6">
           <div className="text-lg font-semibold">Roster Management</div>
+          
+          <Tabs defaultValue="calendar" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="calendar">
+                <Calendar className="h-4 w-4 mr-2" />
+                Roster Calendar
+              </TabsTrigger>
+              <TabsTrigger value="templates">
+                <Clock className="h-4 w-4 mr-2" />
+                Templates
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="calendar">
+              <RosterCalendar
+                assignments={assignments}
+                staff={staff || []}
+                onAssignmentClick={handleAssignmentClick}
+              />
+            </TabsContent>
+
+            <TabsContent value="templates">
+              <RosterTemplateManager />
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <div className="text-lg font-semibold">Advanced Settings</div>
           <Card>
             <CardContent className="p-6">
               <div className="text-center text-gray-500">
-                <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Advanced roster management features</p>
-                <p className="text-sm">Template management, bulk scheduling, and more coming soon</p>
+                <Settings className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Advanced staff management features</p>
+                <p className="text-sm">Permissions, bulk operations, and more coming soon</p>
               </div>
             </CardContent>
           </Card>

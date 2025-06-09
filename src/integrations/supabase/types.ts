@@ -433,6 +433,120 @@ export type Database = {
         }
         Relationships: []
       }
+      roster_assignments: {
+        Row: {
+          assignment_type: string
+          created_at: string
+          created_by: string | null
+          end_time: string
+          id: string
+          notes: string | null
+          staff_id: string
+          start_time: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assignment_type?: string
+          created_at?: string
+          created_by?: string | null
+          end_time: string
+          id?: string
+          notes?: string | null
+          staff_id: string
+          start_time: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assignment_type?: string
+          created_at?: string
+          created_by?: string | null
+          end_time?: string
+          id?: string
+          notes?: string | null
+          staff_id?: string
+          start_time?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      roster_conflicts: {
+        Row: {
+          assignment_id: string
+          conflict_type: string
+          created_at: string
+          id: string
+          is_resolved: boolean
+          message: string
+          resolved_at: string | null
+          severity: string
+          tenant_id: string
+        }
+        Insert: {
+          assignment_id: string
+          conflict_type: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          message: string
+          resolved_at?: string | null
+          severity?: string
+          tenant_id: string
+        }
+        Update: {
+          assignment_id?: string
+          conflict_type?: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          message?: string
+          resolved_at?: string | null
+          severity?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      roster_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          template_data: Json
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          template_data?: Json
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          template_data?: Json
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_categories: {
         Row: {
           color: string | null
@@ -611,6 +725,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      staff_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean
+          staff_id: string
+          start_time: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean
+          staff_id: string
+          start_time: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          staff_id?: string
+          start_time?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       staff_permissions: {
         Row: {
@@ -1095,6 +1245,30 @@ export type Database = {
           conflict_type: string
           severity: string
         }[]
+      }
+      check_roster_conflicts: {
+        Args: {
+          p_assignment_id: string
+          p_staff_id: string
+          p_start_time: string
+          p_end_time: string
+          p_tenant_id: string
+        }
+        Returns: {
+          conflict_id: string
+          conflict_type: string
+          severity: string
+          message: string
+        }[]
+      }
+      generate_roster_from_template: {
+        Args: {
+          p_template_id: string
+          p_start_date: string
+          p_end_date: string
+          p_tenant_id: string
+        }
+        Returns: number
       }
       generate_schedule_instances: {
         Args: { schedule_id: string; start_date: string; end_date: string }
