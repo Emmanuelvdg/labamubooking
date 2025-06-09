@@ -7,6 +7,7 @@ import { NewServiceDialog } from '@/components/services/NewServiceDialog';
 import { ManageCategoriesDialog } from '@/components/services/ManageCategoriesDialog';
 import { EditServiceDialog } from '@/components/services/EditServiceDialog';
 import { DeleteServiceDialog } from '@/components/services/DeleteServiceDialog';
+import { SyncServicesButton } from '@/components/services/SyncServicesButton';
 import { useServices } from '@/hooks/useServices';
 import { useServiceCategories } from '@/hooks/useServiceCategories';
 import { useTenant } from '@/contexts/TenantContext';
@@ -77,6 +78,7 @@ const Services = () => {
           <p className="text-gray-600">Manage your service offerings and pricing</p>
         </div>
         <div className="flex space-x-3">
+          <SyncServicesButton tenantId={tenantId} />
           <ManageCategoriesDialog />
           <NewServiceDialog />
         </div>
