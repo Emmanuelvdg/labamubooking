@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,39 +11,52 @@ import { useTenant } from '@/contexts/TenantContext';
 import { format, addDays } from 'date-fns';
 import { RosterAssignment } from '@/types/roster';
 import { Trash2 } from 'lucide-react';
-
 interface NewRosterAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  staff: Array<{ id: string; name: string; email: string; role: string; isActive: boolean }>;
+  staff: Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+  }>;
   selectedDate?: Date | null;
   selectedStaffId?: string | null;
 }
-
 interface TimeSlot {
   startTime: string;
   endTime: string;
 }
-
 interface DaySchedule {
   enabled: boolean;
   shifts: TimeSlot[];
 }
-
 interface ScheduleData {
   [key: string]: DaySchedule;
 }
-
-const DAYS_OF_WEEK = [
-  { key: 'monday', label: 'Monday' },
-  { key: 'tuesday', label: 'Tuesday' },
-  { key: 'wednesday', label: 'Wednesday' },
-  { key: 'thursday', label: 'Thursday' },
-  { key: 'friday', label: 'Friday' },
-  { key: 'saturday', label: 'Saturday' },
-  { key: 'sunday', label: 'Sunday' },
-];
-
+const DAYS_OF_WEEK = [{
+  key: 'monday',
+  label: 'Monday'
+}, {
+  key: 'tuesday',
+  label: 'Tuesday'
+}, {
+  key: 'wednesday',
+  label: 'Wednesday'
+}, {
+  key: 'thursday',
+  label: 'Thursday'
+}, {
+  key: 'friday',
+  label: 'Friday'
+}, {
+  key: 'saturday',
+  label: 'Saturday'
+}, {
+  key: 'sunday',
+  label: 'Sunday'
+}];
 export const NewRosterAssignmentDialog = ({
   open,
   onOpenChange,
@@ -52,27 +64,65 @@ export const NewRosterAssignmentDialog = ({
   selectedDate,
   selectedStaffId
 }: NewRosterAssignmentDialogProps) => {
-  const { tenantId } = useTenant();
-  const { createAssignment } = useRosterAssignments(tenantId || '');
-
+  const {
+    tenantId
+  } = useTenant();
+  const {
+    createAssignment
+  } = useRosterAssignments(tenantId || '');
   const [selectedStaff, setSelectedStaff] = useState(selectedStaffId || '');
   const [scheduleType, setScheduleType] = useState('every-week');
-  const [startDate, setStartDate] = useState(
-    selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
-  );
+  const [startDate, setStartDate] = useState(selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState('never');
   const [notes, setNotes] = useState('');
-
   const [scheduleData, setScheduleData] = useState<ScheduleData>({
-    monday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-    tuesday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-    wednesday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-    thursday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-    friday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-    saturday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '17:00' }] },
-    sunday: { enabled: false, shifts: [] },
+    monday: {
+      enabled: false,
+      shifts: [{
+        startTime: '10:00',
+        endTime: '19:00'
+      }]
+    },
+    tuesday: {
+      enabled: false,
+      shifts: [{
+        startTime: '10:00',
+        endTime: '19:00'
+      }]
+    },
+    wednesday: {
+      enabled: false,
+      shifts: [{
+        startTime: '10:00',
+        endTime: '19:00'
+      }]
+    },
+    thursday: {
+      enabled: false,
+      shifts: [{
+        startTime: '10:00',
+        endTime: '19:00'
+      }]
+    },
+    friday: {
+      enabled: false,
+      shifts: [{
+        startTime: '10:00',
+        endTime: '19:00'
+      }]
+    },
+    saturday: {
+      enabled: false,
+      shifts: [{
+        startTime: '10:00',
+        endTime: '17:00'
+      }]
+    },
+    sunday: {
+      enabled: false,
+      shifts: []
+    }
   });
-
   const calculateDuration = (shifts: TimeSlot[]): string => {
     const totalMinutes = shifts.reduce((total, shift) => {
       const start = new Date(`2000-01-01T${shift.startTime}:00`);
@@ -80,34 +130,34 @@ export const NewRosterAssignmentDialog = ({
       const diffMs = end.getTime() - start.getTime();
       return total + Math.floor(diffMs / (1000 * 60));
     }, 0);
-    
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}min`;
   };
-
   const updateShift = (day: string, shiftIndex: number, field: 'startTime' | 'endTime', value: string) => {
     setScheduleData(prev => ({
       ...prev,
       [day]: {
         ...prev[day],
-        shifts: prev[day].shifts.map((shift, index) => 
-          index === shiftIndex ? { ...shift, [field]: value } : shift
-        )
+        shifts: prev[day].shifts.map((shift, index) => index === shiftIndex ? {
+          ...shift,
+          [field]: value
+        } : shift)
       }
     }));
   };
-
   const addShift = (day: string) => {
     setScheduleData(prev => ({
       ...prev,
       [day]: {
         ...prev[day],
-        shifts: [...prev[day].shifts, { startTime: '10:00', endTime: '19:00' }]
+        shifts: [...prev[day].shifts, {
+          startTime: '10:00',
+          endTime: '19:00'
+        }]
       }
     }));
   };
-
   const removeShift = (day: string, shiftIndex: number) => {
     setScheduleData(prev => ({
       ...prev,
@@ -117,24 +167,23 @@ export const NewRosterAssignmentDialog = ({
       }
     }));
   };
-
   const toggleDay = (day: string, enabled: boolean) => {
     setScheduleData(prev => ({
       ...prev,
-      [day]: { ...prev[day], enabled }
+      [day]: {
+        ...prev[day],
+        enabled
+      }
     }));
   };
-
   const hasOverlappingShifts = (shifts: TimeSlot[]): boolean => {
     if (shifts.length <= 1) return false;
-    
     for (let i = 0; i < shifts.length; i++) {
       for (let j = i + 1; j < shifts.length; j++) {
         const start1 = new Date(`2000-01-01T${shifts[i].startTime}:00`);
         const end1 = new Date(`2000-01-01T${shifts[i].endTime}:00`);
         const start2 = new Date(`2000-01-01T${shifts[j].startTime}:00`);
         const end2 = new Date(`2000-01-01T${shifts[j].endTime}:00`);
-        
         if (start1 < end2 && start2 < end1) {
           return true;
         }
@@ -142,10 +191,8 @@ export const NewRosterAssignmentDialog = ({
     }
     return false;
   };
-
   const handleSubmit = async () => {
     if (!selectedStaff || !tenantId) return;
-
     try {
       // Create assignments for each enabled day with shifts
       for (const day of DAYS_OF_WEEK) {
@@ -155,7 +202,6 @@ export const NewRosterAssignmentDialog = ({
             const assignmentDate = format(new Date(startDate), 'yyyy-MM-dd');
             const startTime = `${assignmentDate}T${shift.startTime}:00`;
             const endTime = `${assignmentDate}T${shift.endTime}:00`;
-
             await createAssignment.mutateAsync({
               tenantId,
               staffId: selectedStaff,
@@ -168,29 +214,64 @@ export const NewRosterAssignmentDialog = ({
           }
         }
       }
-
       onOpenChange(false);
       // Reset form
       setSelectedStaff('');
       setScheduleData({
-        monday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-        tuesday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-        wednesday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-        thursday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-        friday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
-        saturday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '17:00' }] },
-        sunday: { enabled: false, shifts: [] },
+        monday: {
+          enabled: false,
+          shifts: [{
+            startTime: '10:00',
+            endTime: '19:00'
+          }]
+        },
+        tuesday: {
+          enabled: false,
+          shifts: [{
+            startTime: '10:00',
+            endTime: '19:00'
+          }]
+        },
+        wednesday: {
+          enabled: false,
+          shifts: [{
+            startTime: '10:00',
+            endTime: '19:00'
+          }]
+        },
+        thursday: {
+          enabled: false,
+          shifts: [{
+            startTime: '10:00',
+            endTime: '19:00'
+          }]
+        },
+        friday: {
+          enabled: false,
+          shifts: [{
+            startTime: '10:00',
+            endTime: '19:00'
+          }]
+        },
+        saturday: {
+          enabled: false,
+          shifts: [{
+            startTime: '10:00',
+            endTime: '17:00'
+          }]
+        },
+        sunday: {
+          enabled: false,
+          shifts: []
+        }
       });
       setNotes('');
     } catch (error) {
       console.error('Error creating assignments:', error);
     }
   };
-
   const activeStaff = staff.filter(member => member.isActive);
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Roster Assignment</DialogTitle>
@@ -206,11 +287,9 @@ export const NewRosterAssignmentDialog = ({
                   <SelectValue placeholder="Select staff member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {activeStaff.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
+                  {activeStaff.map(member => <SelectItem key={member.id} value={member.id}>
                       {member.name}
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -230,11 +309,7 @@ export const NewRosterAssignmentDialog = ({
 
             <div className="space-y-2">
               <Label>Start date</Label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
+              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
             </div>
 
             <div className="space-y-2">
@@ -252,148 +327,95 @@ export const NewRosterAssignmentDialog = ({
 
             <div className="space-y-2">
               <Label>Notes (Optional)</Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any additional notes..."
-                rows={3}
-              />
+              <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add any additional notes..." rows={3} />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <div className="w-5 h-5 rounded-full bg-blue-200 flex items-center justify-center mt-0.5">
-                  <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                </div>
-                <p className="text-sm text-blue-800">
-                  Team members will not be scheduled on business closed periods.
-                </p>
-              </div>
-            </div>
+            
           </div>
 
           {/* Right Panel - Schedule Grid */}
           <div className="lg:col-span-3">
             <div className="border rounded-lg p-6 space-y-4">
-              {DAYS_OF_WEEK.map((day) => {
-                const dayData = scheduleData[day.key];
-                const hasOverlap = hasOverlappingShifts(dayData.shifts);
-                const duration = dayData.enabled ? calculateDuration(dayData.shifts) : '0h';
-                
-                return (
-                  <div key={day.key} className="space-y-3">
+              {DAYS_OF_WEEK.map(day => {
+              const dayData = scheduleData[day.key];
+              const hasOverlap = hasOverlappingShifts(dayData.shifts);
+              const duration = dayData.enabled ? calculateDuration(dayData.shifts) : '0h';
+              return <div key={day.key} className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <Checkbox
-                          checked={dayData.enabled}
-                          onCheckedChange={(checked) => toggleDay(day.key, !!checked)}
-                        />
+                        <Checkbox checked={dayData.enabled} onCheckedChange={checked => toggleDay(day.key, !!checked)} />
                         <div>
                           <div className="font-medium">{day.label}</div>
                           <div className="text-sm text-gray-500">{duration}</div>
                         </div>
                       </div>
                       
-                      {dayData.enabled && (
-                        <div className="flex flex-col space-y-2">
-                          {dayData.shifts.length === 0 ? (
-                            <div className="text-gray-500 text-sm">No shifts</div>
-                          ) : (
-                            dayData.shifts.map((shift, shiftIndex) => (
-                              <div key={shiftIndex} className="flex items-center space-x-2">
-                                <Select 
-                                  value={shift.startTime} 
-                                  onValueChange={(value) => updateShift(day.key, shiftIndex, 'startTime', value)}
-                                >
+                      {dayData.enabled && <div className="flex flex-col space-y-2">
+                          {dayData.shifts.length === 0 ? <div className="text-gray-500 text-sm">No shifts</div> : dayData.shifts.map((shift, shiftIndex) => <div key={shiftIndex} className="flex items-center space-x-2">
+                                <Select value={shift.startTime} onValueChange={value => updateShift(day.key, shiftIndex, 'startTime', value)}>
                                   <SelectTrigger className="w-20">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {Array.from({ length: 24 }, (_, i) => {
-                                      const hour = i.toString().padStart(2, '0');
-                                      return (
-                                        <SelectItem key={`${hour}:00`} value={`${hour}:00`}>
+                                    {Array.from({
+                            length: 24
+                          }, (_, i) => {
+                            const hour = i.toString().padStart(2, '0');
+                            return <SelectItem key={`${hour}:00`} value={`${hour}:00`}>
                                           {hour}:00
-                                        </SelectItem>
-                                      );
-                                    })}
+                                        </SelectItem>;
+                          })}
                                   </SelectContent>
                                 </Select>
                                 
                                 <span>-</span>
                                 
-                                <Select 
-                                  value={shift.endTime} 
-                                  onValueChange={(value) => updateShift(day.key, shiftIndex, 'endTime', value)}
-                                >
+                                <Select value={shift.endTime} onValueChange={value => updateShift(day.key, shiftIndex, 'endTime', value)}>
                                   <SelectTrigger className="w-20">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {Array.from({ length: 24 }, (_, i) => {
-                                      const hour = i.toString().padStart(2, '0');
-                                      return (
-                                        <SelectItem key={`${hour}:00`} value={`${hour}:00`}>
+                                    {Array.from({
+                            length: 24
+                          }, (_, i) => {
+                            const hour = i.toString().padStart(2, '0');
+                            return <SelectItem key={`${hour}:00`} value={`${hour}:00`}>
                                           {hour}:00
-                                        </SelectItem>
-                                      );
-                                    })}
+                                        </SelectItem>;
+                          })}
                                   </SelectContent>
                                 </Select>
                                 
-                                {dayData.shifts.length > 1 && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeShift(day.key, shiftIndex)}
-                                  >
+                                {dayData.shifts.length > 1 && <Button variant="ghost" size="sm" onClick={() => removeShift(day.key, shiftIndex)}>
                                     <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            ))
-                          )}
+                                  </Button>}
+                              </div>)}
                           
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addShift(day.key)}
-                            className="text-blue-600 hover:text-blue-700 self-start"
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => addShift(day.key)} className="text-blue-600 hover:text-blue-700 self-start">
                             Add a shift
                           </Button>
-                        </div>
-                      )}
+                        </div>}
                       
-                      {!dayData.enabled && (
-                        <div className="text-gray-500 text-sm">No shifts</div>
-                      )}
+                      {!dayData.enabled && <div className="text-gray-500 text-sm">No shifts</div>}
                     </div>
                     
-                    {hasOverlap && dayData.enabled && (
-                      <div className="text-sm text-red-600 ml-8">
+                    {hasOverlap && dayData.enabled && <div className="text-sm text-red-600 ml-8">
                         Shift is overlapping
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                      </div>}
+                  </div>;
+            })}
             </div>
             
             <div className="mt-6 flex justify-end space-x-2">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleSubmit} 
-                disabled={createAssignment.isPending || !selectedStaff}
-              >
+              <Button onClick={handleSubmit} disabled={createAssignment.isPending || !selectedStaff}>
                 {createAssignment.isPending ? 'Creating...' : 'Create Assignment'}
               </Button>
             </div>
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
