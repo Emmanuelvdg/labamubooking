@@ -222,7 +222,7 @@ export const NewRosterAssignmentDialog = ({
   };
 
   const resetForm = () => {
-    setSelectedStaff('');
+    setSelectedStaff(selectedStaffId || '');
     setScheduleData({
       monday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
       tuesday: { enabled: false, shifts: [{ startTime: '10:00', endTime: '19:00' }] },
@@ -253,6 +253,16 @@ export const NewRosterAssignmentDialog = ({
             const startTime = `${assignmentDate}T${shift.startTime}:00`;
             const endTime = `${assignmentDate}T${shift.endTime}:00`;
             
+            console.log('Creating assignment with data:', {
+              tenantId,
+              staffId: selectedStaff,
+              startTime,
+              endTime,
+              assignmentType: 'regular',
+              status: 'scheduled',
+              notes: notes || undefined
+            });
+            
             await createAssignment.mutateAsync({
               tenantId,
               staffId: selectedStaff,
@@ -268,9 +278,11 @@ export const NewRosterAssignmentDialog = ({
       }
 
       if (assignmentsCreated > 0) {
+        console.log(`Successfully created ${assignmentsCreated} assignments`);
         toast.success(`Created ${assignmentsCreated} roster assignment${assignmentsCreated > 1 ? 's' : ''}`);
-        onSuccess?.();
         resetForm();
+        onOpenChange(false);
+        onSuccess?.();
       } else {
         toast.error('Please enable at least one day with shifts');
       }

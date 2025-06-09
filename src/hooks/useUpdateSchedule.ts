@@ -1,11 +1,12 @@
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { StaffSchedule } from '@/types/schedule';
-import { useScheduleCacheInvalidation } from './useScheduleCacheInvalidation';
 
 export const useUpdateSchedule = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: async ({ id, ...scheduleData }: StaffSchedule) => {
       console.log('Updating schedule:', id, scheduleData);
@@ -33,8 +34,13 @@ export const useUpdateSchedule = () => {
       return data;
     },
     onSuccess: (data) => {
-      const invalidateAllCalendarData = useScheduleCacheInvalidation(data.tenant_id);
-      invalidateAllCalendarData();
+      // Invalidate all calendar-related queries
+      queryClient.invalidateQueries({ queryKey: ['staff-schedules', data.tenant_id] });
+      queryClient.invalidateQueries({ queryKey: ['schedule-instances', data.tenant_id] });
+      queryClient.invalidateQueries({ queryKey: ['roster-assignments', data.tenant_id] });
+      queryClient.invalidateQueries({ queryKey: ['bookings', data.tenant_id] });
+      queryClient.invalidateQueries({ queryKey: ['calendar-data', data.tenant_id] });
+      
       toast({
         title: 'Success',
         description: 'Schedule updated successfully',

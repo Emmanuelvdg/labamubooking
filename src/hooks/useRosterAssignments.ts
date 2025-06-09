@@ -51,15 +51,19 @@ export const useRosterAssignments = (tenantId: string) => {
   });
 
   const invalidateAllCalendarData = () => {
+    console.log('Invalidating all calendar data for tenant:', tenantId);
     // Invalidate all calendar-related queries
     queryClient.invalidateQueries({ queryKey: ['roster-assignments', tenantId] });
     queryClient.invalidateQueries({ queryKey: ['staff-schedules', tenantId] });
     queryClient.invalidateQueries({ queryKey: ['schedule-instances', tenantId] });
     queryClient.invalidateQueries({ queryKey: ['bookings', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['calendar-data', tenantId] });
   };
 
   const createAssignment = useMutation({
     mutationFn: async (assignment: Omit<RosterAssignment, 'id' | 'createdAt' | 'updatedAt'>) => {
+      console.log('Creating roster assignment:', assignment);
+      
       // Transform TypeScript interface to database columns
       const dbRecord = {
         tenant_id: assignment.tenantId,
@@ -82,6 +86,7 @@ export const useRosterAssignments = (tenantId: string) => {
       return data;
     },
     onSuccess: () => {
+      console.log('Roster assignment created successfully, invalidating cache');
       invalidateAllCalendarData();
       toast.success('Roster assignment created successfully');
     },
