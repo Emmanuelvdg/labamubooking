@@ -10,24 +10,49 @@ export const useRosterAssignments = (tenantId: string) => {
   const { data: assignments = [], isLoading, error } = useQuery({
     queryKey: ['roster-assignments', tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('Fetching roster assignments for tenant:', tenantId);
+      
+      // First get the roster assignments
+      const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('roster_assignments')
-        .select(`
-          *,
-          staff:staff_id (
-            id,
-            name,
-            email,
-            role
-          )
-        `)
+        .select('*')
         .eq('tenant_id', tenantId)
         .order('start_time', { ascending: true });
 
-      if (error) throw error;
-      
-      // Transform database records to match TypeScript interface
-      return (data || []).map((record: any): RosterAssignment => ({
+      if (assignmentsError) {
+        console.error('Error fetching roster assignments:', assignmentsError);
+        throw assignmentsError;
+      }
+
+      console.log('Raw roster assignments data:', assignmentsData);
+
+      if (!assignmentsData || assignmentsData.length === 0) {
+        console.log('No roster assignments found');
+        return [];
+      }
+
+      // Get all unique staff IDs
+      const staffIds = [...new Set(assignmentsData.map(a => a.staff_id))];
+      console.log('Staff IDs to fetch:', staffIds);
+
+      // Fetch staff data separately
+      const { data: staffData, error: staffError } = await supabase
+        .from('staff')
+        .select('id, name, email, role')
+        .in('id', staffIds);
+
+      if (staffError) {
+        console.error('Error fetching staff data:', staffError);
+        throw staffError;
+      }
+
+      console.log('Staff data:', staffData);
+
+      // Create a map for quick staff lookup
+      const staffMap = new Map(staffData?.map(staff => [staff.id, staff]) || []);
+
+      // Transform and combine the data
+      const transformedAssignments = assignmentsData.map((record: any): RosterAssignment => ({
         id: record.id,
         tenantId: record.tenant_id,
         staffId: record.staff_id,
@@ -39,13 +64,11 @@ export const useRosterAssignments = (tenantId: string) => {
         createdBy: record.created_by,
         createdAt: record.created_at,
         updatedAt: record.updated_at,
-        staff: record.staff ? {
-          id: record.staff.id,
-          name: record.staff.name,
-          email: record.staff.email,
-          role: record.staff.role
-        } : undefined
+        staff: staffMap.get(record.staff_id)
       }));
+
+      console.log('Transformed roster assignments:', transformedAssignments);
+      return transformedAssignments;
     },
     enabled: !!tenantId,
   });
