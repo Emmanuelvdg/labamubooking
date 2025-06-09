@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { RosterTemplate } from '@/types/roster';
@@ -42,7 +41,7 @@ export const useRosterTemplates = (tenantId: string) => {
         name: template.name,
         description: template.description,
         is_active: template.isActive,
-        template_data: template.templateData,
+        template_data: template.templateData as any, // Cast to Json type
         created_by: template.createdBy
       };
 
@@ -73,7 +72,7 @@ export const useRosterTemplates = (tenantId: string) => {
       if (updates.name !== undefined) dbUpdates.name = updates.name;
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
-      if (updates.templateData !== undefined) dbUpdates.template_data = updates.templateData;
+      if (updates.templateData !== undefined) dbUpdates.template_data = updates.templateData as any; // Cast to Json type
       if (updates.createdBy !== undefined) dbUpdates.created_by = updates.createdBy;
 
       const { data, error } = await supabase
