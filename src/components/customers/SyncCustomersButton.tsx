@@ -21,7 +21,7 @@ export const SyncCustomersButton = ({ tenantId }: SyncCustomersButtonProps) => {
       variant="outline"
     >
       <RefreshCw className={`h-4 w-4 mr-2 ${syncCustomers.isPending ? 'animate-spin' : ''}`} />
-      {syncCustomers.isPending ? 'Syncing...' : 'Sync Customers'}
+      {syncCustomers.isPending ? 'Syncing...' : 'Sync with Labamu'}
     </Button>
   );
 };
