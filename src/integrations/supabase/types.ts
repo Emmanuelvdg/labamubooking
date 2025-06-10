@@ -1298,6 +1298,101 @@ export type Database = {
           },
         ]
       }
+      waitlist_entries: {
+        Row: {
+          called_at: string | null
+          cancelled_at: string | null
+          created_at: string
+          customer_id: string
+          estimated_wait_minutes: number | null
+          id: string
+          notes: string | null
+          preferred_staff_id: string | null
+          queue_position: number
+          served_at: string | null
+          service_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          called_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          customer_id: string
+          estimated_wait_minutes?: number | null
+          id?: string
+          notes?: string | null
+          preferred_staff_id?: string | null
+          queue_position: number
+          served_at?: string | null
+          service_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          called_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          customer_id?: string
+          estimated_wait_minutes?: number | null
+          id?: string
+          notes?: string | null
+          preferred_staff_id?: string | null
+          queue_position?: number
+          served_at?: string | null
+          service_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      waitlist_notifications: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          message: string
+          notification_type: string
+          recipient: string
+          sent_at: string | null
+          status: string
+          waitlist_entry_id: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          id?: string
+          message: string
+          notification_type: string
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          waitlist_entry_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          message?: string
+          notification_type?: string
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          waitlist_entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_notifications_waitlist_entry_id_fkey"
+            columns: ["waitlist_entry_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
