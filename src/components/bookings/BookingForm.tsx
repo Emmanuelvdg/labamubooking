@@ -13,6 +13,8 @@ import { useServices } from '@/hooks/useServices';
 import { CustomerFormModal } from './CustomerFormModal';
 import { useTenant } from '@/contexts/TenantContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Search } from 'lucide-react';
 
 interface BookingFormProps {
   onSuccess?: () => void;
@@ -27,6 +29,7 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
     notes: ''
   });
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
+  const [serviceSearchQuery, setServiceSearchQuery] = useState('');
 
   const { tenantId } = useTenant();
   
@@ -35,6 +38,13 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   const { data: services } = useServices(tenantId || '');
   const createBooking = useCreateBooking();
   const createCustomer = useCreateCustomer();
+
+  // Filter services based on search query
+  const filteredServices = services?.filter(service =>
+    service.name.toLowerCase().includes(serviceSearchQuery.toLowerCase()) ||
+    service.description?.toLowerCase().includes(serviceSearchQuery.toLowerCase()) ||
+    service.category?.name.toLowerCase().includes(serviceSearchQuery.toLowerCase())
+  ) || [];
 
   const handleCustomerSelect = (value: string) => {
     if (value === 'create-new') {
@@ -194,25 +204,50 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">Select Services</CardTitle>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search services..."
+                  value={serviceSearchQuery}
+                  onChange={(e) => setServiceSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {services?.map((service) => (
-                <div key={service.id} className="flex items-center space-x-3 p-2 border rounded-lg">
-                  <Checkbox
-                    id={service.id}
-                    checked={formData.serviceIds.includes(service.id)}
-                    onCheckedChange={(checked) => handleServiceToggle(service.id, checked as boolean)}
-                  />
-                  <div className="flex-1">
-                    <Label htmlFor={service.id} className="font-medium cursor-pointer">
-                      {service.name}
-                    </Label>
-                    <div className="text-sm text-gray-600">
-                      {service.duration}min - ${service.price}
+            <CardContent>
+              <ScrollArea className="h-64">
+                <div className="space-y-3 pr-4">
+                  {filteredServices.length === 0 ? (
+                    <div className="text-center text-gray-500 py-4">
+                      {serviceSearchQuery ? 'No services found matching your search.' : 'No services available.'}
                     </div>
-                  </div>
+                  ) : (
+                    filteredServices.map((service) => (
+                      <div key={service.id} className="flex items-center space-x-3 p-2 border rounded-lg">
+                        <Checkbox
+                          id={service.id}
+                          checked={formData.serviceIds.includes(service.id)}
+                          onCheckedChange={(checked) => handleServiceToggle(service.id, checked as boolean)}
+                        />
+                        <div className="flex-1">
+                          <Label htmlFor={service.id} className="font-medium cursor-pointer">
+                            {service.name}
+                          </Label>
+                          <div className="text-sm text-gray-600">
+                            {service.duration}min - ${service.price}
+                          </div>
+                          {service.description && (
+                            <div className="text-xs text-gray-500">{service.description}</div>
+                          )}
+                          {service.category && (
+                            <div className="text-xs text-blue-600">{service.category.name}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              ))}
+              </ScrollArea>
               
               {formData.serviceIds.length > 0 && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
