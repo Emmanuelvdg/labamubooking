@@ -8,6 +8,7 @@ import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay } from 'dat
 import { useStaff } from '@/hooks/useStaff';
 import { useTenant } from '@/contexts/TenantContext';
 import { useCalendarData } from '@/hooks/useCalendarData';
+import { AdHocScheduleDialog } from './AdHocScheduleDialog';
 
 interface WeeklyScheduleViewProps {
   onAddSchedule?: () => void;
@@ -119,10 +120,14 @@ export const WeeklyScheduleView = ({
             <Settings className="h-4 w-4 mr-2" />
             Options
           </Button>
-          <Button size="sm" onClick={onAddSchedule}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add
-          </Button>
+          <AdHocScheduleDialog 
+            triggerButton={
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add
+              </Button>
+            }
+          />
         </div>
       </div>
 
