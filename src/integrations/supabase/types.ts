@@ -1324,7 +1324,7 @@ export type Database = {
           id?: string
           notes?: string | null
           preferred_staff_id?: string | null
-          queue_position: number
+          queue_position?: number
           served_at?: string | null
           service_id: string
           status?: string
