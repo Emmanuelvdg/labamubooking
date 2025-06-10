@@ -10,6 +10,7 @@ import { Save, Bell, Users, Calendar, CreditCard, Building2 } from 'lucide-react
 import { useTenantDetails } from '@/hooks/useTenantDetails';
 import { useTenant } from '@/contexts/TenantContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import ReminderSettings from '@/components/settings/ReminderSettings';
 
 const Settings = () => {
   const { data: tenant, isLoading, error } = useTenantDetails();
@@ -71,9 +72,10 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="reminders">Reminders</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="booking">Booking</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
@@ -165,6 +167,10 @@ const Settings = () => {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="reminders">
+          <ReminderSettings />
         </TabsContent>
 
         <TabsContent value="team">

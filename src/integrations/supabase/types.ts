@@ -56,6 +56,39 @@ export type Database = {
           },
         ]
       }
+      automated_message_types: {
+        Row: {
+          category: string
+          created_at: string
+          default_template: string | null
+          default_timing_hours: number | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          default_template?: string | null
+          default_timing_hours?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          default_template?: string | null
+          default_timing_hours?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       booking_conflicts: {
         Row: {
           booking_id: string
@@ -430,6 +463,42 @@ export type Database = {
           id?: string
           permission?: Database["public"]["Enums"]["permission_type"]
           resource?: Database["public"]["Enums"]["resource_type"]
+        }
+        Relationships: []
+      }
+      reminder_configurations: {
+        Row: {
+          channel: string
+          created_at: string
+          enabled: boolean
+          id: string
+          message_template: string | null
+          reminder_type: string
+          tenant_id: string
+          timing_hours: number | null
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          message_template?: string | null
+          reminder_type: string
+          tenant_id: string
+          timing_hours?: number | null
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          message_template?: string | null
+          reminder_type?: string
+          tenant_id?: string
+          timing_hours?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
