@@ -9,9 +9,14 @@ interface NewBookingDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   triggerButton?: React.ReactNode;
+  initialData?: {
+    startTime?: string;
+    staffId?: string;
+    notes?: string;
+  };
 }
 
-export const NewBookingDialog = ({ open, onOpenChange, triggerButton }: NewBookingDialogProps) => {
+export const NewBookingDialog = ({ open, onOpenChange, triggerButton, initialData }: NewBookingDialogProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
 
   const isOpen = open !== undefined ? open : internalOpen;
@@ -35,7 +40,7 @@ export const NewBookingDialog = ({ open, onOpenChange, triggerButton }: NewBooki
         <DialogHeader>
           <DialogTitle>Create New Booking</DialogTitle>
         </DialogHeader>
-        <BookingForm onSuccess={() => setOpen(false)} />
+        <BookingForm onSuccess={() => setOpen(false)} initialData={initialData} />
       </DialogContent>
     </Dialog>
   );
