@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useEditBooking } from '@/hooks/useEditBooking';
 import { useCheckBookingConflicts, useBookingEdits } from '@/hooks/useBookingEdits';
@@ -24,7 +23,7 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
     staffId: booking.staffId,
     serviceId: booking.serviceId,
     startTime: new Date(booking.startTime).toISOString().slice(0, 16),
-    status: booking.status as 'confirmed' | 'pending' | 'cancelled' | 'completed',
+    status: booking.status,
     notes: booking.notes || '',
     reason: ''
   });
