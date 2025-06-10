@@ -1,20 +1,17 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useCreateBooking } from '@/hooks/useBookings';
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers';
 import { useStaff } from '@/hooks/useStaff';
 import { useServices } from '@/hooks/useServices';
 import { CustomerFormModal } from './CustomerFormModal';
+import { CustomerSelection } from './CustomerSelection';
+import { StaffSelection } from './StaffSelection';
+import { ServiceSelection } from './ServiceSelection';
+import { BookingDetails } from './BookingDetails';
+import { BookingSummary } from './BookingSummary';
 import { useTenant } from '@/contexts/TenantContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search } from 'lucide-react';
 
 interface BookingFormProps {
   onSuccess?: () => void;
@@ -29,7 +26,6 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
     notes: ''
   });
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
-  const [serviceSearchQuery, setServiceSearchQuery] = useState('');
 
   const { tenantId } = useTenant();
   
@@ -38,13 +34,6 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   const { data: services } = useServices(tenantId || '');
   const createBooking = useCreateBooking();
   const createCustomer = useCreateCustomer();
-
-  // Filter services based on search query
-  const filteredServices = services?.filter(service =>
-    service.name.toLowerCase().includes(serviceSearchQuery.toLowerCase()) ||
-    service.description?.toLowerCase().includes(serviceSearchQuery.toLowerCase()) ||
-    service.category?.name.toLowerCase().includes(serviceSearchQuery.toLowerCase())
-  ) || [];
 
   const handleCustomerSelect = (value: string) => {
     if (value === 'create-new') {
@@ -73,14 +62,6 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
     return formData.serviceIds.reduce((total, serviceId) => {
       const service = services.find(s => s.id === serviceId);
       return total + (service?.duration || 0);
-    }, 0);
-  };
-
-  const calculateTotalPrice = () => {
-    if (!services) return 0;
-    return formData.serviceIds.reduce((total, serviceId) => {
-      const service = services.find(s => s.id === serviceId);
-      return total + (service?.price || 0);
     }, 0);
   };
 
@@ -164,129 +145,36 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="customer">Customer</Label>
-            <Select value={formData.customerId} onValueChange={handleCustomerSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select customer" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="walk-in">Walk In (Anonymous)</SelectItem>
-                <SelectItem value="create-new">Create New Client</SelectItem>
-                {customers?.map((customer) => (
-                  <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name} - {customer.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="staff">Staff Member</Label>
-            <Select value={formData.staffId} onValueChange={(value) => setFormData(prev => ({ ...prev, staffId: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select staff" />
-              </SelectTrigger>
-              <SelectContent>
-                {staff?.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Services</Label>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Select Services</CardTitle>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search services..."
-                  value={serviceSearchQuery}
-                  onChange={(e) => setServiceSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-64">
-                <div className="space-y-3 pr-4">
-                  {filteredServices.length === 0 ? (
-                    <div className="text-center text-gray-500 py-4">
-                      {serviceSearchQuery ? 'No services found matching your search.' : 'No services available.'}
-                    </div>
-                  ) : (
-                    filteredServices.map((service) => (
-                      <div key={service.id} className="flex items-center space-x-3 p-2 border rounded-lg">
-                        <Checkbox
-                          id={service.id}
-                          checked={formData.serviceIds.includes(service.id)}
-                          onCheckedChange={(checked) => handleServiceToggle(service.id, checked as boolean)}
-                        />
-                        <div className="flex-1">
-                          <Label htmlFor={service.id} className="font-medium cursor-pointer">
-                            {service.name}
-                          </Label>
-                          <div className="text-sm text-gray-600">
-                            {service.duration}min - ${service.price}
-                          </div>
-                          {service.description && (
-                            <div className="text-xs text-gray-500">{service.description}</div>
-                          )}
-                          {service.category && (
-                            <div className="text-xs text-blue-600">{service.category.name}</div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
-              
-              {formData.serviceIds.length > 0 && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <div className="text-sm font-medium">Summary:</div>
-                  <div className="text-sm text-gray-600">
-                    Total Duration: {calculateTotalDuration()} minutes
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Total Price: ${calculateTotalPrice()}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="startTime">Start Date & Time</Label>
-          <Input
-            id="startTime"
-            type="datetime-local"
-            value={formData.startTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-            required
+          <CustomerSelection
+            value={formData.customerId}
+            onValueChange={handleCustomerSelect}
+            customers={customers}
           />
-          <div className="text-xs text-gray-500">
-            Services will be scheduled sequentially starting from this time
-          </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="notes">Notes (Optional)</Label>
-          <Textarea
-            id="notes"
-            placeholder="Add any special notes for this booking..."
-            value={formData.notes}
-            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+          <StaffSelection
+            value={formData.staffId}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, staffId: value }))}
+            staff={staff}
           />
         </div>
+
+        <ServiceSelection
+          selectedServiceIds={formData.serviceIds}
+          onServiceToggle={handleServiceToggle}
+          services={services}
+        />
+
+        <BookingSummary
+          selectedServiceIds={formData.serviceIds}
+          services={services}
+        />
+
+        <BookingDetails
+          startTime={formData.startTime}
+          notes={formData.notes}
+          onStartTimeChange={(value) => setFormData(prev => ({ ...prev, startTime: value }))}
+          onNotesChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+        />
 
         <div className="flex justify-end space-x-2">
           <Button 
