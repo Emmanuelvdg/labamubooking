@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,6 +33,7 @@ export const EditBookingForm = ({ booking, onSuccess }: EditBookingFormProps) =>
   });
   
   const [conflicts, setConflicts] = useState<any[]>([]);
+  const [isCheckingConflicts, setIsCheckingConflicts] = useState(false);
 
   const { tenantId } = useTenant();
   const { data: customers } = useCustomers(tenantId || '');
@@ -43,25 +44,36 @@ export const EditBookingForm = ({ booking, onSuccess }: EditBookingFormProps) =>
   const editBooking = useEditBooking();
   const checkConflicts = useCheckBookingConflicts();
 
-  const handleTimeChange = async (newStartTime: string) => {
+  const handleTimeChange = useCallback(async (newStartTime: string) => {
+    console.log('Time change triggered:', newStartTime);
     setFormData(prev => ({ ...prev, startTime: newStartTime }));
     
     const selectedService = services?.find(s => s.id === formData.serviceId);
-    if (!selectedService || !tenantId) return;
+    if (!selectedService || !tenantId || isCheckingConflicts) {
+      return;
+    }
 
-    const startTime = new Date(newStartTime);
-    const endTime = new Date(startTime.getTime() + selectedService.duration * 60000);
+    setIsCheckingConflicts(true);
+    try {
+      const startTime = new Date(newStartTime);
+      const endTime = new Date(startTime.getTime() + selectedService.duration * 60000);
 
-    const conflictResults = await checkConflicts.mutateAsync({
-      bookingId: booking.id,
-      staffId: formData.staffId,
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-      tenantId,
-    });
-    
-    setConflicts(conflictResults);
-  };
+      const conflictResults = await checkConflicts.mutateAsync({
+        bookingId: booking.id,
+        staffId: formData.staffId,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        tenantId,
+      });
+      
+      setConflicts(conflictResults);
+    } catch (error) {
+      console.error('Error checking conflicts:', error);
+      setConflicts([]);
+    } finally {
+      setIsCheckingConflicts(false);
+    }
+  }, [services, formData.serviceId, formData.staffId, tenantId, booking.id, checkConflicts, isCheckingConflicts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,19 +86,23 @@ export const EditBookingForm = ({ booking, onSuccess }: EditBookingFormProps) =>
     const startTime = new Date(formData.startTime);
     const endTime = new Date(startTime.getTime() + selectedService.duration * 60000);
 
-    await editBooking.mutateAsync({
-      id: booking.id,
-      customerId: formData.customerId,
-      staffId: formData.staffId,
-      serviceId: formData.serviceId,
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-      status: formData.status,
-      notes: formData.notes,
-      reason: formData.reason,
-    });
+    try {
+      await editBooking.mutateAsync({
+        id: booking.id,
+        customerId: formData.customerId,
+        staffId: formData.staffId,
+        serviceId: formData.serviceId,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        status: formData.status,
+        notes: formData.notes,
+        reason: formData.reason,
+      });
 
-    onSuccess?.();
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error updating booking:', error);
+    }
   };
 
   return (
@@ -119,7 +135,10 @@ export const EditBookingForm = ({ booking, onSuccess }: EditBookingFormProps) =>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="customer">Customer</Label>
-            <Select value={formData.customerId} onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}>
+            <Select 
+              value={formData.customerId} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -135,7 +154,10 @@ export const EditBookingForm = ({ booking, onSuccess }: EditBookingFormProps) =>
 
           <div className="space-y-2">
             <Label htmlFor="staff">Staff Member</Label>
-            <Select value={formData.staffId} onValueChange={(value) => setFormData(prev => ({ ...prev, staffId: value }))}>
+            <Select 
+              value={formData.staffId} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, staffId: value }))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -151,7 +173,10 @@ export const EditBookingForm = ({ booking, onSuccess }: EditBookingFormProps) =>
 
           <div className="space-y-2">
             <Label htmlFor="service">Service</Label>
-            <Select value={formData.serviceId} onValueChange={(value) => setFormData(prev => ({ ...prev, serviceId: value }))}>
+            <Select 
+              value={formData.serviceId} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, serviceId: value }))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -167,7 +192,10 @@ export const EditBookingForm = ({ booking, onSuccess }: EditBookingFormProps) =>
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}>
+            <Select 
+              value={formData.status} 
+              onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -189,6 +217,9 @@ export const EditBookingForm = ({ booking, onSuccess }: EditBookingFormProps) =>
               onChange={(e) => handleTimeChange(e.target.value)}
               required
             />
+            {isCheckingConflicts && (
+              <p className="text-sm text-gray-500">Checking for conflicts...</p>
+            )}
           </div>
         </div>
 
