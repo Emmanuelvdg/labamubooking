@@ -1,3 +1,4 @@
+
 export interface Tenant {
   id: string;
   name: string;
@@ -24,6 +25,7 @@ export interface Customer {
   email: string;
   phone: string;
   avatar?: string;
+  birthDate?: string;
 }
 
 export interface ServiceCategory {

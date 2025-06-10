@@ -1,114 +1,86 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCreateCustomer, useUpdateCustomer } from '@/hooks/useCustomers';
-import { useTenant } from '@/contexts/TenantContext';
 import { Customer } from '@/types';
 
 interface CustomerFormProps {
-  onSuccess?: (customerId?: string) => void;
-  initialData?: Customer;
+  customer?: Partial<Customer>;
+  onSubmit: (customer: Omit<Customer, 'id'>) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
 }
 
-export const CustomerForm = ({ onSuccess, initialData }: CustomerFormProps) => {
+export const CustomerForm = ({ customer, onSubmit, onCancel, isLoading }: CustomerFormProps) => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: ''
+    name: customer?.name || '',
+    email: customer?.email || '',
+    phone: customer?.phone || '',
+    birthDate: customer?.birthDate || '',
   });
 
-  const createCustomer = useCreateCustomer();
-  const updateCustomer = useUpdateCustomer();
-  const { tenantId } = useTenant();
-  const isEditing = !!initialData;
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        name: initialData.name,
-        email: initialData.email,
-        phone: initialData.phone || ''
-      });
-    }
-  }, [initialData]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.email) {
-      return;
-    }
-
-    if (!tenantId) {
-      console.error('No tenant ID available');
-      return;
-    }
-
-    try {
-      if (isEditing && initialData) {
-        const updatedCustomer = await updateCustomer.mutateAsync({
-          ...initialData,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone || '',
-        });
-        onSuccess?.(updatedCustomer.id);
-      } else {
-        const newCustomer = await createCustomer.mutateAsync({
-          tenantId,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone || '',
-        });
-        onSuccess?.(newCustomer.id);
-        setFormData({ name: '', email: '', phone: '' });
-      }
-    } catch (error) {
-      console.error('Error saving customer:', error);
-    }
+    onSubmit({
+      ...formData,
+      tenantId: customer?.tenantId || '', // This will be set by the parent component
+    });
   };
 
-  const isPending = createCustomer.isPending || updateCustomer.isPending;
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
+      <div>
+        <Label htmlFor="name">Name *</Label>
         <Input
           id="name"
-          type="text"
           value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          onChange={(e) => handleChange('name', e.target.value)}
           required
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+      <div>
+        <Label htmlFor="email">Email *</Label>
         <Input
           id="email"
           type="email"
           value={formData.email}
-          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+          onChange={(e) => handleChange('email', e.target.value)}
           required
         />
       </div>
 
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="phone">Phone</Label>
         <Input
           id="phone"
           type="tel"
           value={formData.phone}
-          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+          onChange={(e) => handleChange('phone', e.target.value)}
         />
       </div>
 
-      <div className="flex justify-end space-x-2">
-        <Button type="submit" disabled={isPending || !tenantId}>
-          {isPending ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Customer' : 'Create Customer')}
+      <div>
+        <Label htmlFor="birthDate">Birth Date</Label>
+        <Input
+          id="birthDate"
+          type="date"
+          value={formData.birthDate}
+          onChange={(e) => handleChange('birthDate', e.target.value)}
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : customer?.id ? 'Update' : 'Create'}
         </Button>
       </div>
     </form>

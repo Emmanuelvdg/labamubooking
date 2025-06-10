@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types';
@@ -29,6 +28,7 @@ export const useCustomers = (tenantId: string) => {
         email: customer.email,
         phone: customer.phone,
         avatar: customer.avatar,
+        birthDate: customer.birth_date,
       })) as Customer[];
     },
     enabled: !!tenantId,
@@ -48,6 +48,7 @@ export const useCreateCustomer = () => {
         email: customer.email,
         phone: customer.phone,
         avatar: customer.avatar,
+        birth_date: customer.birthDate,
       };
 
       console.log('Database customer object:', dbCustomer);
@@ -72,6 +73,7 @@ export const useCreateCustomer = () => {
         email: data.email,
         phone: data.phone,
         avatar: data.avatar,
+        birthDate: data.birth_date,
       };
     },
     onSuccess: (data) => {
@@ -106,6 +108,7 @@ export const useUpdateCustomer = () => {
         email: customer.email,
         phone: customer.phone,
         avatar: customer.avatar,
+        birth_date: customer.birthDate,
       };
 
       const { data, error } = await supabase
@@ -129,6 +132,7 @@ export const useUpdateCustomer = () => {
         email: data.email,
         phone: data.phone,
         avatar: data.avatar,
+        birthDate: data.birth_date,
       };
     },
     onSuccess: () => {
