@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -45,13 +44,23 @@ export const EditRosterAssignmentDialog = ({
   const [assignmentType, setAssignmentType] = useState<'regular' | 'template' | 'overtime' | 'emergency'>('regular');
   const [notes, setNotes] = useState('');
 
+  const createTimestampInUserTimezone = (date: string, time: string): string => {
+    // Create a date object in the user's local timezone
+    const localDateTime = new Date(`${date}T${time}:00`);
+    // Return ISO string which will preserve the user's timezone context
+    return localDateTime.toISOString();
+  };
+
   // Reset form when assignment changes
   useEffect(() => {
     if (assignment) {
       setSelectedStaff(assignment.staffId);
+      
+      // Convert stored timestamps back to local date/time for editing
       const startDateTime = new Date(assignment.startTime);
       const endDateTime = new Date(assignment.endTime);
       
+      // Extract local date and time components
       setStartDate(format(startDateTime, 'yyyy-MM-dd'));
       setStartTime(format(startDateTime, 'HH:mm'));
       setEndDate(format(endDateTime, 'yyyy-MM-dd'));
@@ -69,8 +78,19 @@ export const EditRosterAssignmentDialog = ({
     }
 
     try {
-      const startDateTime = `${startDate}T${startTime}:00`;
-      const endDateTime = `${endDate}T${endTime}:00`;
+      // Use timezone-aware timestamp creation
+      const startDateTime = createTimestampInUserTimezone(startDate, startTime);
+      const endDateTime = createTimestampInUserTimezone(endDate, endTime);
+      
+      console.log('Updating assignment with timezone-aware data:', {
+        id: assignment.id,
+        startDateTime,
+        endDateTime,
+        localStartDate: startDate,
+        localStartTime: startTime,
+        localEndDate: endDate,
+        localEndTime: endTime
+      });
       
       await updateAssignment.mutateAsync({
         id: assignment.id,

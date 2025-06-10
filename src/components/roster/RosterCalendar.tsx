@@ -54,14 +54,52 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
     setIsRefreshing(false);
   };
 
+  const formatEventTimeInUserTimezone = (event: any, currentDate: Date) => {
+    // Parse the stored timestamps and convert to user's local timezone for display
+    const eventStart = new Date(event.startTime);
+    const eventEnd = new Date(event.endTime);
+    const eventStartDate = startOfDay(eventStart);
+    const eventEndDate = startOfDay(eventEnd);
+    const checkDate = startOfDay(currentDate);
+    
+    console.log('Formatting event time:', {
+      eventId: event.id,
+      eventType: event.type,
+      storedStartTime: event.startTime,
+      storedEndTime: event.endTime,
+      parsedStartTime: eventStart.toISOString(),
+      parsedEndTime: eventEnd.toISOString(),
+      currentDate: currentDate.toISOString(),
+      eventStartDate: eventStartDate.toISOString(),
+      eventEndDate: eventEndDate.toISOString()
+    });
+    
+    // For single-day events or when viewing the start date
+    if (isSameDay(eventStartDate, eventEndDate) || isSameDay(eventStartDate, checkDate)) {
+      return `${format(eventStart, 'HH:mm')} - ${format(eventEnd, 'HH:mm')}`;
+    }
+    
+    // For multi-day events on continuation days
+    if (isSameDay(eventEndDate, checkDate)) {
+      // Last day - show end time
+      return `Until ${format(eventEnd, 'HH:mm')}`;
+    } else {
+      // Middle days - show as "All day" or continuation
+      return 'Continues';
+    }
+  };
+
   const getEventsForDateAndStaff = (date: Date, staffId: string) => {
     if (!calendarEvents) return [];
     
     return calendarEvents.filter(event => {
       if (event.staffId !== staffId) return false;
       
-      const eventStartDate = startOfDay(new Date(event.startTime));
-      const eventEndDate = startOfDay(new Date(event.endTime));
+      // Parse stored timestamps in user's timezone
+      const eventStart = new Date(event.startTime);
+      const eventEnd = new Date(event.endTime);
+      const eventStartDate = startOfDay(eventStart);
+      const eventEndDate = startOfDay(eventEnd);
       const checkDate = startOfDay(date);
       
       // For roster assignments, check if the date falls within the assignment period
@@ -77,7 +115,7 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
         });
       } else {
         // For schedule events, use the original logic
-        return isSameDay(new Date(event.startTime), date);
+        return isSameDay(eventStart, date);
       }
     });
   };
@@ -96,26 +134,6 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
       return event.hasException 
         ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
         : 'bg-purple-100 text-purple-800 border-purple-200';
-    }
-  };
-
-  const formatEventTime = (event: any, currentDate: Date) => {
-    const eventStartDate = startOfDay(new Date(event.startTime));
-    const eventEndDate = startOfDay(new Date(event.endTime));
-    const checkDate = startOfDay(currentDate);
-    
-    // For single-day events or when viewing the start date
-    if (isSameDay(eventStartDate, eventEndDate) || isSameDay(eventStartDate, checkDate)) {
-      return `${format(new Date(event.startTime), 'HH:mm')} - ${format(new Date(event.endTime), 'HH:mm')}`;
-    }
-    
-    // For multi-day events on continuation days
-    if (isSameDay(eventEndDate, checkDate)) {
-      // Last day - show end time
-      return `Until ${format(new Date(event.endTime), 'HH:mm')}`;
-    } else {
-      // Middle days - show as "All day" or continuation
-      return 'Continues';
     }
   };
 
@@ -237,7 +255,7 @@ export const RosterCalendar = ({ assignments, staff, onAssignmentClick }: Roster
                               }}
                             >
                               <div className="font-medium">
-                                {formatEventTime(event, day)}
+                                {formatEventTimeInUserTimezone(event, day)}
                               </div>
                               <div className="truncate">{event.title}</div>
                               <div className="flex gap-1 mt-1">

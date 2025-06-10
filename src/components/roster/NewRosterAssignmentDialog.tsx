@@ -235,6 +235,13 @@ export const NewRosterAssignmentDialog = ({
     setNotes('');
   };
 
+  const createTimestampInUserTimezone = (date: string, time: string): string => {
+    // Create a date object in the user's local timezone
+    const localDateTime = new Date(`${date}T${time}:00`);
+    // Return ISO string which will preserve the user's timezone context
+    return localDateTime.toISOString();
+  };
+
   const handleSubmit = async () => {
     if (!selectedStaff || !tenantId) {
       toast.error('Please select a staff member');
@@ -249,18 +256,18 @@ export const NewRosterAssignmentDialog = ({
         const dayData = scheduleData[day.key];
         if (dayData.enabled && dayData.shifts.length > 0) {
           for (const shift of dayData.shifts) {
-            const assignmentDate = format(new Date(startDate), 'yyyy-MM-dd');
-            const startTime = `${assignmentDate}T${shift.startTime}:00`;
-            const endTime = `${assignmentDate}T${shift.endTime}:00`;
+            // Use timezone-aware timestamp creation
+            const startTime = createTimestampInUserTimezone(startDate, shift.startTime);
+            const endTime = createTimestampInUserTimezone(startDate, shift.endTime);
             
-            console.log('Creating assignment with data:', {
+            console.log('Creating assignment with timezone-aware data:', {
               tenantId,
               staffId: selectedStaff,
               startTime,
               endTime,
-              assignmentType: 'regular',
-              status: 'scheduled',
-              notes: notes || undefined
+              localDate: startDate,
+              localStartTime: shift.startTime,
+              localEndTime: shift.endTime
             });
             
             await createAssignment.mutateAsync({

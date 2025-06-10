@@ -21,6 +21,15 @@ export const useScheduleConflictDetection = (tenantId: string) => {
   const [isChecking, setIsChecking] = useState(false);
   const [conflicts, setConflicts] = useState<ScheduleConflict[]>([]);
 
+  const createTimestampInUserTimezone = (dateTimeString: string): string => {
+    // If the string doesn't contain timezone info, treat it as local time
+    if (!dateTimeString.includes('T') || (!dateTimeString.includes('Z') && !dateTimeString.includes('+'))) {
+      const localDateTime = new Date(dateTimeString);
+      return localDateTime.toISOString();
+    }
+    return dateTimeString;
+  };
+
   const checkConflicts = async (
     staffId: string,
     startTime: string,
@@ -33,14 +42,23 @@ export const useScheduleConflictDetection = (tenantId: string) => {
     try {
       const detectedConflicts: ScheduleConflict[] = [];
 
+      // Ensure timestamps are timezone-aware
+      const conflictStartTime = createTimestampInUserTimezone(startTime);
+      const conflictEndTime = createTimestampInUserTimezone(endTime);
+
+      console.log('Using timezone-aware timestamps for conflict check:', {
+        original: { startTime, endTime },
+        converted: { conflictStartTime, conflictEndTime }
+      });
+
       // Check roster assignment conflicts
       const { data: rosterConflicts, error: rosterError } = await supabase.rpc(
         'check_roster_conflicts',
         {
           p_assignment_id: null,
           p_staff_id: staffId,
-          p_start_time: startTime,
-          p_end_time: endTime,
+          p_start_time: conflictStartTime,
+          p_end_time: conflictEndTime,
           p_tenant_id: tenantId
         }
       );
@@ -74,8 +92,8 @@ export const useScheduleConflictDetection = (tenantId: string) => {
         throw schedulesError;
       }
 
-      const newStartTime = new Date(startTime);
-      const newEndTime = new Date(endTime);
+      const newStartTime = new Date(conflictStartTime);
+      const newEndTime = new Date(conflictEndTime);
 
       schedules?.forEach((schedule) => {
         const existingStart = new Date(schedule.start_time);
