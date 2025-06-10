@@ -24,7 +24,7 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
     staffId: booking.staffId,
     serviceId: booking.serviceId,
     startTime: new Date(booking.startTime).toISOString().slice(0, 16),
-    status: booking.status,
+    status: booking.status as 'confirmed' | 'pending' | 'cancelled' | 'completed',
     notes: booking.notes || '',
     reason: ''
   });
