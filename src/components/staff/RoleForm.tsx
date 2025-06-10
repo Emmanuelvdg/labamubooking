@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +27,8 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'manage_staff', label: 'Manage Staff' },
   { id: 'view_reports', label: 'View Reports' },
   { id: 'manage_settings', label: 'Manage Settings' },
+  { id: 'view_commissions', label: 'View Commissions' },
+  { id: 'manage_commissions', label: 'Manage Commissions' },
 ];
 
 export const RoleForm = ({ tenantId, initialData, onSuccess, onCancel }: RoleFormProps) => {
