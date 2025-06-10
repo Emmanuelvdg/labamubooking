@@ -25,10 +25,11 @@ export const CalendarGrid = ({
 }: CalendarGridProps) => {
   const [showNewBookingDialog, setShowNewBookingDialog] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [displayDate, setDisplayDate] = useState(currentDate);
 
-  // Generate calendar grid
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+  // Generate calendar grid for the display date
+  const firstDayOfMonth = new Date(displayDate.getFullYear(), displayDate.getMonth(), 1);
+  const lastDayOfMonth = new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 0);
   const startDate = new Date(firstDayOfMonth);
   startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay());
 
@@ -37,7 +38,7 @@ export const CalendarGrid = ({
 
   for (let week = 0; week < 6; week++) {
     for (let day = 0; day < 7; day++) {
-      const dayNumber = currentDateIterator.getMonth() === currentDate.getMonth() 
+      const dayNumber = currentDateIterator.getMonth() === displayDate.getMonth() 
         ? currentDateIterator.getDate() 
         : null;
       
@@ -53,21 +54,36 @@ export const CalendarGrid = ({
     }
   }
 
+  const handleNavigateMonth = (direction: 'prev' | 'next') => {
+    setDisplayDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+    onNavigateMonth(direction);
+  };
+
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking(booking);
   };
+
+  const displayMonth = displayDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
     <>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">{currentMonth}</CardTitle>
+            <CardTitle className="text-xl">{displayMonth}</CardTitle>
             <div className="flex items-center space-x-2">
-              <Button onClick={() => onNavigateMonth('prev')} variant="outline" size="sm">
+              <Button onClick={() => handleNavigateMonth('prev')} variant="outline" size="sm">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button onClick={() => onNavigateMonth('next')} variant="outline" size="sm">
+              <Button onClick={() => handleNavigateMonth('next')} variant="outline" size="sm">
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button onClick={() => setShowNewBookingDialog(true)} size="sm">
