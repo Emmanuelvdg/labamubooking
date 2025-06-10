@@ -33,6 +33,17 @@ export interface WaitlistEntry {
   };
 }
 
+export interface WaitlistEntryInsert {
+  customer_id: string;
+  service_id: string;
+  preferred_staff_id?: string;
+  estimated_wait_minutes?: number;
+  notes?: string;
+  status: 'waiting' | 'called' | 'served' | 'cancelled' | 'no_show';
+  tenant_id: string;
+  queue_position?: number; // Optional because database trigger will set it
+}
+
 export interface WaitlistNotification {
   id: string;
   waitlist_entry_id: string;
