@@ -7,6 +7,7 @@ import { Booking } from '@/types';
 
 export const useCalendar = (tenantId: string) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
   const [selectedServiceId, setSelectedServiceId] = useState<string>('all');
   
@@ -16,13 +17,13 @@ export const useCalendar = (tenantId: string) => {
 
   const currentMonth = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-  // Filter bookings for the current month and apply additional filters
+  // Filter bookings for the current month being displayed (not system current month)
   const monthBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.startTime);
-    const isInCurrentMonth = bookingDate.getMonth() === currentDate.getMonth() && 
+    const isInDisplayedMonth = bookingDate.getMonth() === currentDate.getMonth() && 
            bookingDate.getFullYear() === currentDate.getFullYear();
     
-    if (!isInCurrentMonth) return false;
+    if (!isInDisplayedMonth) return false;
     
     // Apply staff filter
     if (selectedStaffId !== 'all' && booking.staffId !== selectedStaffId) return false;
@@ -33,7 +34,7 @@ export const useCalendar = (tenantId: string) => {
     return true;
   });
 
-  // Group bookings by day for the current month
+  // Group bookings by day for the current displayed month
   const bookingsByDay = monthBookings.reduce((acc, booking) => {
     const day = new Date(booking.startTime).getDate();
     if (!acc[day]) {
@@ -43,7 +44,23 @@ export const useCalendar = (tenantId: string) => {
     return acc;
   }, {} as Record<number, Booking[]>);
 
-  // Get bookings for any specific date (used by daily view) - UPDATED
+  // Get bookings for the selected date (used by daily view)
+  const selectedDateBookings = bookings.filter(booking => {
+    const bookingDate = new Date(booking.startTime);
+    const isOnSelectedDate = bookingDate.toDateString() === selectedDate.toDateString();
+    
+    if (!isOnSelectedDate) return false;
+    
+    // Apply staff filter
+    if (selectedStaffId !== 'all' && booking.staffId !== selectedStaffId) return false;
+    
+    // Apply service filter
+    if (selectedServiceId !== 'all' && booking.serviceId !== selectedServiceId) return false;
+    
+    return true;
+  });
+
+  // Get bookings for any specific date (utility function)
   const getBookingsForDate = (date: Date) => {
     return bookings.filter(booking => {
       const bookingDate = new Date(booking.startTime);
@@ -61,6 +78,7 @@ export const useCalendar = (tenantId: string) => {
       } else {
         newDate.setMonth(prev.getMonth() + 1);
       }
+      console.log('Navigating to month:', newDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
       return newDate;
     });
   };
@@ -78,18 +96,34 @@ export const useCalendar = (tenantId: string) => {
     setSelectedServiceId('all');
   };
 
+  // Debug logging
+  console.log('Calendar hook state:', {
+    currentDate: currentDate.toISOString(),
+    selectedDate: selectedDate.toISOString(),
+    totalBookings: bookings.length,
+    monthBookings: monthBookings.length,
+    selectedDateBookings: selectedDateBookings.length,
+    selectedStaffId,
+    selectedServiceId
+  });
+
   return {
     currentDate,
+    selectedDate,
     currentMonth,
     selectedStaffId,
     selectedServiceId,
     staff,
     services,
+    bookings,
     monthBookings,
     bookingsByDay,
+    selectedDateBookings,
     navigateMonth,
     formatBookingTime,
     clearFilters,
+    setCurrentDate,
+    setSelectedDate,
     setSelectedStaffId,
     setSelectedServiceId,
     getBookingsForDate,
