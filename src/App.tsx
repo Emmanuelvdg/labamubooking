@@ -16,6 +16,7 @@ import Services from "./pages/Services";
 import Staff from "./pages/Staff";
 import Commissions from "./pages/Commissions";
 import Settings from "./pages/Settings";
+import CustomerEngagement from "./pages/CustomerEngagement";
 import NotFound from "./pages/NotFound";
 import Demo from "./pages/Demo";
 import BookingsDemo from "./pages/demo/BookingsDemo";
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/services" element={<Layout><Services /></Layout>} />
               <Route path="/staff" element={<Layout><Staff /></Layout>} />
               <Route path="/commissions" element={<Layout><Commissions /></Layout>} />
+              <Route path="/settings/reminders" element={<Layout><CustomerEngagement /></Layout>} />
               <Route path="/settings" element={<Layout><Settings /></Layout>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

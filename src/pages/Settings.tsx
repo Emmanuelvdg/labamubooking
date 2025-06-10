@@ -1,8 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Users, Settings as SettingsIcon, Bell } from 'lucide-react';
-import ReminderSettings from '@/components/settings/ReminderSettings';
+import { Building2, Users, Settings as SettingsIcon } from 'lucide-react';
 
 const Settings = () => {
   return (
@@ -13,7 +12,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general" className="flex items-center">
             <SettingsIcon className="h-4 w-4 mr-2" />
             General
@@ -25,10 +24,6 @@ const Settings = () => {
           <TabsTrigger value="users" className="flex items-center">
             <Users className="h-4 w-4 mr-2" />
             Users
-          </TabsTrigger>
-          <TabsTrigger value="reminders" className="flex items-center">
-            <Bell className="h-4 w-4 mr-2" />
-            Reminders
           </TabsTrigger>
         </TabsList>
 
@@ -72,10 +67,6 @@ const Settings = () => {
               <p className="text-gray-600">User management will be available here.</p>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="reminders" className="space-y-6">
-          <ReminderSettings />
         </TabsContent>
       </Tabs>
     </div>
