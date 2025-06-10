@@ -6,7 +6,7 @@ import { useTenantContext } from './useTenantContext';
 import { toast } from 'sonner';
 
 export const useWaitlist = () => {
-  const { currentTenant } = useTenantContext();
+  const { currentTenantId } = useTenantContext();
   const queryClient = useQueryClient();
 
   const {
@@ -14,9 +14,9 @@ export const useWaitlist = () => {
     isLoading,
     error
   } = useQuery({
-    queryKey: ['waitlist', currentTenant?.id],
+    queryKey: ['waitlist', currentTenantId],
     queryFn: async () => {
-      if (!currentTenant?.id) return [];
+      if (!currentTenantId) return [];
 
       const { data, error } = await supabase
         .from('waitlist_entries')
@@ -26,24 +26,29 @@ export const useWaitlist = () => {
           service:services(id, name, duration, price),
           preferred_staff:staff(id, name)
         `)
-        .eq('tenant_id', currentTenant.id)
+        .eq('tenant_id', currentTenantId)
         .order('queue_position', { ascending: true });
 
       if (error) throw error;
-      return data as WaitlistEntry[];
+      return data as unknown as WaitlistEntry[];
     },
-    enabled: !!currentTenant?.id
+    enabled: !!currentTenantId
   });
 
   const addToWaitlistMutation = useMutation({
     mutationFn: async (entry: Omit<WaitlistEntry, 'id' | 'queue_position' | 'created_at' | 'updated_at' | 'tenant_id'>) => {
-      if (!currentTenant?.id) throw new Error('No tenant selected');
+      if (!currentTenantId) throw new Error('No tenant selected');
 
       const { data, error } = await supabase
         .from('waitlist_entries')
         .insert({
-          ...entry,
-          tenant_id: currentTenant.id
+          customer_id: entry.customer_id,
+          service_id: entry.service_id,
+          preferred_staff_id: entry.preferred_staff_id,
+          estimated_wait_minutes: entry.estimated_wait_minutes,
+          notes: entry.notes,
+          status: entry.status,
+          tenant_id: currentTenantId
         })
         .select(`
           *,
@@ -54,7 +59,7 @@ export const useWaitlist = () => {
         .single();
 
       if (error) throw error;
-      return data as WaitlistEntry;
+      return data as unknown as WaitlistEntry;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waitlist'] });
@@ -84,7 +89,7 @@ export const useWaitlist = () => {
         .single();
 
       if (error) throw error;
-      return data as WaitlistEntry;
+      return data as unknown as WaitlistEntry;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waitlist'] });
@@ -115,7 +120,7 @@ export const useWaitlist = () => {
         .single();
 
       if (error) throw error;
-      return data as WaitlistEntry;
+      return data as unknown as WaitlistEntry;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waitlist'] });
@@ -146,7 +151,7 @@ export const useWaitlist = () => {
         .single();
 
       if (error) throw error;
-      return data as WaitlistEntry;
+      return data as unknown as WaitlistEntry;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waitlist'] });
@@ -163,7 +168,8 @@ export const useWaitlist = () => {
     isLoading,
     error,
     addToWaitlist: addToWaitlistMutation.mutate,
-    updateWaitlistEntry: updateWaitlistEntryMutation.mutate,
+    updateWaitlistEntry: (id: string, updates: Partial<WaitlistEntry>) => 
+      updateWaitlistEntryMutation.mutate({ id, updates }),
     callNext: callNextMutation.mutate,
     markAsServed: markAsServedMutation.mutate,
     isAddingToWaitlist: addToWaitlistMutation.isPending,

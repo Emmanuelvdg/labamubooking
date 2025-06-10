@@ -4,35 +4,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarGrid } from './CalendarGrid';
 import { DailyCalendarView } from './DailyCalendarView';
 import { WaitlistPanel } from './WaitlistPanel';
-import { useCalendarData } from '@/hooks/useCalendarData';
-import { format } from 'date-fns';
+import { useCalendar } from '@/hooks/useCalendar';
+import { useTenantContext } from '@/hooks/useTenantContext';
 
 export const CalendarWithWaitlist = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewType, setViewType] = useState<'month' | 'day' | 'waitlist'>('month');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { currentTenantId } = useTenantContext();
 
   const {
-    bookings,
+    currentDate,
+    currentMonth,
     staff,
     bookingsByDay,
     formatBookingTime,
-    isLoading
-  } = useCalendarData(currentDate);
+    navigateMonth,
+    getBookingsForDate
+  } = useCalendar(currentTenantId);
 
   const handleNavigateMonth = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    if (direction === 'prev') {
-      newDate.setMonth(newDate.getMonth() - 1);
-    } else {
-      newDate.setMonth(newDate.getMonth() + 1);
-    }
-    setCurrentDate(newDate);
+    navigateMonth(direction);
   };
-
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading calendar...</div>;
-  }
 
   return (
     <div className="space-y-6">
@@ -45,7 +37,7 @@ export const CalendarWithWaitlist = () => {
 
         <TabsContent value="month">
           <CalendarGrid
-            currentMonth={format(currentDate, 'MMMM yyyy')}
+            currentMonth={currentMonth}
             currentDate={currentDate}
             bookingsByDay={bookingsByDay}
             formatBookingTime={formatBookingTime}
@@ -57,7 +49,7 @@ export const CalendarWithWaitlist = () => {
           <DailyCalendarView
             selectedDate={selectedDate}
             staff={staff || []}
-            bookings={bookings || []}
+            bookings={getBookingsForDate(selectedDate) || []}
             formatBookingTime={formatBookingTime}
             onDateChange={setSelectedDate}
           />

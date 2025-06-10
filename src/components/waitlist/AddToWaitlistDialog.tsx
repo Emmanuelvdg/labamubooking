@@ -12,6 +12,7 @@ import { Plus } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useServices } from '@/hooks/useServices';
 import { useStaff } from '@/hooks/useStaff';
+import { useTenantContext } from '@/hooks/useTenantContext';
 
 interface AddToWaitlistDialogProps {
   onAddToWaitlist: (entry: any) => void;
@@ -26,9 +27,10 @@ export const AddToWaitlistDialog = ({ onAddToWaitlist, isLoading }: AddToWaitlis
   const [estimatedWaitMinutes, setEstimatedWaitMinutes] = useState('');
   const [notes, setNotes] = useState('');
 
-  const { data: customers } = useCustomers();
-  const { data: services } = useServices();
-  const { data: staff } = useStaff();
+  const { currentTenantId } = useTenantContext();
+  const { data: customers } = useCustomers(currentTenantId);
+  const { data: services } = useServices(currentTenantId);
+  const { data: staff } = useStaff(currentTenantId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,20 +71,20 @@ export const AddToWaitlistDialog = ({ onAddToWaitlist, isLoading }: AddToWaitlis
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <CustomerSelection
-            value={customerId}
-            onValueChange={setCustomerId}
+            selectedCustomerId={customerId}
+            onCustomerSelect={setCustomerId}
             customers={customers}
           />
 
           <ServiceSelection
-            value={serviceId}
-            onValueChange={setServiceId}
+            selectedServiceId={serviceId}
+            onServiceSelect={setServiceId}
             services={services}
           />
 
           <StaffSelection
-            value={preferredStaffId}
-            onValueChange={setPreferredStaffId}
+            selectedStaffId={preferredStaffId}
+            onStaffSelect={setPreferredStaffId}
             staff={staff}
           />
 
