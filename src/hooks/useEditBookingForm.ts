@@ -13,7 +13,7 @@ interface FormData {
   staffId: string;
   serviceId: string;
   startTime: string;
-  status: string;
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
   notes: string;
   reason: string;
 }
