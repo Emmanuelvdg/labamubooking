@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useRosterAssignments } from '@/hooks/useRosterAssignments';
 import { useTenant } from '@/contexts/TenantContext';
-import { format, addDays } from 'date-fns';
+import { format, addDays, getDay, addWeeks, subDays } from 'date-fns';
 import { RosterAssignment } from '@/types/roster';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -44,25 +45,32 @@ interface ScheduleData {
 
 const DAYS_OF_WEEK = [{
   key: 'monday',
-  label: 'Monday'
+  label: 'Monday',
+  dayNumber: 1
 }, {
   key: 'tuesday',
-  label: 'Tuesday'
+  label: 'Tuesday',
+  dayNumber: 2
 }, {
   key: 'wednesday',
-  label: 'Wednesday'
+  label: 'Wednesday',
+  dayNumber: 3
 }, {
   key: 'thursday',
-  label: 'Thursday'
+  label: 'Thursday',
+  dayNumber: 4
 }, {
   key: 'friday',
-  label: 'Friday'
+  label: 'Friday',
+  dayNumber: 5
 }, {
   key: 'saturday',
-  label: 'Saturday'
+  label: 'Saturday',
+  dayNumber: 6
 }, {
   key: 'sunday',
-  label: 'Sunday'
+  label: 'Sunday',
+  dayNumber: 0
 }];
 
 // Generate time options in 15-minute increments
@@ -146,6 +154,25 @@ export const NewRosterAssignmentDialog = ({
       shifts: []
     }
   });
+
+  // Calculate the correct date for a specific day of the week
+  const getDateForDayOfWeek = (baseDate: Date, targetDayNumber: number): Date => {
+    const baseDayNumber = getDay(baseDate); // 0 = Sunday, 1 = Monday, etc.
+    const daysToAdd = targetDayNumber - baseDayNumber;
+    
+    // If the target day is the same as base day, use the base date
+    if (daysToAdd === 0) {
+      return baseDate;
+    }
+    
+    // If target day is later in the week, add days
+    if (daysToAdd > 0) {
+      return addDays(baseDate, daysToAdd);
+    }
+    
+    // If target day is earlier in the week, we need to go to next week
+    return addDays(baseDate, 7 + daysToAdd);
+  };
 
   const calculateDuration = (shifts: TimeSlot[]): string => {
     const totalMinutes = shifts.reduce((total, shift) => {
@@ -250,22 +277,37 @@ export const NewRosterAssignmentDialog = ({
 
     try {
       let assignmentsCreated = 0;
+      const baseDate = new Date(startDate);
+
+      console.log('Creating assignments from base date:', startDate, 'parsed as:', baseDate);
 
       // Create assignments for each enabled day with shifts
       for (const day of DAYS_OF_WEEK) {
         const dayData = scheduleData[day.key];
         if (dayData.enabled && dayData.shifts.length > 0) {
+          // Calculate the correct date for this day of the week
+          const correctDate = getDateForDayOfWeek(baseDate, day.dayNumber);
+          const correctDateString = format(correctDate, 'yyyy-MM-dd');
+          
+          console.log(`Processing ${day.label} (day ${day.dayNumber}):`, {
+            baseDate: startDate,
+            baseDayNumber: getDay(baseDate),
+            targetDayNumber: day.dayNumber,
+            correctDate: correctDateString
+          });
+
           for (const shift of dayData.shifts) {
-            // Use timezone-aware timestamp creation
-            const startTime = createTimestampInUserTimezone(startDate, shift.startTime);
-            const endTime = createTimestampInUserTimezone(startDate, shift.endTime);
+            // Use timezone-aware timestamp creation with the correct date
+            const startTime = createTimestampInUserTimezone(correctDateString, shift.startTime);
+            const endTime = createTimestampInUserTimezone(correctDateString, shift.endTime);
             
-            console.log('Creating assignment with timezone-aware data:', {
+            console.log('Creating assignment with correct date and timezone-aware data:', {
               tenantId,
               staffId: selectedStaff,
+              day: day.label,
+              correctDate: correctDateString,
               startTime,
               endTime,
-              localDate: startDate,
               localStartTime: shift.startTime,
               localEndTime: shift.endTime
             });
