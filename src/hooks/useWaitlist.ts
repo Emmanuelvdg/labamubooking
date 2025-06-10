@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { WaitlistEntry } from '@/types/waitlist';
@@ -46,19 +45,30 @@ export const useWaitlist = () => {
     }) => {
       if (!currentTenantId) throw new Error('No tenant selected');
 
-      // The database trigger will automatically assign queue_position
+      // Create insert data with explicit typing to handle optional queue_position
+      const insertData: {
+        customer_id: string;
+        service_id: string;
+        preferred_staff_id?: string | null;
+        estimated_wait_minutes?: number | null;
+        notes?: string | null;
+        status: string;
+        tenant_id: string;
+        queue_position?: number;
+      } = {
+        customer_id: entry.customer_id,
+        service_id: entry.service_id,
+        preferred_staff_id: entry.preferred_staff_id || null,
+        estimated_wait_minutes: entry.estimated_wait_minutes || null,
+        notes: entry.notes || null,
+        status: entry.status,
+        tenant_id: currentTenantId
+        // queue_position will be set automatically by the database trigger
+      };
+
       const { data, error } = await supabase
         .from('waitlist_entries')
-        .insert({
-          customer_id: entry.customer_id,
-          service_id: entry.service_id,
-          preferred_staff_id: entry.preferred_staff_id || null,
-          estimated_wait_minutes: entry.estimated_wait_minutes || null,
-          notes: entry.notes || null,
-          status: entry.status,
-          tenant_id: currentTenantId
-          // queue_position will be set automatically by the database trigger
-        })
+        .insert(insertData)
         .select(`
           *,
           customer:customers(id, name, email, phone),
