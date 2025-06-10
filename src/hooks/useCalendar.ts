@@ -6,14 +6,28 @@ import { useServices } from './useServices';
 import { Booking } from '@/types';
 
 export const useCalendar = (tenantId: string) => {
+  console.log('useCalendar: called with tenantId:', tenantId);
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedStaffId, setSelectedStaffId] = useState<string>('all');
   const [selectedServiceId, setSelectedServiceId] = useState<string>('all');
   
-  const { data: bookings = [] } = useBookings(tenantId);
-  const { data: staff = [] } = useStaff(tenantId);
-  const { data: services = [] } = useServices(tenantId);
+  const { data: bookings = [], isLoading: bookingsLoading } = useBookings(tenantId);
+  const { data: staff = [], isLoading: staffLoading } = useStaff(tenantId);
+  const { data: services = [], isLoading: servicesLoading } = useServices(tenantId);
+
+  console.log('useCalendar: data fetched', {
+    tenantId,
+    bookingsCount: bookings.length,
+    staffCount: staff.length,
+    servicesCount: services.length,
+    loadingStates: {
+      bookings: bookingsLoading,
+      staff: staffLoading,
+      services: servicesLoading
+    }
+  });
 
   const currentMonth = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
@@ -32,6 +46,13 @@ export const useCalendar = (tenantId: string) => {
     if (selectedServiceId !== 'all' && booking.serviceId !== selectedServiceId) return false;
     
     return true;
+  });
+
+  console.log('useCalendar: filtered bookings', {
+    currentMonth,
+    totalBookings: bookings.length,
+    monthBookings: monthBookings.length,
+    filters: { selectedStaffId, selectedServiceId }
   });
 
   // Group bookings by day for the current displayed month
@@ -92,19 +113,21 @@ export const useCalendar = (tenantId: string) => {
   };
 
   const clearFilters = () => {
+    console.log('useCalendar: clearing filters');
     setSelectedStaffId('all');
     setSelectedServiceId('all');
   };
 
   // Debug logging
-  console.log('Calendar hook state:', {
+  console.log('useCalendar: final state', {
     currentDate: currentDate.toISOString(),
     selectedDate: selectedDate.toISOString(),
     totalBookings: bookings.length,
     monthBookings: monthBookings.length,
     selectedDateBookings: selectedDateBookings.length,
     selectedStaffId,
-    selectedServiceId
+    selectedServiceId,
+    bookingsByDayKeys: Object.keys(bookingsByDay)
   });
 
   return {

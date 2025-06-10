@@ -6,11 +6,26 @@ import { DailyCalendarView } from './DailyCalendarView';
 import { WaitlistPanel } from './WaitlistPanel';
 import { CalendarFilters } from './CalendarFilters';
 import { useCalendar } from '@/hooks/useCalendar';
-import { useTenantContext } from '@/hooks/useTenantContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 export const CalendarWithWaitlist = () => {
   const [viewType, setViewType] = useState<'month' | 'day' | 'waitlist'>('month');
-  const { currentTenantId } = useTenantContext();
+  const { tenantId } = useTenant();
+
+  console.log('CalendarWithWaitlist: tenantId from useTenant():', tenantId);
+
+  // Safety check: don't render if no tenant is selected
+  if (!tenantId) {
+    console.warn('CalendarWithWaitlist: No tenant selected, showing fallback');
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">No Business Selected</h2>
+          <p className="text-gray-600">Please select a business from the header to view the calendar.</p>
+        </div>
+      </div>
+    );
+  }
 
   const {
     currentDate,
@@ -29,15 +44,18 @@ export const CalendarWithWaitlist = () => {
     setSelectedDate,
     setSelectedStaffId,
     setSelectedServiceId,
-  } = useCalendar(currentTenantId || '');
+  } = useCalendar(tenantId);
 
   const hasActiveFilters = selectedStaffId !== 'all' || selectedServiceId !== 'all';
 
   console.log('CalendarWithWaitlist render:', {
     viewType,
+    tenantId,
     currentMonth,
     monthBookingsCount: monthBookings.length,
     selectedDateBookingsCount: selectedDateBookings.length,
+    staffCount: staff?.length || 0,
+    servicesCount: services?.length || 0,
     hasActiveFilters
   });
 
