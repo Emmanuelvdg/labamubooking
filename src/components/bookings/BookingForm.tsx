@@ -142,9 +142,10 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   }
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+    <div className="max-w-3xl mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Customer and Staff Selection Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CustomerSelection
             value={formData.customerId}
             onValueChange={handleCustomerSelect}
@@ -158,28 +159,36 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
           />
         </div>
 
-        <ServiceSelection
-          selectedServiceIds={formData.serviceIds}
-          onServiceToggle={handleServiceToggle}
-          services={services}
-        />
+        {/* Services Section */}
+        <div className="space-y-4">
+          <ServiceSelection
+            selectedServiceIds={formData.serviceIds}
+            onServiceToggle={handleServiceToggle}
+            services={services}
+          />
 
-        <BookingSummary
-          selectedServiceIds={formData.serviceIds}
-          services={services}
-        />
+          <BookingSummary
+            selectedServiceIds={formData.serviceIds}
+            services={services}
+          />
+        </div>
 
-        <BookingDetails
-          startTime={formData.startTime}
-          notes={formData.notes}
-          onStartTimeChange={(value) => setFormData(prev => ({ ...prev, startTime: value }))}
-          onNotesChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
-        />
+        {/* Booking Details */}
+        <div className="space-y-4">
+          <BookingDetails
+            startTime={formData.startTime}
+            notes={formData.notes}
+            onStartTimeChange={(value) => setFormData(prev => ({ ...prev, startTime: value }))}
+            onNotesChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+          />
+        </div>
 
-        <div className="flex justify-end space-x-2">
+        {/* Submit Button */}
+        <div className="flex justify-end pt-4 border-t">
           <Button 
             type="submit" 
             disabled={createBooking.isPending || formData.serviceIds.length === 0}
+            className="min-w-[160px]"
           >
             {createBooking.isPending ? 'Creating...' : `Create ${formData.serviceIds.length} Booking${formData.serviceIds.length !== 1 ? 's' : ''}`}
           </Button>
@@ -191,6 +200,6 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
         onOpenChange={setShowNewCustomerModal}
         onCustomerCreated={handleNewCustomerCreated}
       />
-    </>
+    </div>
   );
 };
