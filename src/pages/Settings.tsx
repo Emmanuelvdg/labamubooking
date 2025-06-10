@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Users, Settings as SettingsIcon } from 'lucide-react';
+import { BusinessSettingsForm } from '@/components/settings/BusinessSettingsForm';
 
 const Settings = () => {
   return (
@@ -42,17 +43,7 @@ const Settings = () => {
         </TabsContent>
 
         <TabsContent value="business" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Business Information</CardTitle>
-              <CardDescription>
-                Update your business details and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Business settings will be available here.</p>
-            </CardContent>
-          </Card>
+          <BusinessSettingsForm />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
