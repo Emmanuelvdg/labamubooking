@@ -42,7 +42,7 @@ export const AddToWaitlistDialog = ({ onAddToWaitlist, isLoading }: AddToWaitlis
     onAddToWaitlist({
       customer_id: customerId,
       service_id: serviceId,
-      preferred_staff_id: preferredStaffId || undefined,
+      preferred_staff_id: preferredStaffId === 'none' ? undefined : preferredStaffId || undefined,
       estimated_wait_minutes: estimatedWaitMinutes ? parseInt(estimatedWaitMinutes) : undefined,
       notes: notes || undefined,
       status: 'waiting'

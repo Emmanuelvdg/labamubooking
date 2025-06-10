@@ -18,7 +18,7 @@ export const SimpleStaffSelection = ({ selectedStaffId, onStaffSelect, staff }: 
           <SelectValue placeholder="Any available staff" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Any available staff</SelectItem>
+          <SelectItem value="none">Any available staff</SelectItem>
           {staff?.map((member) => (
             <SelectItem key={member.id} value={member.id}>
               {member.name}
