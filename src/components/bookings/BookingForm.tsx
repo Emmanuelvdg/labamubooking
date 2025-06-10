@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useCreateBooking } from '@/hooks/useBookings';
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers';
 import { useStaff } from '@/hooks/useStaff';
@@ -12,6 +14,7 @@ import { ServiceSelection } from './ServiceSelection';
 import { BookingDetails } from './BookingDetails';
 import { BookingSummary } from './BookingSummary';
 import { useTenant } from '@/contexts/TenantContext';
+import { Users, User, Calendar, FileText } from 'lucide-react';
 
 interface BookingFormProps {
   onSuccess?: () => void;
@@ -142,57 +145,123 @@ export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Customer and Staff Selection Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <CustomerSelection
-            value={formData.customerId}
-            onValueChange={handleCustomerSelect}
-            customers={customers}
-          />
+    <div className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Customer and Staff Section */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center space-x-2 text-lg">
+              <Users className="h-5 w-5 text-blue-600" />
+              <span>Customer & Staff</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 mb-3">
+                  <User className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700">Select Customer</span>
+                </div>
+                <CustomerSelection
+                  value={formData.customerId}
+                  onValueChange={handleCustomerSelect}
+                  customers={customers}
+                />
+              </div>
 
-          <StaffSelection
-            value={formData.staffId}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, staffId: value }))}
-            staff={staff}
-          />
-        </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 mb-3">
+                  <User className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700">Select Staff Member</span>
+                </div>
+                <StaffSelection
+                  value={formData.staffId}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, staffId: value }))}
+                  staff={staff}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Services Section */}
-        <div className="space-y-4">
-          <ServiceSelection
-            selectedServiceIds={formData.serviceIds}
-            onServiceToggle={handleServiceToggle}
-            services={services}
-          />
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center justify-between text-lg">
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-5 w-5 text-green-600" />
+                <span>Services</span>
+              </div>
+              {formData.serviceIds.length > 0 && (
+                <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                  {formData.serviceIds.length} selected
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ServiceSelection
+              selectedServiceIds={formData.serviceIds}
+              onServiceToggle={handleServiceToggle}
+              services={services}
+            />
 
-          <BookingSummary
-            selectedServiceIds={formData.serviceIds}
-            services={services}
-          />
-        </div>
+            {formData.serviceIds.length > 0 && (
+              <>
+                <Separator />
+                <BookingSummary
+                  selectedServiceIds={formData.serviceIds}
+                  services={services}
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Booking Details */}
-        <div className="space-y-4">
-          <BookingDetails
-            startTime={formData.startTime}
-            notes={formData.notes}
-            onStartTimeChange={(value) => setFormData(prev => ({ ...prev, startTime: value }))}
-            onNotesChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
-          />
-        </div>
+        {/* Booking Details Section */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center space-x-2 text-lg">
+              <FileText className="h-5 w-5 text-purple-600" />
+              <span>Booking Details</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <BookingDetails
+                startTime={formData.startTime}
+                notes={formData.notes}
+                onStartTimeChange={(value) => setFormData(prev => ({ ...prev, startTime: value }))}
+                onNotesChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Submit Button */}
-        <div className="flex justify-end pt-4 border-t">
-          <Button 
-            type="submit" 
-            disabled={createBooking.isPending || formData.serviceIds.length === 0}
-            className="min-w-[160px]"
-          >
-            {createBooking.isPending ? 'Creating...' : `Create ${formData.serviceIds.length} Booking${formData.serviceIds.length !== 1 ? 's' : ''}`}
-          </Button>
-        </div>
+        {/* Submit Section */}
+        <Card className="border-2 border-dashed border-gray-200 bg-gray-50/50">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900">Ready to Create Booking?</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {formData.serviceIds.length === 0 
+                    ? 'Please select at least one service to continue'
+                    : `Creating ${formData.serviceIds.length} booking${formData.serviceIds.length !== 1 ? 's' : ''} for your customer`
+                  }
+                </p>
+              </div>
+              <Button 
+                type="submit" 
+                disabled={createBooking.isPending || formData.serviceIds.length === 0}
+                className="min-w-[200px] h-12 text-base"
+                size="lg"
+              >
+                {createBooking.isPending ? 'Creating...' : `Create Booking${formData.serviceIds.length !== 1 ? 's' : ''}`}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </form>
 
       <CustomerFormModal

@@ -2,6 +2,8 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { Calendar, MessageSquare } from 'lucide-react';
 
 interface BookingDetailsProps {
   startTime: string;
@@ -12,30 +14,47 @@ interface BookingDetailsProps {
 
 export const BookingDetails = ({ startTime, notes, onStartTimeChange, onNotesChange }: BookingDetailsProps) => {
   return (
-    <>
-      <div className="space-y-2">
-        <Label htmlFor="startTime">Start Date & Time</Label>
-        <Input
-          id="startTime"
-          type="datetime-local"
-          value={startTime}
-          onChange={(e) => onStartTimeChange(e.target.value)}
-          required
-        />
-        <div className="text-xs text-gray-500">
-          Services will be scheduled sequentially starting from this time
-        </div>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card className="border-l-4 border-l-purple-500">
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4 text-purple-600" />
+              <Label htmlFor="startTime" className="font-medium">Start Date & Time</Label>
+            </div>
+            <Input
+              id="startTime"
+              type="datetime-local"
+              value={startTime}
+              onChange={(e) => onStartTimeChange(e.target.value)}
+              required
+              className="h-11"
+            />
+            <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+              ℹ️ Services will be scheduled sequentially starting from this time
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notes (Optional)</Label>
-        <Textarea
-          id="notes"
-          placeholder="Add any special notes for this booking..."
-          value={notes}
-          onChange={(e) => onNotesChange(e.target.value)}
-        />
-      </div>
-    </>
+      <Card className="border-l-4 border-l-orange-500">
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <MessageSquare className="h-4 w-4 text-orange-600" />
+              <Label htmlFor="notes" className="font-medium">Notes (Optional)</Label>
+            </div>
+            <Textarea
+              id="notes"
+              placeholder="Add any special notes, requests, or instructions for this booking..."
+              value={notes}
+              onChange={(e) => onNotesChange(e.target.value)}
+              rows={3}
+              className="resize-none"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
