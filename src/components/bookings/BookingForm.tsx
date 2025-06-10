@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -17,14 +18,9 @@ import { Users, User, Calendar, FileText } from 'lucide-react';
 
 interface BookingFormProps {
   onSuccess?: () => void;
-  initialData?: {
-    startTime?: string;
-    staffId?: string;
-    notes?: string;
-  };
 }
 
-export const BookingForm = ({ onSuccess, initialData }: BookingFormProps) => {
+export const BookingForm = ({ onSuccess }: BookingFormProps) => {
   const [formData, setFormData] = useState({
     customerId: '',
     staffId: '',
@@ -33,18 +29,6 @@ export const BookingForm = ({ onSuccess, initialData }: BookingFormProps) => {
     notes: ''
   });
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
-
-  // Apply initial data when component mounts or initialData changes
-  useEffect(() => {
-    if (initialData) {
-      setFormData(prev => ({
-        ...prev,
-        startTime: initialData.startTime || prev.startTime,
-        staffId: initialData.staffId || prev.staffId,
-        notes: initialData.notes || prev.notes
-      }));
-    }
-  }, [initialData]);
 
   const { tenantId } = useTenant();
   

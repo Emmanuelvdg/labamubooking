@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -6,7 +7,6 @@ import { format, addDays, subDays, isSameDay } from 'date-fns';
 import { useState } from 'react';
 import { NewBookingDialog } from '@/components/bookings/NewBookingDialog';
 import { EditBookingDialog } from '@/components/bookings/EditBookingDialog';
-import { QuickActionsContextMenu } from './QuickActionsContextMenu';
 
 interface DailyCalendarViewProps {
   selectedDate: Date;
@@ -107,38 +107,30 @@ export const DailyCalendarView = ({
                       const staffBookings = getBookingsForStaffAtTime(member.id, timeSlot);
                       
                       return (
-                        <QuickActionsContextMenu
-                          key={`${member.id}-${timeSlot}`}
-                          selectedDate={selectedDate}
-                          selectedTime={timeSlot}
-                          selectedStaffId={member.id}
-                          staffName={member.name}
-                        >
-                          <div className="min-h-[60px] p-1 border-r border-gray-100">
-                            {staffBookings.map((booking) => (
-                              <div
-                                key={booking.id}
-                                className={`text-xs p-2 rounded mb-1 border-l-4 cursor-pointer transition-colors hover:opacity-80 ${
-                                  booking.status === 'confirmed' ? 'bg-blue-50 border-l-blue-500 text-blue-800' :
-                                  booking.status === 'pending' ? 'bg-yellow-50 border-l-yellow-500 text-yellow-800' :
-                                  booking.status === 'completed' ? 'bg-green-50 border-l-green-500 text-green-800' :
-                                  'bg-gray-50 border-l-gray-500 text-gray-800'
-                                }`}
-                                onClick={() => handleBookingClick(booking)}
-                                title="Click to edit appointment"
-                              >
-                                <div className="font-medium truncate">{booking.customer.name}</div>
-                                <div className="text-xs opacity-75 truncate">{booking.service.name}</div>
-                                <div className="text-xs opacity-60">{formatBookingTime(booking)}</div>
-                              </div>
-                            ))}
-                            {staffBookings.length === 0 && (
-                              <div className="h-full flex items-center justify-center text-gray-300 text-xs">
-                                Available
-                              </div>
-                            )}
-                          </div>
-                        </QuickActionsContextMenu>
+                        <div key={`${member.id}-${timeSlot}`} className="min-h-[60px] p-1 border-r border-gray-100">
+                          {staffBookings.map((booking) => (
+                            <div
+                              key={booking.id}
+                              className={`text-xs p-2 rounded mb-1 border-l-4 cursor-pointer transition-colors hover:opacity-80 ${
+                                booking.status === 'confirmed' ? 'bg-blue-50 border-l-blue-500 text-blue-800' :
+                                booking.status === 'pending' ? 'bg-yellow-50 border-l-yellow-500 text-yellow-800' :
+                                booking.status === 'completed' ? 'bg-green-50 border-l-green-500 text-green-800' :
+                                'bg-gray-50 border-l-gray-500 text-gray-800'
+                              }`}
+                              onClick={() => handleBookingClick(booking)}
+                              title="Click to edit appointment"
+                            >
+                              <div className="font-medium truncate">{booking.customer.name}</div>
+                              <div className="text-xs opacity-75 truncate">{booking.service.name}</div>
+                              <div className="text-xs opacity-60">{formatBookingTime(booking)}</div>
+                            </div>
+                          ))}
+                          {staffBookings.length === 0 && (
+                            <div className="h-full flex items-center justify-center text-gray-300 text-xs">
+                              Available
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>

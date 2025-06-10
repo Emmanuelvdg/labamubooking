@@ -45,8 +45,8 @@ export const CalendarGrid = ({
       
       calendarDays.push({
         day: dayNumber,
-        date: new Date(currentDateIterator),
-        bookings: dayBookings
+        bookings: dayBookings,
+        date: new Date(currentDateIterator)
       });
       
       currentDateIterator.setDate(currentDateIterator.getDate() + 1);
@@ -92,7 +92,6 @@ export const CalendarGrid = ({
               <CalendarDay
                 key={index}
                 day={dayData.day}
-                date={dayData.date}
                 bookings={dayData.bookings}
                 formatBookingTime={formatBookingTime}
                 onBookingClick={handleBookingClick}
