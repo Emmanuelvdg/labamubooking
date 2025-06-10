@@ -46,22 +46,7 @@ export const useWaitlist = () => {
     }) => {
       if (!currentTenantId) throw new Error('No tenant selected');
 
-      // Get the next queue position
-      const { data: maxPositionData, error: positionError } = await supabase
-        .from('waitlist_entries')
-        .select('queue_position')
-        .eq('tenant_id', currentTenantId)
-        .eq('service_id', entry.service_id)
-        .eq('status', 'waiting')
-        .order('queue_position', { ascending: false })
-        .limit(1);
-
-      if (positionError) throw positionError;
-
-      const nextPosition = maxPositionData && maxPositionData.length > 0 
-        ? maxPositionData[0].queue_position + 1 
-        : 1;
-
+      // The database trigger will automatically assign queue_position
       const { data, error } = await supabase
         .from('waitlist_entries')
         .insert({
@@ -71,8 +56,8 @@ export const useWaitlist = () => {
           estimated_wait_minutes: entry.estimated_wait_minutes || null,
           notes: entry.notes || null,
           status: entry.status,
-          tenant_id: currentTenantId,
-          queue_position: nextPosition
+          tenant_id: currentTenantId
+          // queue_position will be set automatically by the database trigger
         })
         .select(`
           *,
