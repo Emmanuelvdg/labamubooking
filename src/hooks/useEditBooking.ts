@@ -25,11 +25,27 @@ export const useEditBooking = () => {
     mutationFn: async (editData: EditBookingData) => {
       console.log('Editing booking:', editData);
       
-      // Get the current authenticated user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        throw new Error('User not authenticated');
+      // First check if we have a valid session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Authentication session error. Please refresh the page and try again.');
       }
+      
+      if (!session || !session.user) {
+        console.error('No valid session found');
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      
+      // Validate that the session is not expired
+      const now = Math.floor(Date.now() / 1000);
+      if (session.expires_at && session.expires_at < now) {
+        console.error('Session has expired');
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      
+      console.log('Valid session found, proceeding with booking update');
       
       // First, get the current booking data
       const { data: currentBooking, error: fetchError } = await supabase
@@ -43,7 +59,10 @@ export const useEditBooking = () => {
         .eq('id', editData.id)
         .single();
       
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Error fetching current booking:', fetchError);
+        throw new Error('Failed to fetch current booking data');
+      }
       
       // Prepare the update data
       const updateData: any = {};
@@ -116,19 +135,27 @@ export const useEditBooking = () => {
         `)
         .single();
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating booking:', updateError);
+        throw new Error('Failed to update booking: ' + updateError.message);
+      }
       
       // Log the edit if there were changes
       if (Object.keys(oldValues).length > 0) {
-        await logBookingEdit.mutateAsync({
-          bookingId: editData.id,
-          tenantId: currentBooking.tenant_id,
-          editedBy: user.id, // Use authenticated user ID instead of customer ID
-          editType,
-          oldValues,
-          newValues,
-          reason: editData.reason,
-        });
+        try {
+          await logBookingEdit.mutateAsync({
+            bookingId: editData.id,
+            tenantId: currentBooking.tenant_id,
+            editedBy: session.user.id,
+            editType,
+            oldValues,
+            newValues,
+            reason: editData.reason,
+          });
+        } catch (logError) {
+          console.warn('Failed to log booking edit:', logError);
+          // Don't fail the entire operation if logging fails
+        }
       }
       
       return {
@@ -178,9 +205,20 @@ export const useEditBooking = () => {
     },
     onError: (error) => {
       console.error('Error updating booking:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to update booking';
+      if (error.message.includes('session')) {
+        errorMessage = 'Your session has expired. Please refresh the page and log in again.';
+      } else if (error.message.includes('authentication')) {
+        errorMessage = 'Authentication error. Please log in again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: 'Error',
-        description: 'Failed to update booking',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
