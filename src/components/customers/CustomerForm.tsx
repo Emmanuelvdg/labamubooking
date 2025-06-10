@@ -1,35 +1,87 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Customer } from '@/types';
+import { useCreateCustomer, useUpdateCustomer } from '@/hooks/useCustomers';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface CustomerFormProps {
   customer?: Partial<Customer>;
-  onSubmit: (customer: Omit<Customer, 'id'>) => void;
-  onCancel: () => void;
+  initialData?: Customer;
+  onSubmit?: (customer: Omit<Customer, 'id'>) => void;
+  onSuccess?: (customerId?: string) => void;
+  onCancel?: () => void;
   isLoading?: boolean;
 }
 
-export const CustomerForm = ({ customer, onSubmit, onCancel, isLoading }: CustomerFormProps) => {
+export const CustomerForm = ({ 
+  customer, 
+  initialData, 
+  onSubmit, 
+  onSuccess, 
+  onCancel, 
+  isLoading: externalLoading 
+}: CustomerFormProps) => {
+  const { tenantId } = useTenant();
+  const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
+  
+  // Use initialData if provided, otherwise use customer prop
+  const customerData = initialData || customer;
+  
   const [formData, setFormData] = useState({
-    name: customer?.name || '',
-    email: customer?.email || '',
-    phone: customer?.phone || '',
-    birthDate: customer?.birthDate || '',
+    name: customerData?.name || '',
+    email: customerData?.email || '',
+    phone: customerData?.phone || '',
+    birthDate: customerData?.birthDate || '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const isUpdating = Boolean(customerData?.id);
+  const internalLoading = createCustomer.isPending || updateCustomer.isPending;
+  const loading = externalLoading || internalLoading;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    
+    if (!tenantId) return;
+
+    const customerPayload = {
       ...formData,
-      tenantId: customer?.tenantId || '', // This will be set by the parent component
-    });
+      tenantId,
+    };
+
+    // If onSubmit is provided, use the parent's submit handler
+    if (onSubmit) {
+      onSubmit(customerPayload);
+      return;
+    }
+
+    // Otherwise, handle the mutation internally
+    try {
+      if (isUpdating && customerData?.id) {
+        await updateCustomer.mutateAsync({
+          id: customerData.id,
+          ...customerPayload,
+        });
+        onSuccess?.();
+      } else {
+        const result = await createCustomer.mutateAsync(customerPayload);
+        onSuccess?.(result.id);
+      }
+    } catch (error) {
+      console.error('Error saving customer:', error);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   return (
@@ -76,11 +128,13 @@ export const CustomerForm = ({ customer, onSubmit, onCancel, isLoading }: Custom
       </div>
 
       <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : customer?.id ? 'Update' : 'Create'}
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+        )}
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Saving...' : isUpdating ? 'Update' : 'Create'}
         </Button>
       </div>
     </form>

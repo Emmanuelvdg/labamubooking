@@ -22,7 +22,10 @@ export const CustomerFormModal = ({ open, onOpenChange, onCustomerCreated }: Cus
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
         </DialogHeader>
-        <CustomerForm onSuccess={handleSuccess} />
+        <CustomerForm 
+          onSuccess={handleSuccess}
+          onCancel={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );

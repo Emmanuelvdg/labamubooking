@@ -20,7 +20,10 @@ export const NewCustomerDialog = () => {
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
         </DialogHeader>
-        <CustomerForm onSuccess={() => setOpen(false)} />
+        <CustomerForm 
+          onSuccess={() => setOpen(false)}
+          onCancel={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );

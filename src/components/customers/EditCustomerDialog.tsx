@@ -19,7 +19,8 @@ export const EditCustomerDialog = ({ customer, open, onOpenChange }: EditCustome
         </DialogHeader>
         <CustomerForm 
           initialData={customer}
-          onSuccess={() => onOpenChange(false)} 
+          onSuccess={() => onOpenChange(false)}
+          onCancel={() => onOpenChange(false)}
         />
       </DialogContent>
     </Dialog>
