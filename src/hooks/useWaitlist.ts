@@ -36,19 +36,43 @@ export const useWaitlist = () => {
   });
 
   const addToWaitlistMutation = useMutation({
-    mutationFn: async (entry: Omit<WaitlistEntry, 'id' | 'queue_position' | 'created_at' | 'updated_at' | 'tenant_id'>) => {
+    mutationFn: async (entry: {
+      customer_id: string;
+      service_id: string;
+      preferred_staff_id?: string;
+      estimated_wait_minutes?: number;
+      notes?: string;
+      status: 'waiting' | 'called' | 'served' | 'cancelled' | 'no_show';
+    }) => {
       if (!currentTenantId) throw new Error('No tenant selected');
+
+      // Get the next queue position
+      const { data: maxPositionData, error: positionError } = await supabase
+        .from('waitlist_entries')
+        .select('queue_position')
+        .eq('tenant_id', currentTenantId)
+        .eq('service_id', entry.service_id)
+        .eq('status', 'waiting')
+        .order('queue_position', { ascending: false })
+        .limit(1);
+
+      if (positionError) throw positionError;
+
+      const nextPosition = maxPositionData && maxPositionData.length > 0 
+        ? maxPositionData[0].queue_position + 1 
+        : 1;
 
       const { data, error } = await supabase
         .from('waitlist_entries')
         .insert({
           customer_id: entry.customer_id,
           service_id: entry.service_id,
-          preferred_staff_id: entry.preferred_staff_id,
-          estimated_wait_minutes: entry.estimated_wait_minutes,
-          notes: entry.notes,
+          preferred_staff_id: entry.preferred_staff_id || null,
+          estimated_wait_minutes: entry.estimated_wait_minutes || null,
+          notes: entry.notes || null,
           status: entry.status,
-          tenant_id: currentTenantId
+          tenant_id: currentTenantId,
+          queue_position: nextPosition
         })
         .select(`
           *,
