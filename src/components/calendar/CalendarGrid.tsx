@@ -1,8 +1,11 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CalendarDay } from './CalendarDay';
+import { NewBookingDialog } from '@/components/bookings/NewBookingDialog';
+import { EditBookingDialog } from '@/components/bookings/EditBookingDialog';
 import { Booking } from '@/types';
 
 interface CalendarGridProps {
@@ -13,63 +16,103 @@ interface CalendarGridProps {
   onNavigateMonth: (direction: 'prev' | 'next') => void;
 }
 
-export const CalendarGrid = ({
-  currentMonth,
-  currentDate,
-  bookingsByDay,
-  formatBookingTime,
-  onNavigateMonth
+export const CalendarGrid = ({ 
+  currentMonth, 
+  currentDate, 
+  bookingsByDay, 
+  formatBookingTime, 
+  onNavigateMonth 
 }: CalendarGridProps) => {
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+  const [showNewBookingDialog, setShowNewBookingDialog] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // Generate calendar grid
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+  const startDate = new Date(firstDayOfMonth);
+  startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay());
+
   const calendarDays = [];
+  const currentDateIterator = new Date(startDate);
 
-  // Add empty cells for days before the first day of the month
-  for (let i = 0; i < firstDayOfMonth; i++) {
-    calendarDays.push(null);
+  for (let week = 0; week < 6; week++) {
+    for (let day = 0; day < 7; day++) {
+      const dayNumber = currentDateIterator.getMonth() === currentDate.getMonth() 
+        ? currentDateIterator.getDate() 
+        : null;
+      
+      const dayBookings = dayNumber ? bookingsByDay[dayNumber] || [] : [];
+      
+      calendarDays.push({
+        day: dayNumber,
+        bookings: dayBookings,
+        date: new Date(currentDateIterator)
+      });
+      
+      currentDateIterator.setDate(currentDateIterator.getDate() + 1);
+    }
   }
 
-  // Add days of the month
-  for (let day = 1; day <= daysInMonth; day++) {
-    calendarDays.push(day);
-  }
+  const handleBookingClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">{currentMonth}</CardTitle>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm" onClick={() => onNavigateMonth('prev')}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => onNavigateMonth('next')}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-7 gap-1 mb-4">
-          {days.map(day => (
-            <div key={day} className="p-2 text-center font-medium text-gray-500 border-b">
-              {day}
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl">{currentMonth}</CardTitle>
+            <div className="flex items-center space-x-2">
+              <Button onClick={() => onNavigateMonth('prev')} variant="outline" size="sm">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => onNavigateMonth('next')} variant="outline" size="sm">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => setShowNewBookingDialog(true)} size="sm">
+                Add Appointment
+              </Button>
             </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {calendarDays.map((day, index) => (
-            <CalendarDay
-              key={index}
-              day={day}
-              bookings={day ? bookingsByDay[day] : undefined}
-              formatBookingTime={formatBookingTime}
-            />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Days of week header */}
+          <div className="grid grid-cols-7 gap-2 mb-4">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="text-center font-medium text-gray-600 py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-2">
+            {calendarDays.map((dayData, index) => (
+              <CalendarDay
+                key={index}
+                day={dayData.day}
+                bookings={dayData.bookings}
+                formatBookingTime={formatBookingTime}
+                onBookingClick={handleBookingClick}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <NewBookingDialog 
+        open={showNewBookingDialog}
+        onOpenChange={setShowNewBookingDialog}
+      />
+
+      {selectedBooking && (
+        <EditBookingDialog
+          booking={selectedBooking}
+          open={!!selectedBooking}
+          onOpenChange={(open) => !open && setSelectedBooking(null)}
+        />
+      )}
+    </>
   );
 };

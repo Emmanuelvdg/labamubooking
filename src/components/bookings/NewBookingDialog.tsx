@@ -5,17 +5,32 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { BookingForm } from './BookingForm';
 
-export const NewBookingDialog = () => {
-  const [open, setOpen] = useState(false);
+interface NewBookingDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  triggerButton?: React.ReactNode;
+}
+
+export const NewBookingDialog = ({ open, onOpenChange, triggerButton }: NewBookingDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isOpen = open !== undefined ? open : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
+
+  const defaultTrigger = (
+    <Button>
+      <Plus className="h-4 w-4 mr-2" />
+      New Booking
+    </Button>
+  );
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          New Booking
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={setOpen}>
+      {!open && (
+        <DialogTrigger asChild>
+          {triggerButton || defaultTrigger}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Booking</DialogTitle>

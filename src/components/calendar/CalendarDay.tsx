@@ -5,9 +5,10 @@ interface CalendarDayProps {
   day: number | null;
   bookings?: Booking[];
   formatBookingTime: (booking: Booking) => string;
+  onBookingClick?: (booking: Booking) => void;
 }
 
-export const CalendarDay = ({ day, bookings, formatBookingTime }: CalendarDayProps) => {
+export const CalendarDay = ({ day, bookings, formatBookingTime, onBookingClick }: CalendarDayProps) => {
   return (
     <div
       className={`min-h-[100px] p-2 border rounded-lg ${
@@ -20,12 +21,14 @@ export const CalendarDay = ({ day, bookings, formatBookingTime }: CalendarDayPro
           {bookings?.map(booking => (
             <div
               key={booking.id}
-              className={`text-xs p-1 rounded mb-1 truncate ${
+              className={`text-xs p-1 rounded mb-1 truncate cursor-pointer transition-colors hover:opacity-80 ${
                 booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                 booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                 booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
                 'bg-gray-100 text-gray-800'
               }`}
+              onClick={() => onBookingClick?.(booking)}
+              title="Click to edit appointment"
             >
               <div className="font-medium">{formatBookingTime(booking)}</div>
               <div className="truncate">{booking.customer.name}</div>
