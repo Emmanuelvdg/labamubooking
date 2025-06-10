@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CustomerSelection } from '@/components/bookings/CustomerSelection';
-import { ServiceSelection } from '@/components/bookings/ServiceSelection';
-import { StaffSelection } from '@/components/bookings/StaffSelection';
+import { SimpleCustomerSelection } from './SimpleCustomerSelection';
+import { SimpleServiceSelection } from './SimpleServiceSelection';
+import { SimpleStaffSelection } from './SimpleStaffSelection';
 import { Plus } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useServices } from '@/hooks/useServices';
@@ -70,19 +70,19 @@ export const AddToWaitlistDialog = ({ onAddToWaitlist, isLoading }: AddToWaitlis
           <DialogTitle>Add Customer to Waitlist</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <CustomerSelection
+          <SimpleCustomerSelection
             selectedCustomerId={customerId}
             onCustomerSelect={setCustomerId}
             customers={customers}
           />
 
-          <ServiceSelection
+          <SimpleServiceSelection
             selectedServiceId={serviceId}
             onServiceSelect={setServiceId}
             services={services}
           />
 
-          <StaffSelection
+          <SimpleStaffSelection
             selectedStaffId={preferredStaffId}
             onStaffSelect={setPreferredStaffId}
             staff={staff}
