@@ -11,3 +11,6 @@ export const useTenant = () => {
   }
   return context;
 };
+
+// Re-export TenantProvider from the providers directory for convenience
+export { TenantProvider } from '@/components/providers/TenantProvider';

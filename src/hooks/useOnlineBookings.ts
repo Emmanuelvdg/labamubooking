@@ -16,7 +16,27 @@ export const usePublicBusinessProfile = (slug: string) => {
         .single();
 
       if (error) throw error;
-      return data as PublicBusinessProfile;
+      
+      // Map snake_case to camelCase
+      return {
+        id: data.id,
+        tenantId: data.tenant_id,
+        slug: data.slug,
+        displayName: data.display_name,
+        description: data.description,
+        logoUrl: data.logo_url,
+        coverImageUrl: data.cover_image_url,
+        contactEmail: data.contact_email,
+        contactPhone: data.contact_phone,
+        address: data.address,
+        businessHours: data.business_hours,
+        socialLinks: data.social_links,
+        isActive: data.is_active,
+        seoTitle: data.seo_title,
+        seoDescription: data.seo_description,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      } as PublicBusinessProfile;
     },
     enabled: !!slug,
   });
@@ -33,7 +53,26 @@ export const useBookingSettings = (tenantId: string) => {
         .single();
 
       if (error) throw error;
-      return data as BookingSettings;
+      
+      // Map snake_case to camelCase
+      return {
+        id: data.id,
+        tenantId: data.tenant_id,
+        advanceBookingDays: data.advance_booking_days,
+        minAdvanceHours: data.min_advance_hours,
+        maxAdvanceHours: data.max_advance_hours,
+        allowSameDayBooking: data.allow_same_day_booking,
+        requireCustomerPhone: data.require_customer_phone,
+        requireCustomerNotes: data.require_customer_notes,
+        autoConfirmBookings: data.auto_confirm_bookings,
+        sendConfirmationEmail: data.send_confirmation_email,
+        sendReminderEmail: data.send_reminder_email,
+        reminderHoursBefore: data.reminder_hours_before,
+        cancellationPolicy: data.cancellation_policy,
+        termsAndConditions: data.terms_and_conditions,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      } as BookingSettings;
     },
     enabled: !!tenantId,
   });
@@ -55,7 +94,23 @@ export const usePublicStaffProfiles = (tenantId: string) => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return data as (PublicStaffProfile & { staff: any })[];
+      
+      // Map snake_case to camelCase
+      return data.map(item => ({
+        id: item.id,
+        staffId: item.staff_id,
+        tenantId: item.tenant_id,
+        displayName: item.display_name,
+        bio: item.bio,
+        profileImageUrl: item.profile_image_url,
+        specialties: item.specialties,
+        yearsExperience: item.years_experience,
+        isVisible: item.is_visible,
+        displayOrder: item.display_order,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+        staff: item.staff,
+      })) as (PublicStaffProfile & { staff: any })[];
     },
     enabled: !!tenantId,
   });
@@ -77,7 +132,23 @@ export const usePublicServiceProfiles = (tenantId: string) => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return data as (PublicServiceProfile & { services: any })[];
+      
+      // Map snake_case to camelCase
+      return data.map(item => ({
+        id: item.id,
+        serviceId: item.service_id,
+        tenantId: item.tenant_id,
+        displayName: item.display_name,
+        description: item.description,
+        imageUrl: item.image_url,
+        features: item.features,
+        isVisible: item.is_visible,
+        displayOrder: item.display_order,
+        onlineBookingEnabled: item.online_booking_enabled,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+        services: item.services,
+      })) as (PublicServiceProfile & { services: any })[];
     },
     enabled: !!tenantId,
   });
@@ -105,7 +176,20 @@ export const useAvailableSlots = (tenantId: string, staffId: string, serviceId: 
         .order('start_time', { ascending: true });
 
       if (error) throw error;
-      return data as AvailabilitySlot[];
+      
+      // Map snake_case to camelCase
+      return data.map(item => ({
+        id: item.id,
+        tenantId: item.tenant_id,
+        staffId: item.staff_id,
+        serviceId: item.service_id,
+        startTime: item.start_time,
+        endTime: item.end_time,
+        isAvailable: item.is_available,
+        isBooked: item.is_booked,
+        bookingId: item.booking_id,
+        createdAt: item.created_at,
+      })) as AvailabilitySlot[];
     },
     enabled: !!tenantId && !!staffId && !!serviceId && !!date,
   });
@@ -158,7 +242,29 @@ export const useCreateOnlineBooking = () => {
         .single();
 
       if (error) throw error;
-      return data as OnlineBooking;
+      
+      // Map snake_case to camelCase
+      return {
+        id: data.id,
+        tenantId: data.tenant_id,
+        customerName: data.customer_name,
+        customerEmail: data.customer_email,
+        customerPhone: data.customer_phone,
+        serviceId: data.service_id,
+        staffId: data.staff_id,
+        startTime: data.start_time,
+        endTime: data.end_time,
+        status: data.status,
+        customerNotes: data.customer_notes,
+        internalNotes: data.internal_notes,
+        confirmationToken: data.confirmation_token,
+        cancellationToken: data.cancellation_token,
+        totalPrice: data.total_price,
+        bookingReference: data.booking_reference,
+        source: data.source,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      } as OnlineBooking;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['available-slots'] });
@@ -192,7 +298,31 @@ export const useOnlineBookings = (tenantId: string) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as (OnlineBooking & { services: any; staff: any })[];
+      
+      // Map snake_case to camelCase
+      return data.map(item => ({
+        id: item.id,
+        tenantId: item.tenant_id,
+        customerName: item.customer_name,
+        customerEmail: item.customer_email,
+        customerPhone: item.customer_phone,
+        serviceId: item.service_id,
+        staffId: item.staff_id,
+        startTime: item.start_time,
+        endTime: item.end_time,
+        status: item.status,
+        customerNotes: item.customer_notes,
+        internalNotes: item.internal_notes,
+        confirmationToken: item.confirmation_token,
+        cancellationToken: item.cancellation_token,
+        totalPrice: item.total_price,
+        bookingReference: item.booking_reference,
+        source: item.source,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+        services: item.services,
+        staff: item.staff,
+      })) as (OnlineBooking & { services: any; staff: any })[];
     },
     enabled: !!tenantId,
   });

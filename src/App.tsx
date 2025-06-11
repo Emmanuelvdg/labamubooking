@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -16,9 +17,9 @@ import CustomerEngagement from '@/pages/CustomerEngagement';
 import Addons from '@/pages/Addons';
 import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
-import Layout from '@/components/layout/Layout';
-import AuthGuard from '@/components/auth/AuthGuard';
-import { TenantProvider } from '@/contexts/TenantContext';
+import { Layout } from '@/components/layout/Layout';
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { TenantProvider } from '@/components/providers/TenantProvider';
 import PublicBooking from '@/pages/PublicBooking';
 
 function App() {
