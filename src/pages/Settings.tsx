@@ -1,9 +1,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Users, Settings as SettingsIcon } from 'lucide-react';
+import { Building2, Users, Settings as SettingsIcon, Globe } from 'lucide-react';
 import { BusinessSettingsForm } from '@/components/settings/BusinessSettingsForm';
 import { GeneralSettingsForm } from '@/components/settings/GeneralSettingsForm';
+import { PublicBookingProfileForm } from '@/components/settings/PublicBookingProfileForm';
+import { BookingSettingsForm } from '@/components/settings/BookingSettingsForm';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const Settings = () => {
@@ -17,7 +19,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="general" className="flex items-center">
             <SettingsIcon className="h-4 w-4 mr-2" />
             {t('general')}
@@ -25,6 +27,10 @@ const Settings = () => {
           <TabsTrigger value="business" className="flex items-center">
             <Building2 className="h-4 w-4 mr-2" />
             {t('business')}
+          </TabsTrigger>
+          <TabsTrigger value="booking" className="flex items-center">
+            <Globe className="h-4 w-4 mr-2" />
+            Online Booking
           </TabsTrigger>
           <TabsTrigger value="users" className="flex items-center">
             <Users className="h-4 w-4 mr-2" />
@@ -38,6 +44,11 @@ const Settings = () => {
 
         <TabsContent value="business" className="space-y-6">
           <BusinessSettingsForm />
+        </TabsContent>
+
+        <TabsContent value="booking" className="space-y-6">
+          <PublicBookingProfileForm />
+          <BookingSettingsForm />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
