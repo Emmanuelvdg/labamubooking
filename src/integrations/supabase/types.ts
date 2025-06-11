@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      addon_integrations: {
+        Row: {
+          api_credentials: Json | null
+          configuration: Json
+          created_at: string
+          id: string
+          integration_type: string
+          is_enabled: boolean
+          last_sync_at: string | null
+          sync_settings: Json | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          api_credentials?: Json | null
+          configuration?: Json
+          created_at?: string
+          id?: string
+          integration_type: string
+          is_enabled?: boolean
+          last_sync_at?: string | null
+          sync_settings?: Json | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          api_credentials?: Json | null
+          configuration?: Json
+          created_at?: string
+          id?: string
+          integration_type?: string
+          is_enabled?: boolean
+          last_sync_at?: string | null
+          sync_settings?: Json | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -444,6 +483,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      external_bookings: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          end_time: string
+          external_booking_id: string
+          external_data: Json | null
+          id: string
+          integration_type: string
+          notes: string | null
+          service_name: string
+          staff_name: string | null
+          start_time: string
+          status: string
+          synced_booking_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          end_time: string
+          external_booking_id: string
+          external_data?: Json | null
+          id?: string
+          integration_type: string
+          notes?: string | null
+          service_name: string
+          staff_name?: string | null
+          start_time: string
+          status?: string
+          synced_booking_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          end_time?: string
+          external_booking_id?: string
+          external_data?: Json | null
+          id?: string
+          integration_type?: string
+          notes?: string | null
+          service_name?: string
+          staff_name?: string | null
+          start_time?: string
+          status?: string
+          synced_booking_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      integration_sync_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_details: Json | null
+          id: string
+          integration_type: string
+          records_failed: number | null
+          records_processed: number | null
+          started_at: string
+          status: string
+          sync_type: string
+          tenant_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_details?: Json | null
+          id?: string
+          integration_type: string
+          records_failed?: number | null
+          records_processed?: number | null
+          started_at?: string
+          status: string
+          sync_type: string
+          tenant_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_details?: Json | null
+          id?: string
+          integration_type?: string
+          records_failed?: number | null
+          records_processed?: number | null
+          started_at?: string
+          status?: string
+          sync_type?: string
+          tenant_id?: string
+        }
+        Relationships: []
       }
       permissions: {
         Row: {

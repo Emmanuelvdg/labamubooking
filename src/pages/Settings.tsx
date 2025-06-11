@@ -1,10 +1,14 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Users, Settings as SettingsIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building2, Users, Settings as SettingsIcon, Puzzle } from 'lucide-react';
 import { BusinessSettingsForm } from '@/components/settings/BusinessSettingsForm';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6">
       <div>
@@ -13,7 +17,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="general" className="flex items-center">
             <SettingsIcon className="h-4 w-4 mr-2" />
             General
@@ -25,6 +29,10 @@ const Settings = () => {
           <TabsTrigger value="users" className="flex items-center">
             <Users className="h-4 w-4 mr-2" />
             Users
+          </TabsTrigger>
+          <TabsTrigger value="addons" className="flex items-center">
+            <Puzzle className="h-4 w-4 mr-2" />
+            Add-ons
           </TabsTrigger>
         </TabsList>
 
@@ -56,6 +64,28 @@ const Settings = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">User management will be available here.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="addons" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Add-ons & Integrations</CardTitle>
+              <CardDescription>
+                Extend your business with powerful integrations and add-ons
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Connect with popular booking platforms and extend your business capabilities.
+                </p>
+                <Button onClick={() => navigate('/addons')}>
+                  <Puzzle className="h-4 w-4 mr-2" />
+                  Manage Add-ons
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
