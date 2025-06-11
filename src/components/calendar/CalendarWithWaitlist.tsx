@@ -14,19 +14,8 @@ export const CalendarWithWaitlist = () => {
 
   console.log('CalendarWithWaitlist: tenantId from useTenant():', tenantId);
 
-  // Safety check: don't render if no tenant is selected
-  if (!tenantId) {
-    console.warn('CalendarWithWaitlist: No tenant selected, showing fallback');
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">No Business Selected</h2>
-          <p className="text-gray-600">Please select a business from the header to view the calendar.</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Always call useCalendar hook - even if tenantId is null
+  // The hook will handle the null case internally
   const {
     currentDate,
     selectedDate,
@@ -44,7 +33,20 @@ export const CalendarWithWaitlist = () => {
     setSelectedDate,
     setSelectedStaffId,
     setSelectedServiceId,
-  } = useCalendar(tenantId);
+  } = useCalendar(tenantId || '');
+
+  // Safety check: don't render if no tenant is selected
+  if (!tenantId) {
+    console.warn('CalendarWithWaitlist: No tenant selected, showing fallback');
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">No Business Selected</h2>
+          <p className="text-gray-600">Please select a business from the header to view the calendar.</p>
+        </div>
+      </div>
+    );
+  }
 
   const hasActiveFilters = selectedStaffId !== 'all' || selectedServiceId !== 'all';
 
