@@ -1,21 +1,28 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { WaitlistEntry, WaitlistEntryInsert } from '@/types/waitlist';
-import { useTenantContext } from './useTenantContext';
+import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
 
 export const useWaitlist = () => {
-  const { currentTenantId } = useTenantContext();
+  const { tenantId } = useTenant();
   const queryClient = useQueryClient();
+
+  console.log('useWaitlist - tenantId:', tenantId);
 
   const {
     data: waitlistEntries = [],
     isLoading,
     error
   } = useQuery({
-    queryKey: ['waitlist', currentTenantId],
+    queryKey: ['waitlist', tenantId],
     queryFn: async () => {
-      if (!currentTenantId) return [];
+      if (!tenantId) {
+        console.log('useWaitlist - No tenantId, returning empty array');
+        return [];
+      }
+
+      console.log('useWaitlist - Fetching waitlist entries for tenant:', tenantId);
 
       const { data, error } = await supabase
         .from('waitlist_entries')
@@ -25,13 +32,18 @@ export const useWaitlist = () => {
           service:services(id, name, duration, price),
           preferred_staff:staff(id, name)
         `)
-        .eq('tenant_id', currentTenantId)
+        .eq('tenant_id', tenantId)
         .order('queue_position', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('useWaitlist - Error fetching waitlist entries:', error);
+        throw error;
+      }
+      
+      console.log('useWaitlist - Fetched waitlist entries:', data);
       return data as unknown as WaitlistEntry[];
     },
-    enabled: !!currentTenantId
+    enabled: !!tenantId
   });
 
   const addToWaitlistMutation = useMutation({
@@ -43,7 +55,9 @@ export const useWaitlist = () => {
       notes?: string;
       status: 'waiting' | 'called' | 'served' | 'cancelled' | 'no_show';
     }) => {
-      if (!currentTenantId) throw new Error('No tenant selected');
+      if (!tenantId) throw new Error('No tenant selected');
+
+      console.log('useWaitlist - Adding to waitlist with tenantId:', tenantId, 'entry:', entry);
 
       const insertData: WaitlistEntryInsert = {
         customer_id: entry.customer_id,
@@ -52,7 +66,7 @@ export const useWaitlist = () => {
         estimated_wait_minutes: entry.estimated_wait_minutes,
         notes: entry.notes,
         status: entry.status,
-        tenant_id: currentTenantId
+        tenant_id: tenantId
         // queue_position is intentionally omitted - will be set by database trigger
       };
 
@@ -67,7 +81,12 @@ export const useWaitlist = () => {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('useWaitlist - Error adding to waitlist:', error);
+        throw error;
+      }
+      
+      console.log('useWaitlist - Successfully added to waitlist:', data);
       return data as unknown as WaitlistEntry;
     },
     onSuccess: () => {

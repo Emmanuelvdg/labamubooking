@@ -12,7 +12,7 @@ import { Plus } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useServices } from '@/hooks/useServices';
 import { useStaff } from '@/hooks/useStaff';
-import { useTenantContext } from '@/hooks/useTenantContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface AddToWaitlistDialogProps {
   onAddToWaitlist: (entry: any) => void;
@@ -27,10 +27,15 @@ export const AddToWaitlistDialog = ({ onAddToWaitlist, isLoading }: AddToWaitlis
   const [estimatedWaitMinutes, setEstimatedWaitMinutes] = useState('');
   const [notes, setNotes] = useState('');
 
-  const { currentTenantId } = useTenantContext();
-  const { data: customers } = useCustomers(currentTenantId);
-  const { data: services } = useServices(currentTenantId);
-  const { data: staff } = useStaff(currentTenantId);
+  const { tenantId } = useTenant();
+  const { data: customers } = useCustomers(tenantId || '');
+  const { data: services } = useServices(tenantId || '');
+  const { data: staff } = useStaff(tenantId || '');
+
+  console.log('AddToWaitlistDialog - tenantId:', tenantId);
+  console.log('AddToWaitlistDialog - customers:', customers);
+  console.log('AddToWaitlistDialog - services:', services);
+  console.log('AddToWaitlistDialog - staff:', staff);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
