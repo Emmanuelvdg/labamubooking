@@ -128,6 +128,74 @@ export type Database = {
         }
         Relationships: []
       }
+      availability_slots: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          end_time: string
+          id: string
+          is_available: boolean
+          is_booked: boolean
+          service_id: string
+          staff_id: string
+          start_time: string
+          tenant_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          end_time: string
+          id?: string
+          is_available?: boolean
+          is_booked?: boolean
+          service_id: string
+          staff_id: string
+          start_time: string
+          tenant_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          is_booked?: boolean
+          service_id?: string
+          staff_id?: string
+          start_time?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_slots_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "online_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_slots_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_slots_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_slots_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_conflicts: {
         Row: {
           booking_id: string
@@ -196,6 +264,71 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: []
+      }
+      booking_settings: {
+        Row: {
+          advance_booking_days: number | null
+          allow_same_day_booking: boolean | null
+          auto_confirm_bookings: boolean | null
+          cancellation_policy: string | null
+          created_at: string
+          id: string
+          max_advance_hours: number | null
+          min_advance_hours: number | null
+          reminder_hours_before: number | null
+          require_customer_notes: boolean | null
+          require_customer_phone: boolean | null
+          send_confirmation_email: boolean | null
+          send_reminder_email: boolean | null
+          tenant_id: string
+          terms_and_conditions: string | null
+          updated_at: string
+        }
+        Insert: {
+          advance_booking_days?: number | null
+          allow_same_day_booking?: boolean | null
+          auto_confirm_bookings?: boolean | null
+          cancellation_policy?: string | null
+          created_at?: string
+          id?: string
+          max_advance_hours?: number | null
+          min_advance_hours?: number | null
+          reminder_hours_before?: number | null
+          require_customer_notes?: boolean | null
+          require_customer_phone?: boolean | null
+          send_confirmation_email?: boolean | null
+          send_reminder_email?: boolean | null
+          tenant_id: string
+          terms_and_conditions?: string | null
+          updated_at?: string
+        }
+        Update: {
+          advance_booking_days?: number | null
+          allow_same_day_booking?: boolean | null
+          auto_confirm_bookings?: boolean | null
+          cancellation_policy?: string | null
+          created_at?: string
+          id?: string
+          max_advance_hours?: number | null
+          min_advance_hours?: number | null
+          reminder_hours_before?: number | null
+          require_customer_notes?: boolean | null
+          require_customer_phone?: boolean | null
+          send_confirmation_email?: boolean | null
+          send_reminder_email?: boolean | null
+          tenant_id?: string
+          terms_and_conditions?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bookings: {
         Row: {
@@ -586,6 +719,94 @@ export type Database = {
         }
         Relationships: []
       }
+      online_bookings: {
+        Row: {
+          booking_reference: string | null
+          cancellation_token: string | null
+          confirmation_token: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_notes: string | null
+          customer_phone: string | null
+          end_time: string
+          id: string
+          internal_notes: string | null
+          service_id: string
+          source: string | null
+          staff_id: string
+          start_time: string
+          status: Database["public"]["Enums"]["booking_status"]
+          tenant_id: string
+          total_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          booking_reference?: string | null
+          cancellation_token?: string | null
+          confirmation_token?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_notes?: string | null
+          customer_phone?: string | null
+          end_time: string
+          id?: string
+          internal_notes?: string | null
+          service_id: string
+          source?: string | null
+          staff_id: string
+          start_time: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          tenant_id: string
+          total_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          booking_reference?: string | null
+          cancellation_token?: string | null
+          confirmation_token?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_notes?: string | null
+          customer_phone?: string | null
+          end_time?: string
+          id?: string
+          internal_notes?: string | null
+          service_id?: string
+          source?: string | null
+          staff_id?: string
+          start_time?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          tenant_id?: string
+          total_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "online_bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "online_bookings_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "online_bookings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           created_at: string
@@ -609,6 +830,194 @@ export type Database = {
           resource?: Database["public"]["Enums"]["resource_type"]
         }
         Relationships: []
+      }
+      public_business_profiles: {
+        Row: {
+          address: string | null
+          business_hours: Json | null
+          contact_email: string | null
+          contact_phone: string | null
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          display_name: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          social_links: Json | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          business_hours?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          social_links?: Json | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          business_hours?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          social_links?: Json | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_business_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_service_profiles: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          display_order: number | null
+          features: string[] | null
+          id: string
+          image_url: string | null
+          is_visible: boolean
+          online_booking_enabled: boolean
+          service_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          display_order?: number | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_visible?: boolean
+          online_booking_enabled?: boolean
+          service_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          display_order?: number | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_visible?: boolean
+          online_booking_enabled?: boolean
+          service_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_service_profiles_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_service_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_staff_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_name: string
+          display_order: number | null
+          id: string
+          is_visible: boolean
+          profile_image_url: string | null
+          specialties: string[] | null
+          staff_id: string
+          tenant_id: string
+          updated_at: string
+          years_experience: number | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          display_order?: number | null
+          id?: string
+          is_visible?: boolean
+          profile_image_url?: string | null
+          specialties?: string[] | null
+          staff_id: string
+          tenant_id: string
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          display_order?: number | null
+          id?: string
+          is_visible?: boolean
+          profile_image_url?: string | null
+          specialties?: string[] | null
+          staff_id?: string
+          tenant_id?: string
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_staff_profiles_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_staff_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reminder_configurations: {
         Row: {
@@ -1554,6 +1963,16 @@ export type Database = {
           severity: string
         }[]
       }
+      check_online_booking_conflicts: {
+        Args: {
+          p_tenant_id: string
+          p_staff_id: string
+          p_start_time: string
+          p_end_time: string
+          p_exclude_booking_id?: string
+        }
+        Returns: boolean
+      }
       check_roster_conflicts: {
         Args: {
           p_assignment_id: string
@@ -1568,6 +1987,10 @@ export type Database = {
           severity: string
           message: string
         }[]
+      }
+      generate_booking_reference: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       generate_roster_from_template: {
         Args: {
@@ -1653,6 +2076,12 @@ export type Database = {
       }
     }
     Enums: {
+      booking_status:
+        | "pending"
+        | "confirmed"
+        | "cancelled"
+        | "completed"
+        | "no_show"
       commission_type: "percentage" | "nominal"
       day_of_week:
         | "monday"
@@ -1788,6 +2217,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      booking_status: [
+        "pending",
+        "confirmed",
+        "cancelled",
+        "completed",
+        "no_show",
+      ],
       commission_type: ["percentage", "nominal"],
       day_of_week: [
         "monday",

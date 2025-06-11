@@ -1,75 +1,136 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import Index from '@/pages/Index';
+import Demo from '@/pages/Demo';
+import Auth from '@/pages/Auth';
+import TenantCreate from '@/pages/TenantCreate';
+import Dashboard from '@/pages/Dashboard';
+import Staff from '@/pages/Staff';
+import Customers from '@/pages/Customers';
+import Services from '@/pages/Services';
+import Bookings from '@/pages/Bookings';
+import Calendar from '@/pages/Calendar';
+import Commissions from '@/pages/Commissions';
+import CustomerEngagement from '@/pages/CustomerEngagement';
+import Addons from '@/pages/Addons';
+import Settings from '@/pages/Settings';
+import NotFound from '@/pages/NotFound';
+import Layout from '@/components/layout/Layout';
+import AuthGuard from '@/components/auth/AuthGuard';
+import { TenantProvider } from '@/contexts/TenantContext';
+import PublicBooking from '@/pages/PublicBooking';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { TenantProvider } from "@/components/providers/TenantProvider";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import TenantCreate from "./pages/TenantCreate";
-import Calendar from "./pages/Calendar";
-import Bookings from "./pages/Bookings";
-import Customers from "./pages/Customers";
-import Services from "./pages/Services";
-import Staff from "./pages/Staff";
-import Commissions from "./pages/Commissions";
-import Settings from "./pages/Settings";
-import Addons from "./pages/Addons";
-import CustomerEngagement from "./pages/CustomerEngagement";
-import NotFound from "./pages/NotFound";
-import Demo from "./pages/Demo";
-import BookingsDemo from "./pages/demo/BookingsDemo";
-import CalendarDemo from "./pages/demo/CalendarDemo";
-import StaffDemo from "./pages/demo/StaffDemo";
-import ServicesDemo from "./pages/demo/ServicesDemo";
-import CommissionsDemo from "./pages/demo/CommissionsDemo";
-import AnalyticsDemo from "./pages/demo/AnalyticsDemo";
-import { Layout } from "@/components/layout/Layout";
-import { AuthGuard } from "@/components/auth/AuthGuard";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <LanguageProvider>
-        <TenantProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+function App() {
+  return (
+    <Router>
+      <div className="min-h-screen bg-background">
+        <Toaster />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/demo/*" element={<Demo />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/tenant-create" element={<TenantCreate />} />
+          
+          {/* Public booking route - accessible without authentication */}
+          <Route path="/book/:slug" element={<PublicBooking />} />
+          
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
             <AuthGuard>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/tenant/create" element={<TenantCreate />} />
-                <Route path="/demo" element={<Demo />} />
-                <Route path="/demo/bookings" element={<BookingsDemo />} />
-                <Route path="/demo/calendar" element={<CalendarDemo />} />
-                <Route path="/demo/staff" element={<StaffDemo />} />
-                <Route path="/demo/services" element={<ServicesDemo />} />
-                <Route path="/demo/commissions" element={<CommissionsDemo />} />
-                <Route path="/demo/analytics" element={<AnalyticsDemo />} />
-                <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-                <Route path="/calendar" element={<Layout><Calendar /></Layout>} />
-                <Route path="/bookings" element={<Layout><Bookings /></Layout>} />
-                <Route path="/customers" element={<Layout><Customers /></Layout>} />
-                <Route path="/services" element={<Layout><Services /></Layout>} />
-                <Route path="/staff" element={<Layout><Staff /></Layout>} />
-                <Route path="/commissions" element={<Layout><Commissions /></Layout>} />
-                <Route path="/addons" element={<Layout><Addons /></Layout>} />
-                <Route path="/settings/reminders" element={<Layout><CustomerEngagement /></Layout>} />
-                <Route path="/settings" element={<Layout><Settings /></Layout>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <TenantProvider>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </TenantProvider>
             </AuthGuard>
-          </BrowserRouter>
-        </TenantProvider>
-      </LanguageProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+          } />
+          <Route path="/staff" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <Staff />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="/customers" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <Customers />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="/services" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <Services />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="/bookings" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <Bookings />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="/calendar" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <Calendar />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="/commissions" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <Commissions />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="/customer-engagement" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <CustomerEngagement />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="/addons" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <Addons />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="/settings" element={
+            <AuthGuard>
+              <TenantProvider>
+                <Layout>
+                  <Settings />
+                </Layout>
+              </TenantProvider>
+            </AuthGuard>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
 
 export default App;
