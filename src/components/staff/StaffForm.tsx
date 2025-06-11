@@ -8,6 +8,7 @@ import { useCreateStaff, useUpdateStaff } from '@/hooks/useStaff';
 import { useStaffRoles } from '@/hooks/useStaffRoles';
 import { useTenant } from '@/contexts/TenantContext';
 import { Staff } from '@/types';
+import { AvatarUpload } from './AvatarUpload';
 
 interface StaffFormProps {
   onSuccess?: () => void;
@@ -99,6 +100,12 @@ export const StaffForm = ({ onSuccess, initialData }: StaffFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {isEditing && initialData && (
+        <div className="flex justify-center mb-6">
+          <AvatarUpload staff={initialData} size="lg" showUploadButton={true} />
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
         <Input

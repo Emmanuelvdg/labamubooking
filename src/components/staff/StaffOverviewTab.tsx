@@ -7,6 +7,7 @@ import { StaffActions } from './StaffActions';
 import { NewStaffDialog } from './NewStaffDialog';
 import { ManageRolesDialog } from './ManageRolesDialog';
 import { SyncStaffButton } from './SyncStaffButton';
+import { AvatarUpload } from './AvatarUpload';
 
 interface StaffOverviewTabProps {
   staff: Staff[] | undefined;
@@ -32,9 +33,7 @@ export const StaffOverviewTab = ({ staff, tenantId }: StaffOverviewTabProps) => 
               <Card className="hover:shadow-md transition-shadow cursor-context-menu">
                 <CardHeader className="pb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                      {member.name.charAt(0).toUpperCase()}
-                    </div>
+                    <AvatarUpload staff={member} size="md" showUploadButton={false} />
                     <div className="flex-1">
                       <CardTitle className="text-lg">{member.name}</CardTitle>
                       <p className="text-sm text-gray-600">{member.email}</p>

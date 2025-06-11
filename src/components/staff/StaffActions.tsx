@@ -5,8 +5,9 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { EditStaffDialog } from './EditStaffDialog';
 import { DeleteStaffDialog } from './DeleteStaffDialog';
 import { StaffAccountDialog } from './StaffAccountDialog';
+import { StaffAvatarDialog } from './StaffAvatarDialog';
 import { Staff } from '@/types';
-import { Edit, Trash2, UserCog } from 'lucide-react';
+import { Edit, Trash2, UserCog, Camera } from 'lucide-react';
 
 interface StaffActionsProps {
   staff: Staff;
@@ -17,6 +18,7 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
 
   const handleEditClick = () => {
     console.log('Edit clicked for staff:', staff.name);
@@ -33,6 +35,11 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
     setAccountOpen(true);
   };
 
+  const handleAvatarClick = () => {
+    console.log('Update Photo clicked for staff:', staff.name);
+    setAvatarOpen(true);
+  };
+
   return (
     <>
       <ContextMenu>
@@ -43,6 +50,10 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
           <ContextMenuItem onClick={handleEditClick}>
             <Edit className="h-4 w-4 mr-2" />
             Edit
+          </ContextMenuItem>
+          <ContextMenuItem onClick={handleAvatarClick}>
+            <Camera className="h-4 w-4 mr-2" />
+            Update Photo
           </ContextMenuItem>
           <ContextMenuItem onClick={handleAccountClick}>
             <UserCog className="h-4 w-4 mr-2" />
@@ -62,6 +73,12 @@ export const StaffActions = ({ staff, children }: StaffActionsProps) => {
         staff={staff}
         open={editOpen}
         onOpenChange={setEditOpen}
+      />
+
+      <StaffAvatarDialog 
+        staff={staff}
+        open={avatarOpen}
+        onOpenChange={setAvatarOpen}
       />
 
       <DeleteStaffDialog 
