@@ -1,3 +1,4 @@
+
 import { 
   Calendar, 
   Users, 
@@ -8,16 +9,19 @@ import {
   UserCheck,
   DollarSign,
   MessageSquare,
-  Puzzle
+  Puzzle,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 export const Sidebar = () => {
   const location = useLocation();
   const { t } = useLanguage();
+  const { tenant } = useTenant();
 
   const navigation = [
     { name: t('dashboard'), href: '/dashboard', icon: BarChart3 },
@@ -29,8 +33,9 @@ export const Sidebar = () => {
     { name: t('commissions'), href: '/commissions', icon: DollarSign },
     { name: t('add_ons'), href: '/addons', icon: Puzzle },
     { name: t('customer_engagement'), href: '/customer-engagement', icon: MessageSquare },
-    { name: t('settings'), href: '/settings', icon: Settings },
   ];
+
+  const publicSiteUrl = tenant?.slug ? `/book/${tenant.slug}` : '#';
 
   return (
     <div className="bg-slate-900 text-white w-64 min-h-screen p-4">
@@ -59,6 +64,35 @@ export const Sidebar = () => {
             </Link>
           );
         })}
+        
+        {/* Public Site Link */}
+        {tenant?.slug && (
+          <a href={publicSiteUrl} target="_blank" rel="noopener noreferrer">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left text-slate-300 hover:text-white hover:bg-slate-800"
+            >
+              <ExternalLink className="mr-3 h-4 w-4" />
+              View Public Site
+            </Button>
+          </a>
+        )}
+        
+        {/* Settings Link */}
+        <Link to="/settings">
+          <Button
+            variant={location.pathname === '/settings' ? "secondary" : "ghost"}
+            className={cn(
+              "w-full justify-start text-left",
+              location.pathname === '/settings'
+                ? "bg-slate-800 text-white" 
+                : "text-slate-300 hover:text-white hover:bg-slate-800"
+            )}
+          >
+            <Settings className="mr-3 h-4 w-4" />
+            {t('settings')}
+          </Button>
+        </Link>
       </nav>
     </div>
   );
