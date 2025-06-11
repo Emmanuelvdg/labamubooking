@@ -14,35 +14,37 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
-  { name: 'Bookings', href: '/bookings', icon: BookOpen },
-  { name: 'Calendar', href: '/calendar', icon: Calendar },
-  { name: 'Customers', href: '/customers', icon: Users },
-  { name: 'Staff', href: '/staff', icon: UserCheck },
-  { name: 'Services', href: '/services', icon: Clock },
-  { name: 'Commissions', href: '/commissions', icon: DollarSign },
-  { name: 'Add-ons', href: '/addons', icon: Puzzle },
-  { name: 'Customer Engagement', href: '/settings/reminders', icon: MessageSquare },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const Sidebar = () => {
   const location = useLocation();
+  const { t } = useLanguage();
+
+  const navigation = [
+    { name: t('dashboard'), href: '/dashboard', icon: BarChart3 },
+    { name: t('bookings'), href: '/bookings', icon: BookOpen },
+    { name: t('calendar'), href: '/calendar', icon: Calendar },
+    { name: t('customers'), href: '/customers', icon: Users },
+    { name: t('staff'), href: '/staff', icon: UserCheck },
+    { name: t('services'), href: '/services', icon: Clock },
+    { name: t('commissions'), href: '/commissions', icon: DollarSign },
+    { name: t('add_ons'), href: '/addons', icon: Puzzle },
+    { name: t('customer_engagement'), href: '/settings/reminders', icon: MessageSquare },
+    { name: t('settings'), href: '/settings', icon: Settings },
+  ];
 
   return (
     <div className="bg-slate-900 text-white w-64 min-h-screen p-4">
       <div className="mb-8">
         <h2 className="text-xl font-bold text-white">LabamuBooking</h2>
-        <p className="text-slate-400 text-sm">Service Management</p>
+        <p className="text-slate-400 text-sm">{t('service_management')}</p>
       </div>
       
       <nav className="space-y-2">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           return (
-            <Link key={item.name} to={item.href}>
+            <Link key={item.href} to={item.href}>
               <Button
                 variant={isActive ? "secondary" : "ghost"}
                 className={cn(
