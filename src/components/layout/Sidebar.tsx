@@ -8,7 +8,8 @@ import {
   Clock,
   UserCheck,
   DollarSign,
-  MessageSquare
+  MessageSquare,
+  Puzzle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Staff', href: '/staff', icon: UserCheck },
   { name: 'Services', href: '/services', icon: Clock },
   { name: 'Commissions', href: '/commissions', icon: DollarSign },
+  { name: 'Add-ons', href: '/addons', icon: Puzzle },
   { name: 'Customer Engagement', href: '/settings/reminders', icon: MessageSquare },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
