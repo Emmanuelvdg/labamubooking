@@ -1,4 +1,3 @@
-
 import { 
   Calendar, 
   Users, 
@@ -29,7 +28,7 @@ export const Sidebar = () => {
     { name: t('services'), href: '/services', icon: Clock },
     { name: t('commissions'), href: '/commissions', icon: DollarSign },
     { name: t('add_ons'), href: '/addons', icon: Puzzle },
-    { name: t('customer_engagement'), href: '/settings/reminders', icon: MessageSquare },
+    { name: t('customer_engagement'), href: '/customer-engagement', icon: MessageSquare },
     { name: t('settings'), href: '/settings', icon: Settings },
   ];
 
