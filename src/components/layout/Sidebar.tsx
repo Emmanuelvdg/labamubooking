@@ -10,7 +10,8 @@ import {
   DollarSign,
   MessageSquare,
   Puzzle,
-  ExternalLink
+  ExternalLink,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ export const Sidebar = () => {
     { name: t('commissions'), href: '/commissions', icon: DollarSign },
     { name: t('add_ons'), href: '/addons', icon: Puzzle },
     { name: t('customer_engagement'), href: '/customer-engagement', icon: MessageSquare },
+    { name: 'Online Booking Setup', href: '/online-booking-setup', icon: Globe },
   ];
 
   // Find the current tenant from available tenants

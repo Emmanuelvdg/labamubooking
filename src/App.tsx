@@ -19,6 +19,7 @@ import Commissions from '@/pages/Commissions';
 import CustomerEngagement from '@/pages/CustomerEngagement';
 import Addons from '@/pages/Addons';
 import Settings from '@/pages/Settings';
+import OnlineBookingSetup from '@/pages/OnlineBookingSetup';
 import NotFound from '@/pages/NotFound';
 import { Layout } from '@/components/layout/Layout';
 import { AuthGuard } from '@/components/auth/AuthGuard';
@@ -119,6 +120,15 @@ function App() {
                   <TenantProvider>
                     <Layout>
                       <Addons />
+                    </Layout>
+                  </TenantProvider>
+                </AuthGuard>
+              } />
+              <Route path="/online-booking-setup" element={
+                <AuthGuard>
+                  <TenantProvider>
+                    <Layout>
+                      <OnlineBookingSetup />
                     </Layout>
                   </TenantProvider>
                 </AuthGuard>
