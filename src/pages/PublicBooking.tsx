@@ -22,7 +22,7 @@ const PublicBooking = () => {
   }
 
   if (businessError || !businessProfile) {
-    return <PublicBookingError error={businessError} />;
+    return <PublicBookingError error={businessError} slug={slug} />;
   }
 
   const preSelectedService = searchParams.get('service');

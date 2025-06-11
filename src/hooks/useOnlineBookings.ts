@@ -8,14 +8,26 @@ export const usePublicBusinessProfile = (slug: string) => {
   return useQuery({
     queryKey: ['public-business-profile', slug],
     queryFn: async () => {
+      console.log('Fetching business profile for slug:', slug);
+      
       const { data, error } = await supabase
         .from('public_business_profiles')
         .select('*')
         .eq('slug', slug)
         .eq('is_active', true)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to handle no results
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching business profile:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.log('No business profile found for slug:', slug);
+        return null;
+      }
+      
+      console.log('Business profile found:', data);
       
       // Map snake_case to camelCase
       return {
