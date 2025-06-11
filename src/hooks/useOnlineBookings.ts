@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -98,7 +97,7 @@ export const usePublicStaffProfiles = (tenantId: string) => {
         .from('public_staff_profiles')
         .select(`
           *,
-          staff!inner(id, name, email, role, skills, is_active)
+          staff!inner(id, name, email, role, skills, is_active, avatar)
         `)
         .eq('tenant_id', tenantId)
         .eq('is_visible', true)
@@ -114,7 +113,7 @@ export const usePublicStaffProfiles = (tenantId: string) => {
         tenantId: item.tenant_id,
         displayName: item.display_name,
         bio: item.bio,
-        profileImageUrl: item.profile_image_url,
+        profileImageUrl: item.staff.avatar, // Use staff avatar instead of profile_image_url
         specialties: item.specialties,
         yearsExperience: item.years_experience,
         isVisible: item.is_visible,

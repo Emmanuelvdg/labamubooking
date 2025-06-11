@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,13 +11,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface PublicStaffProfile {
   id?: string;
   staffId: string;
   displayName: string;
   bio?: string;
-  profileImageUrl?: string;
   specialties: string[];
   yearsExperience?: number;
   isVisible: boolean;
@@ -26,6 +27,7 @@ interface PublicStaffProfile {
 interface Staff {
   id: string;
   name: string;
+  avatar?: string;
 }
 
 export const PublicStaffProfilesForm = () => {
@@ -38,7 +40,6 @@ export const PublicStaffProfilesForm = () => {
     staffId: '',
     displayName: '',
     bio: '',
-    profileImageUrl: '',
     specialties: [],
     yearsExperience: 0,
     isVisible: true,
@@ -51,7 +52,7 @@ export const PublicStaffProfilesForm = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('staff')
-        .select('id, name')
+        .select('id, name, avatar')
         .eq('tenant_id', tenantId)
         .eq('is_active', true);
       
@@ -67,7 +68,10 @@ export const PublicStaffProfilesForm = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('public_staff_profiles')
-        .select('*')
+        .select(`
+          *,
+          staff!inner(id, name, avatar)
+        `)
         .eq('tenant_id', tenantId)
         .order('display_order');
       
@@ -85,7 +89,6 @@ export const PublicStaffProfilesForm = () => {
         staff_id: profileData.staffId,
         display_name: profileData.displayName,
         bio: profileData.bio,
-        profile_image_url: profileData.profileImageUrl,
         specialties: profileData.specialties,
         years_experience: profileData.yearsExperience,
         is_visible: profileData.isVisible,
@@ -155,7 +158,6 @@ export const PublicStaffProfilesForm = () => {
       staffId: '',
       displayName: '',
       bio: '',
-      profileImageUrl: '',
       specialties: [],
       yearsExperience: 0,
       isVisible: true,
@@ -170,7 +172,6 @@ export const PublicStaffProfilesForm = () => {
       staffId: publicProfile.staff_id,
       displayName: publicProfile.display_name,
       bio: publicProfile.bio || '',
-      profileImageUrl: publicProfile.profile_image_url || '',
       specialties: publicProfile.specialties || [],
       yearsExperience: publicProfile.years_experience || 0,
       isVisible: publicProfile.is_visible,
@@ -226,7 +227,7 @@ export const PublicStaffProfilesForm = () => {
       <CardHeader>
         <CardTitle>Public Staff Profiles</CardTitle>
         <CardDescription>
-          Manage how your staff members appear on the public booking page
+          Manage how your staff members appear on the public booking page. Profile pictures are automatically taken from the staff member's avatar.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -239,20 +240,28 @@ export const PublicStaffProfilesForm = () => {
                 const staffMember = staff.find(s => s.id === publicProfile.staff_id);
                 return (
                   <div key={publicProfile.id} className="border rounded-lg p-4 flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{publicProfile.display_name}</div>
-                      <div className="text-sm text-gray-600">
-                        Staff: {staffMember?.name || 'Unknown'}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={publicProfile.is_visible ? "default" : "secondary"}>
-                          {publicProfile.is_visible ? "Visible" : "Hidden"}
-                        </Badge>
-                        {publicProfile.specialties?.length > 0 && (
-                          <span className="text-xs text-gray-500">
-                            {publicProfile.specialties.length} specialties
-                          </span>
-                        )}
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={publicProfile.staff?.avatar} alt={publicProfile.display_name} />
+                        <AvatarFallback>
+                          {publicProfile.display_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{publicProfile.display_name}</div>
+                        <div className="text-sm text-gray-600">
+                          Staff: {staffMember?.name || 'Unknown'}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant={publicProfile.is_visible ? "default" : "secondary"}>
+                            {publicProfile.is_visible ? "Visible" : "Hidden"}
+                          </Badge>
+                          {publicProfile.specialties?.length > 0 && (
+                            <span className="text-xs text-gray-500">
+                              {publicProfile.specialties.length} specialties
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -311,6 +320,28 @@ export const PublicStaffProfilesForm = () => {
             </div>
           </div>
 
+          {/* Show selected staff avatar preview */}
+          {selectedStaffId && (
+            <div className="p-4 border rounded-lg bg-muted/50">
+              <Label className="text-sm font-medium mb-2 block">Profile Picture Preview</Label>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage 
+                    src={staff.find(s => s.id === selectedStaffId)?.avatar} 
+                    alt={profile.displayName} 
+                  />
+                  <AvatarFallback>
+                    {profile.displayName.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-sm text-muted-foreground">
+                  This profile picture is automatically taken from the staff member's avatar set in the Staff section.
+                  To change it, go to Staff → Edit the staff member → Update Photo.
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <Label htmlFor="bio">Bio</Label>
             <Textarea
@@ -322,26 +353,15 @@ export const PublicStaffProfilesForm = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="profileImageUrl">Profile Image URL</Label>
-              <Input
-                id="profileImageUrl"
-                value={profile.profileImageUrl}
-                onChange={(e) => setProfile(prev => ({ ...prev, profileImageUrl: e.target.value }))}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-            <div>
-              <Label htmlFor="yearsExperience">Years of Experience</Label>
-              <Input
-                id="yearsExperience"
-                type="number"
-                min="0"
-                value={profile.yearsExperience}
-                onChange={(e) => setProfile(prev => ({ ...prev, yearsExperience: parseInt(e.target.value) || 0 }))}
-              />
-            </div>
+          <div>
+            <Label htmlFor="yearsExperience">Years of Experience</Label>
+            <Input
+              id="yearsExperience"
+              type="number"
+              min="0"
+              value={profile.yearsExperience}
+              onChange={(e) => setProfile(prev => ({ ...prev, yearsExperience: parseInt(e.target.value) || 0 }))}
+            />
           </div>
 
           <div>
