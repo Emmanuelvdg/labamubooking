@@ -21,7 +21,7 @@ import { useTenant } from '@/contexts/TenantContext';
 export const Sidebar = () => {
   const location = useLocation();
   const { t } = useLanguage();
-  const { tenant } = useTenant();
+  const { tenantId, availableTenants } = useTenant();
 
   const navigation = [
     { name: t('dashboard'), href: '/dashboard', icon: BarChart3 },
@@ -35,7 +35,10 @@ export const Sidebar = () => {
     { name: t('customer_engagement'), href: '/customer-engagement', icon: MessageSquare },
   ];
 
-  const publicSiteUrl = tenant?.slug ? `/book/${tenant.slug}` : '#';
+  // Find the current tenant from available tenants
+  const currentTenant = availableTenants.find(ut => ut.tenant_id === tenantId);
+  const tenantSlug = currentTenant?.tenant?.name?.toLowerCase().replace(/\s+/g, '-');
+  const publicSiteUrl = tenantSlug ? `/book/${tenantSlug}` : '#';
 
   return (
     <div className="bg-slate-900 text-white w-64 min-h-screen p-4">
@@ -66,7 +69,7 @@ export const Sidebar = () => {
         })}
         
         {/* Public Site Link */}
-        {tenant?.slug && (
+        {tenantSlug && (
           <a href={publicSiteUrl} target="_blank" rel="noopener noreferrer">
             <Button
               variant="ghost"
