@@ -37,8 +37,16 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/demo/*" element={<Demo />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/tenant-create" element={<TenantCreate />} />
-              <Route path="/tenant/create" element={<TenantCreate />} />
+              <Route path="/tenant-create" element={
+                <TenantProvider>
+                  <TenantCreate />
+                </TenantProvider>
+              } />
+              <Route path="/tenant/create" element={
+                <TenantProvider>
+                  <TenantCreate />
+                </TenantProvider>
+              } />
               
               {/* Public booking route - accessible without authentication */}
               <Route path="/book/:slug" element={<PublicBooking />} />
