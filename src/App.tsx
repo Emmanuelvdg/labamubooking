@@ -25,6 +25,12 @@ import { Layout } from '@/components/layout/Layout';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { TenantProvider } from '@/components/providers/TenantProvider';
 import PublicBooking from '@/pages/PublicBooking';
+import BookingsDemo from '@/pages/demo/BookingsDemo';
+import CalendarDemo from '@/pages/demo/CalendarDemo';
+import StaffDemo from '@/pages/demo/StaffDemo';
+import ServicesDemo from '@/pages/demo/ServicesDemo';
+import CommissionsDemo from '@/pages/demo/CommissionsDemo';
+import AnalyticsDemo from '@/pages/demo/AnalyticsDemo';
 
 function App() {
   return (
@@ -35,7 +41,13 @@ function App() {
             <Toaster />
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/demo/*" element={<Demo />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/demo/bookings" element={<BookingsDemo />} />
+              <Route path="/demo/calendar" element={<CalendarDemo />} />
+              <Route path="/demo/staff" element={<StaffDemo />} />
+              <Route path="/demo/services" element={<ServicesDemo />} />
+              <Route path="/demo/commissions" element={<CommissionsDemo />} />
+              <Route path="/demo/analytics" element={<AnalyticsDemo />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/tenant-create" element={
                 <TenantProvider>
