@@ -1,9 +1,9 @@
 
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, MessageSquare } from 'lucide-react';
+import { TimeSlotPicker } from './TimeSlotPicker';
 
 interface BookingDetailsProps {
   startTime: string;
@@ -20,15 +20,11 @@ export const BookingDetails = ({ startTime, notes, onStartTimeChange, onNotesCha
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-purple-600" />
-              <Label htmlFor="startTime" className="font-medium">Start Date & Time</Label>
+              <Label className="font-medium">Start Date & Time</Label>
             </div>
-            <Input
-              id="startTime"
-              type="datetime-local"
-              value={startTime}
-              onChange={(e) => onStartTimeChange(e.target.value)}
-              required
-              className="h-11"
+            <TimeSlotPicker
+              selectedDateTime={startTime}
+              onDateTimeSelect={onStartTimeChange}
             />
             <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
               ℹ️ Services will be scheduled sequentially starting from this time
