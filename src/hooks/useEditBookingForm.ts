@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useEditBooking } from '@/hooks/useEditBooking';
 import { useCheckBookingConflicts, useBookingEdits } from '@/hooks/useBookingEdits';
@@ -45,7 +46,12 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
     setFormData(prev => ({ ...prev, startTime: newStartTime }));
     
     const selectedService = services?.find(s => s.id === formData.serviceId);
-    if (!selectedService || !tenantId || isCheckingConflicts) {
+    if (!selectedService || !tenantId) {
+      return;
+    }
+
+    // Prevent multiple simultaneous conflict checks
+    if (isCheckingConflicts) {
       return;
     }
 
@@ -69,7 +75,7 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
     } finally {
       setIsCheckingConflicts(false);
     }
-  }, [services, formData.serviceId, formData.staffId, tenantId, booking.id, checkConflicts, isCheckingConflicts]);
+  }, [services, formData.serviceId, formData.staffId, tenantId, booking.id, checkConflicts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
