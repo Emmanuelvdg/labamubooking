@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
-import { useCreateOnlineBooking, useAvailableSlots } from '@/hooks/useOnlineBookings';
+import { useCreateOnlineBooking } from '@/hooks/useOnlineBookings';
+import { useAvailableSlots } from '@/hooks/useAvailableSlots';
 import { PublicBusinessProfile, BookingSettings, PublicStaffProfile, PublicServiceProfile, OnlineBookingFormData } from '@/types/onlineBooking';
 import { format, addDays, startOfDay } from 'date-fns';
 
