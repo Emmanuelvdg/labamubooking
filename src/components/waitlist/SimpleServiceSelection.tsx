@@ -20,7 +20,7 @@ export const SimpleServiceSelection = ({ selectedServiceId, onServiceSelect, ser
         <SelectContent>
           {services?.map((service) => (
             <SelectItem key={service.id} value={service.id}>
-              {service.name} - ${service.price} ({service.duration}min)
+              {service.name} - Rp{service.price} ({service.duration}min)
             </SelectItem>
           ))}
         </SelectContent>

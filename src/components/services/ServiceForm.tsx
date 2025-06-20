@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -160,12 +159,12 @@ export const ServiceForm = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="price">Price ($)</Label>
+          <Label htmlFor="price">Price (Rp)</Label>
           <Input
             id="price"
             type="number"
             min="0"
-            step="0.01"
+            step="1"
             value={formData.price}
             onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
             required

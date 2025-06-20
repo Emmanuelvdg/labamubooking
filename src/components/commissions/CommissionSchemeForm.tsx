@@ -118,12 +118,12 @@ export const CommissionSchemeForm = ({ tenantId, onSuccess }: CommissionSchemeFo
 
       <div>
         <Label htmlFor="commissionValue">
-          Commission {commissionType === 'percentage' ? 'Percentage (%)' : 'Amount ($)'}
+          Commission {commissionType === 'percentage' ? 'Percentage (%)' : 'Amount (Rp)'}
         </Label>
         <Input
           id="commissionValue"
           type="number"
-          step={commissionType === 'percentage' ? '0.1' : '0.01'}
+          step={commissionType === 'percentage' ? '0.1' : '1'}
           min="0"
           max={commissionType === 'percentage' ? '100' : undefined}
           {...register('commissionValue', { 

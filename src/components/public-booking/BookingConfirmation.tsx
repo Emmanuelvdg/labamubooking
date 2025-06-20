@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
@@ -61,7 +60,7 @@ export const BookingConfirmation = ({
               <p><strong>Time:</strong> {format(new Date(booking.startTime), 'h:mm a')} - {format(new Date(booking.endTime), 'h:mm a')}</p>
               <p><strong>Duration:</strong> {serviceProfile?.services.duration} minutes</p>
               {serviceProfile?.services.price && (
-                <p><strong>Price:</strong> ${serviceProfile.services.price}</p>
+                <p><strong>Price:</strong> Rp{serviceProfile.services.price}</p>
               )}
             </div>
           </div>

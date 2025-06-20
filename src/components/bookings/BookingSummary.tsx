@@ -61,7 +61,7 @@ export const BookingSummary = ({ selectedServiceIds, services }: BookingSummaryP
                   </div>
                   <div className="flex items-center space-x-1">
                     <DollarSign className="h-3 w-3" />
-                    <span>${service.price}</span>
+                    <span>Rp{service.price}</span>
                   </div>
                 </div>
               </div>
@@ -76,7 +76,7 @@ export const BookingSummary = ({ selectedServiceIds, services }: BookingSummaryP
               </div>
               <div className="flex items-center space-x-2 text-blue-800">
                 <DollarSign className="h-4 w-4" />
-                <span className="font-semibold">${totalPrice} total</span>
+                <span className="font-semibold">Rp{totalPrice} total</span>
               </div>
             </div>
           </div>

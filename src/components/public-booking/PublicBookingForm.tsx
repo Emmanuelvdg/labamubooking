@@ -143,7 +143,7 @@ export const PublicBookingForm = ({
                     )}
                     <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
                       <span>{serviceProfile.services.duration} minutes</span>
-                      <span>${serviceProfile.services.price}</span>
+                      <span>Rp{serviceProfile.services.price}</span>
                     </div>
                   </div>
                   {serviceProfile.imageUrl && (
@@ -326,7 +326,7 @@ export const PublicBookingForm = ({
                 <p><strong>Date:</strong> {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</p>
                 <p><strong>Time:</strong> {formData.startTime && format(new Date(formData.startTime), 'h:mm a')}</p>
                 <p><strong>Duration:</strong> {selectedService?.services.duration} minutes</p>
-                <p><strong>Price:</strong> ${selectedService?.services.price}</p>
+                <p><strong>Price:</strong> Rp{selectedService?.services.price}</p>
               </div>
             </div>
 

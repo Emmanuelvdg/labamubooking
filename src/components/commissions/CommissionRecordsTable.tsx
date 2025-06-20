@@ -58,7 +58,7 @@ export const CommissionRecordsTable = ({ tenantId }: CommissionRecordsTableProps
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Unpaid</p>
-                <p className="text-2xl font-bold text-orange-600">${totalUnpaid.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-orange-600">Rp{totalUnpaid.toFixed(0)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-orange-600" />
             </div>
@@ -69,7 +69,7 @@ export const CommissionRecordsTable = ({ tenantId }: CommissionRecordsTableProps
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Paid</p>
-                <p className="text-2xl font-bold text-green-600">${totalPaid.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">Rp{totalPaid.toFixed(0)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -80,7 +80,7 @@ export const CommissionRecordsTable = ({ tenantId }: CommissionRecordsTableProps
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Commissions</p>
-                <p className="text-2xl font-bold">${(totalUnpaid + totalPaid).toFixed(2)}</p>
+                <p className="text-2xl font-bold">Rp{(totalUnpaid + totalPaid).toFixed(0)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-blue-600" />
             </div>
@@ -105,12 +105,12 @@ export const CommissionRecordsTable = ({ tenantId }: CommissionRecordsTableProps
                   </div>
                   <div className="text-sm text-gray-600 space-y-1">
                     <p>Service: {record.service.name}</p>
-                    <p>Service Price: ${record.servicePrice.toFixed(2)}</p>
+                    <p>Service Price: Rp{record.servicePrice.toFixed(0)}</p>
                     <p>
                       Commission: {record.commissionValue}
-                      {record.commissionType === 'percentage' ? '%' : '$'} = 
+                      {record.commissionType === 'percentage' ? '%' : 'Rp'} = 
                       <span className="font-medium text-green-600 ml-1">
-                        ${record.commissionAmount.toFixed(2)}
+                        Rp{record.commissionAmount.toFixed(0)}
                       </span>
                     </p>
                     <p>Date: {format(new Date(record.createdAt), 'MMM dd, yyyy')}</p>
