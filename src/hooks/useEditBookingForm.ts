@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useEditBooking } from '@/hooks/useEditBooking';
 import { useCheckBookingConflicts, useBookingEdits } from '@/hooks/useBookingEdits';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -31,6 +31,7 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
   
   const [conflicts, setConflicts] = useState<any[]>([]);
   const [isCheckingConflicts, setIsCheckingConflicts] = useState(false);
+  const conflictCheckRef = useRef<string | null>(null);
 
   const { tenantId } = useTenant();
   const { data: customers } = useCustomers(tenantId || '');
@@ -43,6 +44,13 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
 
   const handleTimeChange = useCallback(async (newStartTime: string) => {
     console.log('Time change triggered:', newStartTime);
+    
+    // Prevent duplicate checks for the same time
+    if (conflictCheckRef.current === newStartTime) {
+      console.log('Skipping duplicate time check for:', newStartTime);
+      return;
+    }
+    
     setFormData(prev => ({ ...prev, startTime: newStartTime }));
     
     const selectedService = services?.find(s => s.id === formData.serviceId);
@@ -55,7 +63,9 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
       return;
     }
 
+    conflictCheckRef.current = newStartTime;
     setIsCheckingConflicts(true);
+    
     try {
       const startTime = new Date(newStartTime);
       const endTime = new Date(startTime.getTime() + selectedService.duration * 60000);
@@ -74,6 +84,7 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
       setConflicts([]);
     } finally {
       setIsCheckingConflicts(false);
+      conflictCheckRef.current = null;
     }
   }, [services, formData.serviceId, formData.staffId, tenantId, booking.id, checkConflicts]);
 
@@ -107,9 +118,9 @@ export const useEditBookingForm = (booking: Booking, onSuccess?: () => void) => 
     }
   };
 
-  const updateFormData = (updates: Partial<FormData>) => {
+  const updateFormData = useCallback((updates: Partial<FormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
-  };
+  }, []);
 
   return {
     formData,

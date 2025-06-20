@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -19,6 +19,17 @@ export const TimeSlotPicker = ({ selectedDateTime, onDateTimeSelect }: TimeSlotP
   );
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
+  // Update selectedDate when selectedDateTime prop changes, but prevent loops
+  useEffect(() => {
+    if (selectedDateTime) {
+      const newDate = new Date(selectedDateTime);
+      // Only update if the date actually changed
+      if (!selectedDate || selectedDate.toDateString() !== newDate.toDateString()) {
+        setSelectedDate(newDate);
+      }
+    }
+  }, [selectedDateTime]); // Remove selectedDate from dependencies to prevent loops
+
   // Generate 15-minute time slots from 8:00 AM to 8:00 PM
   const generateTimeSlots = () => {
     const slots = [];
@@ -34,7 +45,7 @@ export const TimeSlotPicker = ({ selectedDateTime, onDateTimeSelect }: TimeSlotP
 
   const timeSlots = generateTimeSlots();
 
-  const handleDateSelect = (date: Date | undefined) => {
+  const handleDateSelect = useCallback((date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
       setIsCalendarOpen(false);
@@ -44,7 +55,12 @@ export const TimeSlotPicker = ({ selectedDateTime, onDateTimeSelect }: TimeSlotP
         const currentTime = new Date(selectedDateTime);
         const newDateTime = new Date(date);
         newDateTime.setHours(currentTime.getHours(), currentTime.getMinutes(), 0, 0);
-        onDateTimeSelect(newDateTime.toISOString().slice(0, 16));
+        
+        // Only call onDateTimeSelect if the datetime actually changed
+        const newDateTimeString = newDateTime.toISOString().slice(0, 16);
+        if (newDateTimeString !== selectedDateTime) {
+          onDateTimeSelect(newDateTimeString);
+        }
       } else {
         // Default to 9:00 AM if no time is selected
         const newDateTime = new Date(date);
@@ -52,16 +68,21 @@ export const TimeSlotPicker = ({ selectedDateTime, onDateTimeSelect }: TimeSlotP
         onDateTimeSelect(newDateTime.toISOString().slice(0, 16));
       }
     }
-  };
+  }, [selectedDateTime, onDateTimeSelect]);
 
-  const handleTimeSelect = (timeString: string) => {
+  const handleTimeSelect = useCallback((timeString: string) => {
     if (selectedDate) {
       const [hours, minutes] = timeString.split(':').map(Number);
       const newDateTime = new Date(selectedDate);
       newDateTime.setHours(hours, minutes, 0, 0);
-      onDateTimeSelect(newDateTime.toISOString().slice(0, 16));
+      
+      // Only call onDateTimeSelect if the datetime actually changed
+      const newDateTimeString = newDateTime.toISOString().slice(0, 16);
+      if (newDateTimeString !== selectedDateTime) {
+        onDateTimeSelect(newDateTimeString);
+      }
     }
-  };
+  }, [selectedDate, selectedDateTime, onDateTimeSelect]);
 
   const getSelectedTimeString = () => {
     if (selectedDateTime) {
