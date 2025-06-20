@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -368,7 +369,7 @@ export const useOnlineBookings = (tenantId: string) => {
         internalNotes: item.internal_notes,
         confirmationToken: item.confirmation_token,
         cancellationToken: item.cancellation_token,
-        totalPrice: data.total_price,
+        totalPrice: item.total_price,
         bookingReference: item.booking_reference,
         source: item.source,
         createdAt: item.created_at,
