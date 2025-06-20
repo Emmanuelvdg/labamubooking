@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { useCreateOnlineBooking } from '@/hooks/useOnlineBookings';
 import { useAvailableSlots } from '@/hooks/useAvailableSlots';
-import { PublicBusinessProfile, BookingSettings, PublicStaffProfile, PublicServiceProfile, OnlineBookingFormData } from '@/types/onlineBooking';
+import { PublicBusinessProfile, BookingSettings, PublicStaffProfile, PublicServiceProfile, OnlineBookingFormData, OnlineBooking } from '@/types/onlineBooking';
 import { format, addDays, startOfDay } from 'date-fns';
+import { BookingConfirmation } from './BookingConfirmation';
 
 interface PublicBookingFormProps {
   businessProfile: PublicBusinessProfile;
@@ -29,6 +30,7 @@ export const PublicBookingForm = ({
   preSelectedStaff
 }: PublicBookingFormProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [confirmedBooking, setConfirmedBooking] = useState<OnlineBooking | null>(null);
   const [formData, setFormData] = useState<OnlineBookingFormData>({
     customerName: '',
     customerEmail: '',
@@ -66,10 +68,29 @@ export const PublicBookingForm = ({
       return;
     }
 
-    await createBooking.mutateAsync({
-      ...formData,
-      tenantId: businessProfile.tenantId
+    try {
+      const booking = await createBooking.mutateAsync({
+        ...formData,
+        tenantId: businessProfile.tenantId
+      });
+      setConfirmedBooking(booking);
+    } catch (error) {
+      console.error('Error creating booking:', error);
+    }
+  };
+
+  const handleBookAnother = () => {
+    setConfirmedBooking(null);
+    setFormData({
+      customerName: '',
+      customerEmail: '',
+      customerPhone: '',
+      serviceId: preSelectedService || '',
+      staffId: preSelectedStaff || '',
+      startTime: '',
+      customerNotes: ''
     });
+    setSelectedDate(undefined);
   };
 
   const updateFormData = (field: keyof OnlineBookingFormData, value: string) => {
@@ -81,6 +102,19 @@ export const PublicBookingForm = ({
       setSelectedDate(undefined);
     }
   };
+
+  // If booking is confirmed, show confirmation screen
+  if (confirmedBooking) {
+    return (
+      <BookingConfirmation
+        booking={confirmedBooking}
+        businessProfile={businessProfile}
+        staffProfile={selectedStaff}
+        serviceProfile={selectedService}
+        onBookAnother={handleBookAnother}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
