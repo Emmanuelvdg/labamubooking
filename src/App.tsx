@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -31,6 +30,7 @@ import StaffDemo from '@/pages/demo/StaffDemo';
 import ServicesDemo from '@/pages/demo/ServicesDemo';
 import CommissionsDemo from '@/pages/demo/CommissionsDemo';
 import AnalyticsDemo from '@/pages/demo/AnalyticsDemo';
+import UserGuide from '@/pages/UserGuide';
 
 function App() {
   return (
@@ -159,6 +159,15 @@ function App() {
                   <TenantProvider>
                     <Layout>
                       <Settings />
+                    </Layout>
+                  </TenantProvider>
+                </AuthGuard>
+              } />
+              <Route path="/user-guide" element={
+                <AuthGuard>
+                  <TenantProvider>
+                    <Layout>
+                      <UserGuide />
                     </Layout>
                   </TenantProvider>
                 </AuthGuard>

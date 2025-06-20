@@ -11,7 +11,8 @@ import {
   MessageSquare,
   Puzzle,
   ExternalLink,
-  Globe
+  Globe,
+  Book
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ export const Sidebar = () => {
     { name: t('add_ons'), href: '/addons', icon: Puzzle },
     { name: t('customer_engagement'), href: '/customer-engagement', icon: MessageSquare },
     { name: 'Online Booking Setup', href: '/online-booking-setup', icon: Globe },
+    { name: 'User Guide', href: '/user-guide', icon: Book },
   ];
 
   // Find the current tenant from available tenants
