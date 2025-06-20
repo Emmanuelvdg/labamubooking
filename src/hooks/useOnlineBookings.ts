@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -266,7 +265,9 @@ export const useCreateOnlineBooking = () => {
       } as OnlineBooking;
     },
     onSuccess: (data) => {
+      // Invalidate both online bookings and regular bookings queries
       queryClient.invalidateQueries({ queryKey: ['available-slots'] });
+      queryClient.invalidateQueries({ queryKey: ['bookings'] }); // This will make the booking appear in admin views
       toast({
         title: 'Booking Submitted',
         description: `Your booking request has been submitted. Reference: ${data.bookingReference}`,

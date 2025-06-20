@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Booking } from '@/types';
@@ -8,7 +7,8 @@ export const useBookings = (tenantId: string) => {
   return useQuery({
     queryKey: ['bookings', tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch regular bookings
+      const { data: regularBookings, error: regularError } = await supabase
         .from('bookings')
         .select(`
           *,
@@ -19,10 +19,23 @@ export const useBookings = (tenantId: string) => {
         .eq('tenant_id', tenantId)
         .order('start_time', { ascending: true });
       
-      if (error) throw error;
+      if (regularError) throw regularError;
+
+      // Fetch online bookings
+      const { data: onlineBookings, error: onlineError } = await supabase
+        .from('online_bookings')
+        .select(`
+          *,
+          staff:staff(*),
+          service:services(*)
+        `)
+        .eq('tenant_id', tenantId)
+        .order('start_time', { ascending: true });
       
-      // Transform snake_case to camelCase
-      return data.map(booking => ({
+      if (onlineError) throw onlineError;
+      
+      // Transform regular bookings
+      const transformedRegularBookings = (regularBookings || []).map(booking => ({
         id: booking.id,
         tenantId: booking.tenant_id,
         customerId: booking.customer_id,
@@ -58,7 +71,52 @@ export const useBookings = (tenantId: string) => {
           duration: booking.service.duration,
           price: booking.service.price,
         },
-      })) as Booking[];
+      }));
+
+      // Transform online bookings to match the Booking interface
+      const transformedOnlineBookings = (onlineBookings || []).map(booking => ({
+        id: booking.id,
+        tenantId: booking.tenant_id,
+        customerId: booking.id, // Use booking ID as customer ID since there's no customer table entry
+        staffId: booking.staff_id,
+        serviceId: booking.service_id,
+        startTime: booking.start_time,
+        endTime: booking.end_time,
+        status: booking.status as 'confirmed' | 'pending' | 'cancelled' | 'completed',
+        notes: booking.customer_notes || '',
+        customer: {
+          id: booking.id,
+          tenantId: booking.tenant_id,
+          name: booking.customer_name,
+          email: booking.customer_email,
+          phone: booking.customer_phone || '',
+          avatar: null,
+        },
+        staff: {
+          id: booking.staff.id,
+          tenantId: booking.staff.tenant_id,
+          name: booking.staff.name,
+          email: booking.staff.email,
+          role: booking.staff.role,
+          skills: booking.staff.skills || [],
+          avatar: booking.staff.avatar,
+          isActive: booking.staff.is_active,
+        },
+        service: {
+          id: booking.service.id,
+          tenantId: booking.service.tenant_id,
+          name: booking.service.name,
+          description: booking.service.description,
+          duration: booking.service.duration,
+          price: booking.service.price,
+        },
+      }));
+
+      // Combine both types of bookings and sort by start time
+      const allBookings = [...transformedRegularBookings, ...transformedOnlineBookings];
+      allBookings.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+      return allBookings as Booking[];
     },
     enabled: !!tenantId,
   });
