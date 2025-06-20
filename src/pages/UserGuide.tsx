@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -67,38 +66,61 @@ const UserGuide = () => {
               <Separator />
               
               <div>
-                <h3 className="text-lg font-semibold mb-2">Quick Setup Checklist</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
-                      <span className="text-white text-xs">✓</span>
+                <h3 className="text-lg font-semibold mb-3">Quick Setup Checklist</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Follow these steps in order to set up your LabamuBooking system properly:
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs font-bold">1</span>
                     </div>
-                    <span>Create your business account and profile</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
-                      <span className="text-white text-xs">✓</span>
+                    <div>
+                      <span className="font-medium">Create your business account and profile</span>
+                      <p className="text-sm text-gray-600 mt-1">Register your business and set up basic information including name, type, and contact details.</p>
                     </div>
-                    <span>Set up service categories and services</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
-                      <span className="text-white text-xs">✓</span>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs font-bold">2</span>
                     </div>
-                    <span>Create staff roles and add team members</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
-                      <span className="text-white text-xs">✓</span>
+                    <div>
+                      <span className="font-medium">Set up Services: First define service categories, then add individual services</span>
+                      <p className="text-sm text-gray-600 mt-1">Create categories like "Hair Services" or "Spa Treatments", then add specific services with pricing and duration.</p>
                     </div>
-                    <span>Set up staff schedules</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center">
-                      <span className="text-white text-xs">✓</span>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs font-bold">3</span>
                     </div>
-                    <span>Configure commission schemes</span>
+                    <div>
+                      <span className="font-medium">Create staff roles and add team members</span>
+                      <p className="text-sm text-gray-600 mt-1">Define roles with appropriate permissions, then add staff members and assign them to roles.</p>
+                    </div>
                   </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs font-bold">4</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Set up staff schedules and availability</span>
+                      <p className="text-sm text-gray-600 mt-1">Configure when each staff member is available to provide services, including regular hours and exceptions.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs font-bold">5</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Configure commission schemes for staff compensation</span>
+                      <p className="text-sm text-gray-600 mt-1">Set up how staff earn commissions on services, either as percentages or fixed amounts.</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Important:</strong> Complete these steps in order as each builds upon the previous one. For example, you need services defined before you can create bookings, and staff must exist before you can assign schedules.
+                  </p>
                 </div>
               </div>
             </CardContent>
