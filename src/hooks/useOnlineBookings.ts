@@ -57,13 +57,41 @@ export const useBookingSettings = (tenantId: string) => {
   return useQuery({
     queryKey: ['booking-settings', tenantId],
     queryFn: async () => {
+      console.log('Fetching booking settings for tenant:', tenantId);
+      
       const { data, error } = await supabase
         .from('booking_settings')
         .select('*')
         .eq('tenant_id', tenantId)
-        .single();
+        .maybeSingle(); // Use maybeSingle to handle cases where no settings exist
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching booking settings:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.log('No booking settings found for tenant:', tenantId);
+        // Return default settings
+        return {
+          id: '',
+          tenantId: tenantId,
+          advanceBookingDays: 30,
+          minAdvanceHours: 2,
+          maxAdvanceHours: 720,
+          allowSameDayBooking: true,
+          requireCustomerPhone: false,
+          requireCustomerNotes: false,
+          autoConfirmBookings: false,
+          sendConfirmationEmail: true,
+          sendReminderEmail: true,
+          reminderHoursBefore: 24,
+          cancellationPolicy: null,
+          termsAndConditions: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as BookingSettings;
+      }
       
       // Map snake_case to camelCase
       return {
@@ -169,6 +197,13 @@ export const useAvailableSlots = (tenantId: string, staffId: string, serviceId: 
   return useQuery({
     queryKey: ['available-slots', tenantId, staffId, serviceId, date],
     queryFn: async () => {
+      console.log('Fetching available slots for:', { tenantId, staffId, serviceId, date });
+      
+      if (!tenantId || !staffId || !serviceId || !date) {
+        console.log('Missing required parameters for slots query');
+        return [];
+      }
+
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
@@ -186,10 +221,15 @@ export const useAvailableSlots = (tenantId: string, staffId: string, serviceId: 
         .lte('start_time', endOfDay.toISOString())
         .order('start_time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching availability slots:', error);
+        throw error;
+      }
+      
+      console.log('Available slots found:', data?.length || 0);
       
       // Map snake_case to camelCase
-      return data.map(item => ({
+      return (data || []).map(item => ({
         id: item.id,
         tenantId: item.tenant_id,
         staffId: item.staff_id,
@@ -203,6 +243,8 @@ export const useAvailableSlots = (tenantId: string, staffId: string, serviceId: 
       })) as AvailabilitySlot[];
     },
     enabled: !!tenantId && !!staffId && !!serviceId && !!date,
+    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
@@ -326,7 +368,7 @@ export const useOnlineBookings = (tenantId: string) => {
         internalNotes: item.internal_notes,
         confirmationToken: item.confirmation_token,
         cancellationToken: item.cancellation_token,
-        totalPrice: item.total_price,
+        totalPrice: data.total_price,
         bookingReference: item.booking_reference,
         source: item.source,
         createdAt: item.created_at,
