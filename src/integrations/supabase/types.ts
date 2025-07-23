@@ -1993,6 +1993,10 @@ export type Database = {
           message: string
         }[]
       }
+      generate_availability_slots_comprehensive: {
+        Args: { p_tenant_id: string; p_start_date: string; p_end_date: string }
+        Returns: number
+      }
       generate_booking_reference: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2021,6 +2025,21 @@ export type Database = {
       get_current_tenant_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_staff_working_periods: {
+        Args: {
+          p_staff_id: string
+          p_tenant_id: string
+          p_start_date: string
+          p_end_date: string
+        }
+        Returns: {
+          source_type: string
+          start_time: string
+          end_time: string
+          title: string
+          description: string
+        }[]
       }
       get_user_tenant_id: {
         Args: Record<PropertyKey, never>
